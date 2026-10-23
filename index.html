@@ -13,8 +13,7 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
 
     <!-- Google Font: Plus Jakarta Sans -->
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap"
-        rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 
     <style>
         body {
@@ -50,21 +49,13 @@
 
         /* Clean Print Formatting */
         @media print {
-
-            header,
-            footer,
-            nav,
-            .no-print,
-            #noticeTicker,
-            #toastContainer {
+            header, footer, nav, .no-print, #noticeTicker, #toastContainer {
                 display: none !important;
             }
-
             body {
                 background-color: #ffffff !important;
                 color: #000000 !important;
             }
-
             .printable-area {
                 box-shadow: none !important;
                 border: none !important;
@@ -76,13 +67,8 @@
 
         /* Ticker Marquee Animation */
         @keyframes tickerMarquee {
-            0% {
-                transform: translateX(100%);
-            }
-
-            100% {
-                transform: translateX(-100%);
-            }
+            0% { transform: translateX(100%); }
+            100% { transform: translateX(-100%); }
         }
 
         .ticker-marquee-content {
@@ -97,17 +83,8 @@
 
         /* Glowing Animation for New Material */
         @keyframes newMaterialGlow {
-
-            0%,
-            100% {
-                border-color: #fbbf24;
-                box-shadow: 0 0 10px rgba(251, 191, 36, 0.4);
-            }
-
-            50% {
-                border-color: #6366f1;
-                box-shadow: 0 0 14px rgba(99, 102, 241, 0.45);
-            }
+            0%, 100% { border-color: #fbbf24; box-shadow: 0 0 10px rgba(251, 191, 36, 0.4); }
+            50% { border-color: #6366f1; box-shadow: 0 0 14px rgba(99, 102, 241, 0.45); }
         }
 
         .new-card-glow {
@@ -122,20 +99,16 @@
     <div id="toastContainer" class="fixed bottom-5 right-5 z-50 flex flex-col gap-2 no-print pointer-events-none"></div>
 
     <!-- Custom Confirmation Modal -->
-    <div id="confirmModal"
-        class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 no-print">
+    <div id="confirmModal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 no-print">
         <div class="bg-white w-full max-w-sm rounded-2xl shadow-xl border border-slate-200 p-6 space-y-4 text-center">
-            <div
-                class="bg-amber-100 text-amber-700 w-12 h-12 rounded-full flex items-center justify-center mx-auto text-xl">
+            <div class="bg-amber-100 text-amber-700 w-12 h-12 rounded-full flex items-center justify-center mx-auto text-xl">
                 <i class="fa-solid fa-triangle-exclamation"></i>
             </div>
             <h3 id="confirmModalTitle" class="text-base font-bold text-slate-900">Are you sure?</h3>
             <p id="confirmModalText" class="text-xs text-slate-500">This action cannot be undone.</p>
             <div class="flex gap-2 pt-2">
-                <button onclick="closeConfirmModal(false)"
-                    class="w-1/2 bg-slate-100 text-slate-700 font-bold py-2 rounded-lg text-xs hover:bg-slate-200 transition">Cancel</button>
-                <button id="confirmModalActionBtn" onclick="closeConfirmModal(true)"
-                    class="w-1/2 bg-rose-600 text-white font-bold py-2 rounded-lg text-xs hover:bg-rose-700 transition">Confirm</button>
+                <button onclick="closeConfirmModal(false)" class="w-1/2 bg-slate-100 text-slate-700 font-bold py-2 rounded-lg text-xs hover:bg-slate-200 transition">Cancel</button>
+                <button id="confirmModalActionBtn" onclick="closeConfirmModal(true)" class="w-1/2 bg-rose-600 text-white font-bold py-2 rounded-lg text-xs hover:bg-rose-700 transition">Confirm</button>
             </div>
         </div>
     </div>
@@ -145,51 +118,40 @@
         <div class="max-w-7xl mx-auto px-4 py-3 flex flex-wrap justify-between items-center gap-2">
 
             <!-- Logo Branding (Secret 5-Click Admin Portal Trigger) -->
-            <div onclick="handleLogoClick()" class="flex items-center gap-3 cursor-pointer select-none"
-                title="ExamInPocket Portal (Click 5 times for Admin Portal)">
-                <div
-                    class="bg-amber-400 text-slate-950 font-extrabold text-xl px-3 py-1.5 rounded-xl shadow-sm hover:bg-amber-300 transition">
+            <div onclick="handleLogoClick()" class="flex items-center gap-3 cursor-pointer select-none" title="ExamInPocket Portal (Click 5 times for Admin Portal)">
+                <div class="bg-amber-400 text-slate-950 font-extrabold text-xl px-3 py-1.5 rounded-xl shadow-sm hover:bg-amber-300 transition">
                     EiP
                 </div>
                 <div>
-                    <h1 class="text-xl font-bold tracking-tight text-white">ExamInPocket<span
-                            class="text-amber-400">.com</span></h1>
+                    <h1 class="text-xl font-bold tracking-tight text-white">ExamInPocket<span class="text-amber-400">.com</span></h1>
                     <p class="text-xs text-slate-400">FPSC • PPSC • SPSC • CSS • PMS • CCE</p>
                 </div>
             </div>
 
             <!-- Public Navigation Links (No Admin Link Exposed) -->
             <nav class="flex flex-wrap items-center gap-1 text-xs sm:text-sm font-medium">
-                <button onclick="switchTab('homeTab')" id="nav-homeTab"
-                    class="nav-link active-link px-3 py-2 rounded-lg hover:bg-slate-800 transition">
+                <button onclick="switchTab('homeTab')" id="nav-homeTab" class="nav-link active-link px-3 py-2 rounded-lg hover:bg-slate-800 transition">
                     <i class="fa-solid fa-house mr-1"></i> Home
                 </button>
-                <button onclick="switchTab('testTab')" id="nav-testTab"
-                    class="nav-link px-3 py-2 rounded-lg hover:bg-slate-800 transition">
+                <button onclick="switchTab('testTab')" id="nav-testTab" class="nav-link px-3 py-2 rounded-lg hover:bg-slate-800 transition">
                     <i class="fa-solid fa-stopwatch mr-1"></i> Mock Test
                 </button>
-                <button onclick="switchTab('dawnTab')" id="nav-dawnTab"
-                    class="nav-link px-3 py-2 rounded-lg hover:bg-slate-800 transition">
+                <button onclick="switchTab('dawnTab')" id="nav-dawnTab" class="nav-link px-3 py-2 rounded-lg hover:bg-slate-800 transition">
                     <i class="fa-solid fa-newspaper mr-1"></i> Dawn Vocab
                 </button>
-                <button onclick="switchTab('articlesTab')" id="nav-articlesTab"
-                    class="nav-link px-3 py-2 rounded-lg hover:bg-slate-800 transition">
+                <button onclick="switchTab('articlesTab')" id="nav-articlesTab" class="nav-link px-3 py-2 rounded-lg hover:bg-slate-800 transition">
                     <i class="fa-solid fa-file-lines mr-1"></i> Articles
                 </button>
-                <button onclick="switchTab('libraryTab')" id="nav-libraryTab"
-                    class="nav-link px-3 py-2 rounded-lg hover:bg-slate-800 transition">
+                <button onclick="switchTab('libraryTab')" id="nav-libraryTab" class="nav-link px-3 py-2 rounded-lg hover:bg-slate-800 transition">
                     <i class="fa-solid fa-book-open mr-1"></i> Library
                 </button>
-                <button onclick="switchTab('savedTab')" id="nav-savedTab"
-                    class="nav-link px-3 py-2 rounded-lg hover:bg-slate-800 transition">
+                <button onclick="switchTab('savedTab')" id="nav-savedTab" class="nav-link px-3 py-2 rounded-lg hover:bg-slate-800 transition">
                     <i class="fa-solid fa-bookmark text-amber-400 mr-1"></i> Saved (<span id="saved-count">0</span>)
                 </button>
-                <button onclick="switchTab('aiTab')" id="nav-aiTab"
-                    class="nav-link px-3 py-2 rounded-lg bg-indigo-900 text-amber-300 hover:bg-indigo-800 transition border border-indigo-700">
+                <button onclick="switchTab('aiTab')" id="nav-aiTab" class="nav-link px-3 py-2 rounded-lg bg-indigo-900 text-amber-300 hover:bg-indigo-800 transition border border-indigo-700">
                     <i class="fa-solid fa-robot mr-1"></i> AI Tutor
                 </button>
-                <button onclick="toggleAuthModal()" id="userAuthBtn"
-                    class="bg-amber-400 text-slate-950 font-semibold px-3 py-2 rounded-lg hover:bg-amber-300 transition ml-1">
+                <button onclick="toggleAuthModal()" id="userAuthBtn" class="bg-amber-400 text-slate-950 font-semibold px-3 py-2 rounded-lg hover:bg-amber-300 transition ml-1">
                     <i class="fa-solid fa-user mr-1"></i> Login
                 </button>
             </nav>
@@ -197,63 +159,47 @@
     </header>
 
     <!-- Animated Notice Ticker -->
-    <div id="noticeTicker"
-        class="bg-gradient-to-r from-amber-50 via-amber-100 to-amber-50 border-b border-amber-300 text-amber-950 py-2.5 px-4 text-xs font-semibold overflow-hidden no-print shadow-inner flex items-center gap-3">
-        <div
-            class="flex items-center gap-1.5 bg-amber-400 text-slate-950 px-2.5 py-0.5 rounded-full font-extrabold shrink-0 text-[11px] shadow-sm">
+    <div id="noticeTicker" class="bg-gradient-to-r from-amber-50 via-amber-100 to-amber-50 border-b border-amber-300 text-amber-950 py-2.5 px-4 text-xs font-semibold overflow-hidden no-print shadow-inner flex items-center gap-3">
+        <div class="flex items-center gap-1.5 bg-amber-400 text-slate-950 px-2.5 py-0.5 rounded-full font-extrabold shrink-0 text-[11px] shadow-sm">
             <span class="relative flex h-2 w-2">
-                <span
-                    class="animate-ping absolute inline-flex h-full w-full rounded-full bg-slate-900 opacity-75"></span>
+                <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-slate-900 opacity-75"></span>
                 <span class="relative inline-flex rounded-full h-2 w-2 bg-slate-950"></span>
             </span>
             LIVE UPDATE
         </div>
         <div class="w-full overflow-hidden relative flex items-center">
             <div class="ticker-marquee-content">
-                📢 <span class="font-bold">Latest Exam Update:</span> CSS MPT & SPSC CCE Solved Past Paper MCQs Added •
-                Daily Dawn Vocabulary Active • Live Gemini AI Tutor Active!
+                📢 <span class="font-bold">Latest Exam Update:</span> CSS MPT & SPSC CCE Solved Past Paper MCQs Added • Daily Dawn Vocabulary Active • Live Gemini AI Tutor Active!
             </div>
         </div>
     </div>
 
     <!-- On-Screen Reader Modal -->
-    <div id="readerModal"
-        class="hidden fixed inset-0 bg-slate-900/80 backdrop-blur-md z-50 flex items-center justify-center p-2 sm:p-6 no-print">
-        <div
-            class="bg-white w-full max-w-5xl h-[92vh] rounded-2xl shadow-2xl border border-slate-200 flex flex-col overflow-hidden relative">
-
-            <div
-                class="bg-slate-900 text-white p-3 sm:p-4 flex justify-between items-center border-b border-slate-800 gap-2">
+    <div id="readerModal" class="hidden fixed inset-0 bg-slate-900/80 backdrop-blur-md z-50 flex items-center justify-center p-2 sm:p-6 no-print">
+        <div class="bg-white w-full max-w-5xl h-[92vh] rounded-2xl shadow-2xl border border-slate-200 flex flex-col overflow-hidden relative">
+            
+            <div class="bg-slate-900 text-white p-3 sm:p-4 flex justify-between items-center border-b border-slate-800 gap-2">
                 <div class="flex items-center gap-3 overflow-hidden">
-                    <div
-                        class="bg-amber-400 text-slate-950 p-2 sm:p-2.5 rounded-xl font-bold text-xs sm:text-sm shrink-0">
+                    <div class="bg-amber-400 text-slate-950 p-2 sm:p-2.5 rounded-xl font-bold text-xs sm:text-sm shrink-0">
                         <i class="fa-solid fa-book-reader"></i>
                     </div>
                     <div class="truncate">
-                        <h3 id="readerModalTitle" class="font-bold text-xs sm:text-base text-white truncate">Document
-                            Viewer</h3>
-                        <p id="readerModalCat" class="text-[10px] sm:text-xs text-amber-400 font-medium truncate">
-                            ExamInPocket Academic Library</p>
+                        <h3 id="readerModalTitle" class="font-bold text-xs sm:text-base text-white truncate">Document Viewer</h3>
+                        <p id="readerModalCat" class="text-[10px] sm:text-xs text-amber-400 font-medium truncate">ExamInPocket Academic Library</p>
                     </div>
                 </div>
-
+                
                 <div class="flex items-center gap-2 shrink-0">
-                    <a id="readerExternalBtn" href="#" target="_blank" rel="noopener noreferrer"
-                        class="bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 px-2.5 py-1.5 sm:px-3 sm:py-2 rounded-lg text-xs font-bold transition flex items-center gap-1"
-                        title="Open direct URL in new tab">
-                        <i class="fa-solid fa-arrow-up-right-from-square"></i> <span class="hidden sm:inline">Open
-                            Direct</span>
+                    <a id="readerExternalBtn" href="#" target="_blank" rel="noopener noreferrer" class="bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 px-2.5 py-1.5 sm:px-3 sm:py-2 rounded-lg text-xs font-bold transition flex items-center gap-1" title="Open direct URL in new tab">
+                        <i class="fa-solid fa-arrow-up-right-from-square"></i> <span class="hidden sm:inline">Open Direct</span>
                     </a>
-                    <button onclick="printReaderContent()"
-                        class="bg-indigo-700 hover:bg-indigo-600 text-white px-2.5 py-1.5 sm:px-3 sm:py-2 rounded-lg text-xs font-bold transition flex items-center gap-1">
+                    <button onclick="printReaderContent()" class="bg-indigo-700 hover:bg-indigo-600 text-white px-2.5 py-1.5 sm:px-3 sm:py-2 rounded-lg text-xs font-bold transition flex items-center gap-1">
                         <i class="fa-solid fa-print"></i> <span class="hidden sm:inline">Print</span>
                     </button>
-                    <a id="readerDownloadBtn" href="#" target="_blank" rel="noopener noreferrer"
-                        class="bg-amber-400 hover:bg-amber-300 text-slate-950 px-2.5 py-1.5 sm:px-3 sm:py-2 rounded-lg text-xs font-bold transition flex items-center gap-1">
+                    <a id="readerDownloadBtn" href="#" target="_blank" rel="noopener noreferrer" class="bg-amber-400 hover:bg-amber-300 text-slate-950 px-2.5 py-1.5 sm:px-3 sm:py-2 rounded-lg text-xs font-bold transition flex items-center gap-1">
                         <i class="fa-solid fa-download"></i> <span class="hidden sm:inline">Download</span>
                     </a>
-                    <button onclick="closeReaderModal()"
-                        class="text-slate-400 hover:text-white p-1.5 sm:p-2 rounded-lg transition text-lg sm:text-xl">
+                    <button onclick="closeReaderModal()" class="text-slate-400 hover:text-white p-1.5 sm:p-2 rounded-lg transition text-lg sm:text-xl">
                         <i class="fa-solid fa-xmark"></i>
                     </button>
                 </div>
@@ -261,15 +207,12 @@
 
             <div class="flex-grow bg-slate-100 p-2 sm:p-4 overflow-y-auto flex justify-center items-center">
                 <!-- PDF / Embed Iframe -->
-                <iframe id="pdfFrame"
-                    class="w-full h-full rounded-xl border border-slate-300 bg-white shadow-inner hidden"></iframe>
-
+                <iframe id="pdfFrame" class="w-full h-full rounded-xl border border-slate-300 bg-white shadow-inner hidden"></iframe>
+                
                 <!-- Clean Text Doc Viewer Fallback -->
-                <div id="textDocViewer"
-                    class="w-full max-w-4xl h-full bg-white p-6 sm:p-10 rounded-xl border border-slate-200 shadow-sm overflow-y-auto printable-area hidden space-y-4">
+                <div id="textDocViewer" class="w-full max-w-4xl h-full bg-white p-6 sm:p-10 rounded-xl border border-slate-200 shadow-sm overflow-y-auto printable-area hidden space-y-4">
                     <div class="border-b pb-4 mb-4 text-center">
-                        <h2 id="textDocTitle" class="text-xl sm:text-2xl font-extrabold text-slate-900">Document Title
-                        </h2>
+                        <h2 id="textDocTitle" class="text-xl sm:text-2xl font-extrabold text-slate-900">Document Title</h2>
                         <p class="text-xs text-amber-600 font-semibold mt-1">ExamInPocket Verified Study Guide</p>
                     </div>
                     <div id="textDocBody" class="text-xs sm:text-sm text-slate-800 leading-relaxed space-y-3">
@@ -277,17 +220,15 @@
                     </div>
                 </div>
             </div>
-
+            
             <div class="bg-slate-50 p-2 text-center text-[11px] text-slate-500 border-t border-slate-200">
-                📖 Tip: Google Drive links & local PDFs load directly inside this reader frame. Use "Open Direct" or
-                "Download" if external sites restrict iframe embedding.
+                📖 Tip: Google Drive links & local PDFs load directly inside this reader frame. Use "Open Direct" or "Download" if external sites restrict iframe embedding.
             </div>
         </div>
     </div>
 
     <!-- Edit Book Modal -->
-    <div id="editBookModal"
-        class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div id="editBookModal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
         <div class="bg-white w-full max-w-md rounded-2xl shadow-xl border border-slate-200 p-6 space-y-4 relative">
             <button onclick="closeEditBookModal()" class="absolute right-4 top-4 text-slate-400 hover:text-slate-600">
                 <i class="fa-solid fa-xmark text-lg"></i>
@@ -311,11 +252,9 @@
                 </div>
                 <div>
                     <label class="block font-bold text-slate-700 mb-1">Google Drive / PDF Link</label>
-                    <input type="text" id="editBookUrl" class="w-full p-2.5 border border-slate-300 rounded-lg"
-                        placeholder="https://drive.google.com/...">
+                    <input type="text" id="editBookUrl" class="w-full p-2.5 border border-slate-300 rounded-lg" placeholder="https://drive.google.com/...">
                 </div>
-                <button onclick="saveBookEdits()"
-                    class="w-full bg-indigo-900 text-white font-bold py-2.5 rounded-lg hover:bg-indigo-800 transition">
+                <button onclick="saveBookEdits()" class="w-full bg-indigo-900 text-white font-bold py-2.5 rounded-lg hover:bg-indigo-800 transition">
                     Save Changes & Update
                 </button>
             </div>
@@ -323,8 +262,7 @@
     </div>
 
     <!-- Edit MCQ Modal -->
-    <div id="editMcqModal"
-        class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div id="editMcqModal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
         <div class="bg-white w-full max-w-lg rounded-2xl shadow-xl border border-slate-200 p-6 space-y-4 relative">
             <button onclick="closeEditMcqModal()" class="absolute right-4 top-4 text-slate-400 hover:text-slate-600">
                 <i class="fa-solid fa-xmark text-lg"></i>
@@ -336,8 +274,7 @@
             <div class="space-y-3 text-xs sm:text-sm">
                 <div>
                     <label class="block font-bold text-slate-700 mb-1">Subject Category</label>
-                    <select id="editMcqCat" onchange="handleEditCategoryChange(this)"
-                        class="w-full p-2.5 border border-slate-300 rounded-lg bg-slate-50">
+                    <select id="editMcqCat" onchange="handleEditCategoryChange(this)" class="w-full p-2.5 border border-slate-300 rounded-lg bg-slate-50">
                         <option value="General Knowledge">General Knowledge</option>
                         <option value="Pakistan Studies">Pakistan Studies</option>
                         <option value="Everyday Science">Everyday Science</option>
@@ -354,8 +291,7 @@
                         <option value="Past Papers MCQs">Past Papers MCQs</option>
                         <option value="__NEW_SUBJECT__">➕ Add New / Custom Subject...</option>
                     </select>
-                    <input type="text" id="editMcqCustomCat" placeholder="Type custom subject name..."
-                        class="w-full p-2.5 border border-amber-300 rounded-lg mt-2 hidden">
+                    <input type="text" id="editMcqCustomCat" placeholder="Type custom subject name..." class="w-full p-2.5 border border-amber-300 rounded-lg mt-2 hidden">
                 </div>
                 <div>
                     <label class="block font-bold text-slate-700 mb-1">Question Statement</label>
@@ -380,8 +316,7 @@
                     <label class="block font-bold text-slate-700 mb-1">Explanation</label>
                     <input type="text" id="editMcqExp" class="w-full p-2.5 border border-slate-300 rounded-lg">
                 </div>
-                <button onclick="saveMcqEdits()"
-                    class="w-full bg-slate-900 text-amber-400 font-bold py-2.5 rounded-lg hover:bg-slate-800 transition">
+                <button onclick="saveMcqEdits()" class="w-full bg-slate-900 text-amber-400 font-bold py-2.5 rounded-lg hover:bg-slate-800 transition">
                     Save MCQ Updates
                 </button>
             </div>
@@ -389,12 +324,9 @@
     </div>
 
     <!-- Edit Article Modal -->
-    <div id="editArticleModal"
-        class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-        <div
-            class="bg-white w-full max-w-lg rounded-2xl shadow-xl border border-slate-200 p-6 space-y-4 relative max-h-[90vh] overflow-y-auto">
-            <button onclick="closeEditArticleModal()"
-                class="absolute right-4 top-4 text-slate-400 hover:text-slate-600">
+    <div id="editArticleModal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div class="bg-white w-full max-w-lg rounded-2xl shadow-xl border border-slate-200 p-6 space-y-4 relative max-h-[90vh] overflow-y-auto">
+            <button onclick="closeEditArticleModal()" class="absolute right-4 top-4 text-slate-400 hover:text-slate-600">
                 <i class="fa-solid fa-xmark text-lg"></i>
             </button>
             <h3 class="text-lg font-bold text-slate-900 border-b pb-2 flex items-center gap-2">
@@ -418,11 +350,9 @@
                 </div>
                 <div>
                     <label class="block font-bold text-slate-700 mb-1">Full Article / Outline Content</label>
-                    <textarea id="editArtContent" rows="6"
-                        class="w-full p-2.5 border border-slate-300 rounded-lg font-mono text-xs"></textarea>
+                    <textarea id="editArtContent" rows="6" class="w-full p-2.5 border border-slate-300 rounded-lg font-mono text-xs"></textarea>
                 </div>
-                <button onclick="saveArticleEdits()"
-                    class="w-full bg-amber-500 text-slate-950 font-bold py-2.5 rounded-lg hover:bg-amber-400 transition">
+                <button onclick="saveArticleEdits()" class="w-full bg-amber-500 text-slate-950 font-bold py-2.5 rounded-lg hover:bg-amber-400 transition">
                     Save Article Updates
                 </button>
             </div>
@@ -430,8 +360,7 @@
     </div>
 
     <!-- User Auth Modal -->
-    <div id="authModal"
-        class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 no-print">
+    <div id="authModal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 no-print">
         <div class="bg-white w-full max-w-md rounded-2xl shadow-xl border border-slate-200 p-6 space-y-4 relative">
             <button onclick="toggleAuthModal()" class="absolute right-4 top-4 text-slate-400 hover:text-slate-600">
                 <i class="fa-solid fa-xmark text-lg"></i>
@@ -442,16 +371,13 @@
             <div class="space-y-3">
                 <div>
                     <label class="block text-xs font-bold text-slate-700 mb-1">Email Address</label>
-                    <input type="email" id="authEmail" placeholder="student@example.com"
-                        class="w-full p-2.5 border border-slate-300 rounded-lg text-xs sm:text-sm">
+                    <input type="email" id="authEmail" placeholder="student@example.com" class="w-full p-2.5 border border-slate-300 rounded-lg text-xs sm:text-sm">
                 </div>
                 <div>
                     <label class="block text-xs font-bold text-slate-700 mb-1">Password</label>
-                    <input type="password" id="authPassword" placeholder="••••••••"
-                        class="w-full p-2.5 border border-slate-300 rounded-lg text-xs sm:text-sm">
+                    <input type="password" id="authPassword" placeholder="••••••••" class="w-full p-2.5 border border-slate-300 rounded-lg text-xs sm:text-sm">
                 </div>
-                <button onclick="handleLogin()"
-                    class="w-full bg-slate-900 text-white font-bold py-2.5 rounded-lg text-xs sm:text-sm hover:bg-slate-800 transition">
+                <button onclick="handleLogin()" class="w-full bg-slate-900 text-white font-bold py-2.5 rounded-lg text-xs sm:text-sm hover:bg-slate-800 transition">
                     Login / Register
                 </button>
             </div>
@@ -470,16 +396,13 @@
                     Prepare for <span class="text-amber-400">CSS, PMS, PCS, CCE</span> & All Competitive Exams
                 </h2>
                 <p class="text-xs sm:text-sm text-slate-300 max-w-2xl">
-                    Access thousands of verified MCQs, solved past papers, Dawn vocabulary, editorial articles, and
-                    AI-powered study guides.
+                    Access thousands of verified MCQs, solved past papers, Dawn vocabulary, editorial articles, and AI-powered study guides.
                 </p>
 
                 <!-- Search Input Bar -->
                 <div class="relative w-full max-w-3xl">
                     <i class="fa-solid fa-magnifying-glass absolute left-4 top-3.5 text-slate-400"></i>
-                    <input type="text" id="searchInput" oninput="filterMcqs()"
-                        placeholder="Search questions, subjects, amendments, rivers, foreign words..."
-                        class="w-full pl-11 pr-4 py-3 rounded-xl border-0 text-slate-900 text-sm focus:ring-2 focus:ring-amber-400 outline-none shadow-inner">
+                    <input type="text" id="searchInput" oninput="filterMcqs()" placeholder="Search questions, subjects, amendments, rivers, foreign words..." class="w-full pl-11 pr-4 py-3 rounded-xl border-0 text-slate-900 text-sm focus:ring-2 focus:ring-amber-400 outline-none shadow-inner">
                 </div>
 
                 <!-- Dynamic Subject Category Filter Pills -->
@@ -501,8 +424,7 @@
                     <h2 class="text-xl font-bold text-slate-900 flex items-center gap-2">
                         <i class="fa-solid fa-stopwatch text-indigo-600"></i> Online Timed Mock Test Engine
                     </h2>
-                    <p class="text-xs text-slate-500 mt-1">Practice under real examination conditions with countdown
-                        timer and automated performance reporting.</p>
+                    <p class="text-xs text-slate-500 mt-1">Practice under real examination conditions with countdown timer and automated performance reporting.</p>
                 </div>
 
                 <div id="testSetupArea" class="grid md:grid-cols-3 gap-4 mb-6">
@@ -530,8 +452,7 @@
                         </select>
                     </div>
                     <div class="flex items-end">
-                        <button onclick="startMockTest()"
-                            class="w-full bg-indigo-900 hover:bg-indigo-800 text-white font-bold py-2.5 px-4 rounded-lg transition text-sm flex items-center justify-center gap-2">
+                        <button onclick="startMockTest()" class="w-full bg-indigo-900 hover:bg-indigo-800 text-white font-bold py-2.5 px-4 rounded-lg transition text-sm flex items-center justify-center gap-2">
                             <i class="fa-solid fa-play"></i> Start Timed Test
                         </button>
                     </div>
@@ -543,8 +464,7 @@
                             <span class="text-xs font-bold text-indigo-700">Exam Mode Active</span>
                             <h3 class="text-sm font-bold text-indigo-950" id="testProgress">Question 1 of 5</h3>
                         </div>
-                        <div class="bg-slate-900 text-amber-400 px-4 py-2 rounded-xl font-mono font-bold text-lg"
-                            id="testTimer">
+                        <div class="bg-slate-900 text-amber-400 px-4 py-2 rounded-xl font-mono font-bold text-lg" id="testTimer">
                             05:00
                         </div>
                     </div>
@@ -553,19 +473,15 @@
                         <!-- Questions injected dynamically -->
                     </div>
 
-                    <button onclick="submitMockTest()"
-                        class="w-full bg-emerald-700 hover:bg-emerald-800 text-white font-bold py-3 px-6 rounded-xl text-sm shadow-md transition">
+                    <button onclick="submitMockTest()" class="w-full bg-emerald-700 hover:bg-emerald-800 text-white font-bold py-3 px-6 rounded-xl text-sm shadow-md transition">
                         Submit Test & Get Performance Analytics
                     </button>
                 </div>
 
                 <!-- Comprehensive Result Scorecard -->
-                <div id="testResultArea"
-                    class="hidden bg-slate-50 p-6 sm:p-8 rounded-2xl border border-slate-200 space-y-6">
+                <div id="testResultArea" class="hidden bg-slate-50 p-6 sm:p-8 rounded-2xl border border-slate-200 space-y-6">
                     <div class="text-center space-y-2 border-b pb-4">
-                        <span id="resultBadge"
-                            class="bg-indigo-100 text-indigo-900 text-xs font-extrabold px-3 py-1 rounded-full border border-indigo-200">Test
-                            Completed</span>
+                        <span id="resultBadge" class="bg-indigo-100 text-indigo-900 text-xs font-extrabold px-3 py-1 rounded-full border border-indigo-200">Test Completed</span>
                         <h3 class="text-2xl sm:text-3xl font-black text-slate-900">📊 Your Exam Performance Report</h3>
                         <div class="text-5xl font-black text-indigo-700 my-3" id="resultScore">0 / 0</div>
                         <p class="text-sm font-semibold text-slate-700" id="resultPercentage">Score: 0%</p>
@@ -594,8 +510,7 @@
                     <!-- Weak Subject & Recommendations Section -->
                     <div class="bg-white p-5 rounded-xl border border-slate-200 space-y-3">
                         <h4 class="font-bold text-slate-900 text-sm flex items-center gap-2 border-b pb-2">
-                            <i class="fa-solid fa-chart-pie text-amber-500"></i> Subject Analysis & Focus
-                            Recommendations
+                            <i class="fa-solid fa-chart-pie text-amber-500"></i> Subject Analysis & Focus Recommendations
                         </h4>
                         <div id="weakSubjectsList" class="text-xs text-slate-700 space-y-2 leading-relaxed">
                             <!-- Injected JS -->
@@ -603,18 +518,14 @@
                     </div>
 
                     <!-- Motivational Quote Card -->
-                    <div
-                        class="bg-gradient-to-r from-slate-900 to-indigo-950 text-white p-5 rounded-2xl shadow-sm text-center space-y-2 border border-slate-800">
+                    <div class="bg-gradient-to-r from-slate-900 to-indigo-950 text-white p-5 rounded-2xl shadow-sm text-center space-y-2 border border-slate-800">
                         <i class="fa-solid fa-quote-left text-amber-400 text-xl"></i>
-                        <p id="motivationalQuote" class="text-xs sm:text-sm font-medium italic text-slate-200">"Success
-                            is no accident. It is hard work, perseverance, learning, studying, sacrifice and most of
-                            all, love of what you are doing."</p>
+                        <p id="motivationalQuote" class="text-xs sm:text-sm font-medium italic text-slate-200">"Success is no accident. It is hard work, perseverance, learning, studying, sacrifice and most of all, love of what you are doing."</p>
                         <p class="text-[11px] text-amber-400 font-bold">— ExamInPocket Senior Mentor</p>
                     </div>
 
                     <div class="text-center pt-2">
-                        <button onclick="resetMockTest()"
-                            class="bg-indigo-900 text-white font-semibold px-8 py-3 rounded-xl text-xs sm:text-sm hover:bg-indigo-800 transition shadow-md">
+                        <button onclick="resetMockTest()" class="bg-indigo-900 text-white font-semibold px-8 py-3 rounded-xl text-xs sm:text-sm hover:bg-indigo-800 transition shadow-md">
                             <i class="fa-solid fa-rotate-right mr-1"></i> Take Another Test
                         </button>
                     </div>
@@ -627,11 +538,9 @@
             <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
                 <div class="border-b pb-4 mb-6">
                     <h2 class="text-xl font-bold text-slate-900 flex items-center gap-2">
-                        <i class="fa-solid fa-newspaper text-indigo-600"></i> Daily Dawn Editorial Vocabulary &
-                        Headlines
+                        <i class="fa-solid fa-newspaper text-indigo-600"></i> Daily Dawn Editorial Vocabulary & Headlines
                     </h2>
-                    <p class="text-xs text-slate-500 mt-1">High-yield vocabulary words with Urdu meanings, context, and
-                        daily national headlines for CSS/PMS candidates.</p>
+                    <p class="text-xs text-slate-500 mt-1">High-yield vocabulary words with Urdu meanings, context, and daily national headlines for CSS/PMS candidates.</p>
                 </div>
 
                 <div class="grid md:grid-cols-2 gap-6">
@@ -649,8 +558,7 @@
                             <i class="fa-solid fa-bullhorn text-amber-500"></i> Top National Headlines
                         </h3>
                         <div class="bg-slate-50 p-4 rounded-xl border border-slate-200">
-                            <ul id="dawnHeadlinesContainer"
-                                class="list-disc pl-5 text-xs sm:text-sm text-slate-700 space-y-2">
+                            <ul id="dawnHeadlinesContainer" class="list-disc pl-5 text-xs sm:text-sm text-slate-700 space-y-2">
                                 <!-- Injected JS -->
                             </ul>
                         </div>
@@ -666,8 +574,7 @@
                     <h2 class="text-xl font-bold text-slate-900 flex items-center gap-2">
                         <i class="fa-solid fa-file-pen text-amber-600"></i> Editorial Articles & CSS/PMS Essay Outlines
                     </h2>
-                    <p class="text-xs text-slate-500">Comprehensive essay breakdowns, current affairs analysis, and
-                        subject outlines.</p>
+                    <p class="text-xs text-slate-500">Comprehensive essay breakdowns, current affairs analysis, and subject outlines.</p>
                 </div>
                 <div id="articlesContainer" class="grid md:grid-cols-2 gap-4">
                     <!-- Injected JS -->
@@ -682,8 +589,7 @@
                     <h2 class="text-xl font-bold text-slate-900 flex items-center gap-2">
                         <i class="fa-solid fa-book-open text-indigo-600"></i> PDF Notes & Books Library
                     </h2>
-                    <p class="text-xs text-slate-500 mt-1">Read online or download authentic PDF notes, solved past
-                        papers, and subject guides.</p>
+                    <p class="text-xs text-slate-500 mt-1">Read online or download authentic PDF notes, solved past papers, and subject guides.</p>
                 </div>
 
                 <div id="libraryContainer" class="grid sm:grid-cols-2 md:grid-cols-3 gap-4">
@@ -695,28 +601,21 @@
         <!-- TAB 6: SAVED FAVORITES -->
         <section id="savedTab" class="tab-content space-y-6">
             <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
-                <div
-                    class="border-b pb-4 mb-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                <div class="border-b pb-4 mb-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                     <div>
                         <h2 class="text-xl font-bold text-slate-900 flex items-center gap-2">
                             <i class="fa-solid fa-bookmark text-amber-500"></i> Saved Revision Favorites
                         </h2>
-                        <p class="text-xs text-slate-500 mt-1">Questions, vocabulary words, articles, and library books
-                            bookmarked for quick revision.</p>
+                        <p class="text-xs text-slate-500 mt-1">Questions, vocabulary words, articles, and library books bookmarked for quick revision.</p>
                     </div>
 
                     <!-- Saved Sub-Filter Pills -->
                     <div class="flex gap-2">
-                        <button onclick="switchSavedSubFilter('ALL')" id="saved-sub-ALL"
-                            class="bg-amber-400 text-slate-950 font-bold px-3 py-1 rounded-lg text-xs">All</button>
-                        <button onclick="switchSavedSubFilter('MCQS')" id="saved-sub-MCQS"
-                            class="bg-slate-100 text-slate-700 font-medium px-3 py-1 rounded-lg text-xs">MCQs</button>
-                        <button onclick="switchSavedSubFilter('VOCAB')" id="saved-sub-VOCAB"
-                            class="bg-slate-100 text-slate-700 font-medium px-3 py-1 rounded-lg text-xs">Vocab</button>
-                        <button onclick="switchSavedSubFilter('ARTICLES')" id="saved-sub-ARTICLES"
-                            class="bg-slate-100 text-slate-700 font-medium px-3 py-1 rounded-lg text-xs">Articles</button>
-                        <button onclick="switchSavedSubFilter('BOOKS')" id="saved-sub-BOOKS"
-                            class="bg-slate-100 text-slate-700 font-medium px-3 py-1 rounded-lg text-xs">Books</button>
+                        <button onclick="switchSavedSubFilter('ALL')" id="saved-sub-ALL" class="bg-amber-400 text-slate-950 font-bold px-3 py-1 rounded-lg text-xs">All</button>
+                        <button onclick="switchSavedSubFilter('MCQS')" id="saved-sub-MCQS" class="bg-slate-100 text-slate-700 font-medium px-3 py-1 rounded-lg text-xs">MCQs</button>
+                        <button onclick="switchSavedSubFilter('VOCAB')" id="saved-sub-VOCAB" class="bg-slate-100 text-slate-700 font-medium px-3 py-1 rounded-lg text-xs">Vocab</button>
+                        <button onclick="switchSavedSubFilter('ARTICLES')" id="saved-sub-ARTICLES" class="bg-slate-100 text-slate-700 font-medium px-3 py-1 rounded-lg text-xs">Articles</button>
+                        <button onclick="switchSavedSubFilter('BOOKS')" id="saved-sub-BOOKS" class="bg-slate-100 text-slate-700 font-medium px-3 py-1 rounded-lg text-xs">Books</button>
                     </div>
                 </div>
 
@@ -729,10 +628,9 @@
         <!-- TAB 7: AI TUTOR CHATBOT -->
         <section id="aiTab" class="tab-content space-y-6">
             <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
-
+                
                 <!-- Chatbot Header -->
-                <div
-                    class="border-b pb-4 mb-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+                <div class="border-b pb-4 mb-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
                     <div class="flex items-center gap-3">
                         <div class="bg-indigo-900 text-amber-400 p-3 rounded-2xl text-2xl shadow-sm">
                             <i class="fa-solid fa-robot"></i>
@@ -740,66 +638,49 @@
                         <div>
                             <h2 class="text-xl font-bold text-slate-900 flex items-center gap-2">
                                 Gemini AI Exam Tutor Chatbot
-                                <span
-                                    class="bg-emerald-100 text-emerald-800 text-[10px] font-bold px-2 py-0.5 rounded-full border border-emerald-300">Live
-                                    AI Powered</span>
+                                <span class="bg-emerald-100 text-emerald-800 text-[10px] font-bold px-2 py-0.5 rounded-full border border-emerald-300">Live AI Powered</span>
                             </h2>
-                            <p class="text-xs text-slate-500">Ask any question, get topic explanations in simple Roman
-                                Urdu/Hinglish, or generate study schedules instantly.</p>
+                            <p class="text-xs text-slate-500">Ask any question, get topic explanations in simple Roman Urdu/Hinglish, or generate study schedules instantly.</p>
                         </div>
                     </div>
 
-                    <button onclick="clearAiChat()"
-                        class="text-xs font-bold text-slate-500 hover:text-red-600 transition flex items-center gap-1 border border-slate-200 px-3 py-1.5 rounded-lg">
+                    <button onclick="clearAiChat()" class="text-xs font-bold text-slate-500 hover:text-red-600 transition flex items-center gap-1 border border-slate-200 px-3 py-1.5 rounded-lg">
                         <i class="fa-solid fa-trash-can"></i> Clear Chat
                     </button>
                 </div>
 
                 <!-- Clean Suggested Prompt Pills -->
                 <div class="flex flex-wrap gap-2 mb-4">
-                    <button onclick="sendAiChatMessage('Give me a 7-day high yield study timetable for CSS MPT Exam')"
-                        class="bg-indigo-50 text-indigo-900 border border-indigo-200 hover:bg-indigo-100 px-3 py-1 rounded-lg text-xs font-medium transition">
+                    <button onclick="sendAiChatMessage('Give me a 7-day high yield study timetable for CSS MPT Exam')" class="bg-indigo-50 text-indigo-900 border border-indigo-200 hover:bg-indigo-100 px-3 py-1 rounded-lg text-xs font-medium transition">
                         📅 CSS 7-Day Timetable
                     </button>
-                    <button
-                        onclick="sendAiChatMessage('Give me top tips for English Essay & Precis preparation for CSS/PMS')"
-                        class="bg-indigo-50 text-indigo-900 border border-indigo-200 hover:bg-indigo-100 px-3 py-1 rounded-lg text-xs font-medium transition">
+                    <button onclick="sendAiChatMessage('Give me top tips for English Essay & Precis preparation for CSS/PMS')" class="bg-indigo-50 text-indigo-900 border border-indigo-200 hover:bg-indigo-100 px-3 py-1 rounded-lg text-xs font-medium transition">
                         ✍️ English Essay Tips
                     </button>
-                    <button
-                        onclick="sendAiChatMessage('How to score high in General Knowledge for SPSC CCE & FPSC exams?')"
-                        class="bg-indigo-50 text-indigo-900 border border-indigo-200 hover:bg-indigo-100 px-3 py-1 rounded-lg text-xs font-medium transition">
+                    <button onclick="sendAiChatMessage('How to score high in General Knowledge for SPSC CCE & FPSC exams?')" class="bg-indigo-50 text-indigo-900 border border-indigo-200 hover:bg-indigo-100 px-3 py-1 rounded-lg text-xs font-medium transition">
                         💡 General Knowledge Strategy
                     </button>
                 </div>
 
                 <!-- Chat Messages Scroll Container -->
-                <div id="aiChatWindow"
-                    class="bg-slate-50 p-4 rounded-2xl border border-slate-200 min-h-[380px] max-h-[500px] overflow-y-auto space-y-4 shadow-inner">
+                <div id="aiChatWindow" class="bg-slate-50 p-4 rounded-2xl border border-slate-200 min-h-[380px] max-h-[500px] overflow-y-auto space-y-4 shadow-inner">
                     <div class="flex gap-3 items-start">
                         <div class="bg-indigo-900 text-amber-400 p-2 rounded-xl text-sm shrink-0">
                             <i class="fa-solid fa-robot"></i>
                         </div>
-                        <div
-                            class="bg-white p-4 rounded-2xl rounded-tl-none border border-slate-200 text-xs sm:text-sm text-slate-800 space-y-2 shadow-sm max-w-2xl">
+                        <div class="bg-white p-4 rounded-2xl rounded-tl-none border border-slate-200 text-xs sm:text-sm text-slate-800 space-y-2 shadow-sm max-w-2xl">
                             <p class="font-bold text-indigo-950">Assalam-o-Alaikum Student! 🎓</p>
-                            <p>Main aap ka <strong>ExamInPocket Gemini AI Tutor Chatbot</strong> hoon. FPSC, PPSC, SPSC,
-                                CSS, PMS, CCE, Past Papers, ya kisi bhi subject ka koi bhi topic poochain — main aap ko
-                                <strong>easy Hinglish / Roman Urdu</strong> mein explain karoon ga.</p>
-                            <p class="text-[11px] text-slate-500 border-t pt-1">💡 <em>Tip: Niche box mein apna sawal
-                                    type karain ya upar wale buttons par click karain!</em></p>
+                            <p>Main aap ka <strong>ExamInPocket Gemini AI Tutor Chatbot</strong> hoon. FPSC, PPSC, SPSC, CSS, PMS, CCE, Past Papers, ya kisi bhi subject ka koi bhi topic poochain — main aap ko <strong>easy Hinglish / Roman Urdu</strong> mein explain karoon ga.</p>
+                            <p class="text-[11px] text-slate-500 border-t pt-1">💡 <em>Tip: Niche box mein apna sawal type karain ya upar wale buttons par click karain!</em></p>
                         </div>
                     </div>
                 </div>
 
                 <!-- Chat Input Controls -->
                 <div class="mt-4 flex gap-2">
-                    <textarea id="aiPromptInput" rows="2" onkeydown="handleAiInputKey(event)"
-                        placeholder="Type your question here (e.g., Explain Sindhology history or Triangle geometry for competitive exams)..."
-                        class="flex-grow p-3 border border-slate-300 rounded-xl text-xs sm:text-sm focus:ring-2 focus:ring-indigo-600 focus:outline-none shadow-sm resize-none bg-white"></textarea>
+                    <textarea id="aiPromptInput" rows="2" onkeydown="handleAiInputKey(event)" placeholder="Type your question here (e.g., Explain Sindhology history or Triangle geometry for competitive exams)..." class="flex-grow p-3 border border-slate-300 rounded-xl text-xs sm:text-sm focus:ring-2 focus:ring-indigo-600 focus:outline-none shadow-sm resize-none bg-white"></textarea>
 
-                    <button onclick="sendAiChatMessage()" id="aiSendBtn"
-                        class="bg-indigo-900 hover:bg-indigo-800 text-amber-300 font-bold px-5 rounded-xl text-xs sm:text-sm transition flex flex-col justify-center items-center shrink-0 shadow-md">
+                    <button onclick="sendAiChatMessage()" id="aiSendBtn" class="bg-indigo-900 hover:bg-indigo-800 text-amber-300 font-bold px-5 rounded-xl text-xs sm:text-sm transition flex flex-col justify-center items-center shrink-0 shadow-md">
                         <i class="fa-solid fa-paper-plane text-base mb-0.5"></i>
                         <span>Send</span>
                     </button>
@@ -812,11 +693,9 @@
         <section id="adminTab" class="tab-content space-y-6">
 
             <!-- Admin Authentication Login Box -->
-            <div id="adminLoginCard"
-                class="bg-white p-6 sm:p-8 rounded-2xl shadow-sm border border-slate-200 max-w-md mx-auto space-y-4">
+            <div id="adminLoginCard" class="bg-white p-6 sm:p-8 rounded-2xl shadow-sm border border-slate-200 max-w-md mx-auto space-y-4">
                 <div class="text-center space-y-2">
-                    <div
-                        class="bg-indigo-100 text-indigo-900 p-3 rounded-full w-12 h-12 flex items-center justify-center mx-auto text-xl">
+                    <div class="bg-indigo-100 text-indigo-900 p-3 rounded-full w-12 h-12 flex items-center justify-center mx-auto text-xl">
                         <i class="fa-solid fa-user-lock"></i>
                     </div>
                     <h3 class="text-xl font-bold text-slate-900">Protected Admin Portal</h3>
@@ -826,16 +705,13 @@
                 <div class="space-y-3 text-xs sm:text-sm">
                     <div>
                         <label class="block font-bold text-slate-700 mb-1">Admin Username</label>
-                        <input type="text" id="adminUsernameInput" placeholder="Enter Username"
-                            class="w-full p-2.5 border border-slate-300 rounded-lg">
+                        <input type="text" id="adminUsernameInput" placeholder="Enter Username" class="w-full p-2.5 border border-slate-300 rounded-lg">
                     </div>
                     <div>
                         <label class="block font-bold text-slate-700 mb-1">Admin Password</label>
-                        <input type="password" id="adminPasswordInput" placeholder="••••••••"
-                            class="w-full p-2.5 border border-slate-300 rounded-lg">
+                        <input type="password" id="adminPasswordInput" placeholder="••••••••" class="w-full p-2.5 border border-slate-300 rounded-lg">
                     </div>
-                    <button onclick="verifyAdminLogin()"
-                        class="w-full bg-slate-900 hover:bg-slate-800 text-amber-400 font-bold py-2.5 rounded-lg transition">
+                    <button onclick="verifyAdminLogin()" class="w-full bg-slate-900 hover:bg-slate-800 text-amber-400 font-bold py-2.5 rounded-lg transition">
                         Unlock Admin Control Panel
                     </button>
                 </div>
@@ -845,20 +721,15 @@
             <div id="adminDashboardContent" class="hidden space-y-6">
 
                 <!-- Admin Status Bar -->
-                <div
-                    class="bg-slate-900 text-white p-4 rounded-2xl flex flex-col sm:flex-row justify-between items-center gap-3">
+                <div class="bg-slate-900 text-white p-4 rounded-2xl flex flex-col sm:flex-row justify-between items-center gap-3">
                     <div class="flex items-center gap-3">
-                        <span
-                            class="bg-emerald-500 text-white text-[10px] font-bold px-2.5 py-1 rounded-md">AUTHENTICATED
-                            ADMIN</span>
+                        <span class="bg-emerald-500 text-white text-[10px] font-bold px-2.5 py-1 rounded-md">AUTHENTICATED ADMIN</span>
                         <div>
                             <h3 class="font-bold text-sm sm:text-base">ExamInPocket Control Panel</h3>
-                            <p class="text-xs text-slate-400">Manage MCQs, Dawn Vocab, Articles, Library Books & AI Key
-                            </p>
+                            <p class="text-xs text-slate-400">Manage MCQs, Dawn Vocab, Articles, Library Books & AI Key</p>
                         </div>
                     </div>
-                    <button onclick="adminLogout()"
-                        class="bg-red-600 hover:bg-red-500 text-white text-xs font-bold px-3 py-1.5 rounded-lg transition">
+                    <button onclick="adminLogout()" class="bg-red-600 hover:bg-red-500 text-white text-xs font-bold px-3 py-1.5 rounded-lg transition">
                         <i class="fa-solid fa-right-from-bracket"></i> Logout
                     </button>
                 </div>
@@ -872,10 +743,8 @@
                         Enter your <strong>Free Gemini API Key</strong> from <strong>aistudio.google.com</strong>.
                     </p>
                     <div class="flex flex-col sm:flex-row gap-2">
-                        <input type="password" id="adminApiKeyInput" placeholder="Paste Gemini API Key (AIzaSy...)"
-                            class="flex-grow p-2.5 border border-amber-300 rounded-lg text-xs bg-white">
-                        <button onclick="saveAdminApiKey()"
-                            class="bg-amber-600 hover:bg-amber-700 text-white font-bold px-4 py-2.5 rounded-lg text-xs transition">
+                        <input type="password" id="adminApiKeyInput" placeholder="Paste Gemini API Key (AIzaSy...)" class="flex-grow p-2.5 border border-amber-300 rounded-lg text-xs bg-white">
+                        <button onclick="saveAdminApiKey()" class="bg-amber-600 hover:bg-amber-700 text-white font-bold px-4 py-2.5 rounded-lg text-xs transition">
                             Save AI Key
                         </button>
                     </div>
@@ -890,8 +759,7 @@
                     <div class="grid sm:grid-cols-2 gap-3 text-xs sm:text-sm">
                         <div>
                             <label class="block font-bold text-slate-700 mb-1">Subject Field / Category</label>
-                            <select id="adminCategory" onchange="handleAdminCategoryChange(this)"
-                                class="w-full p-2.5 border border-slate-300 rounded-lg bg-slate-50">
+                            <select id="adminCategory" onchange="handleAdminCategoryChange(this)" class="w-full p-2.5 border border-slate-300 rounded-lg bg-slate-50">
                                 <option value="General Knowledge">General Knowledge</option>
                                 <option value="Pakistan Studies">Pakistan Studies</option>
                                 <option value="Everyday Science">Everyday Science</option>
@@ -908,14 +776,11 @@
                                 <option value="Past Papers MCQs">Past Papers MCQs</option>
                                 <option value="__NEW_SUBJECT__">➕ Add New / Custom Subject...</option>
                             </select>
-                            <input type="text" id="adminCustomCategory"
-                                placeholder="Type new subject name (e.g. Gender Studies)"
-                                class="w-full p-2.5 border border-amber-300 rounded-lg mt-2 hidden">
+                            <input type="text" id="adminCustomCategory" placeholder="Type new subject name (e.g. Gender Studies)" class="w-full p-2.5 border border-amber-300 rounded-lg mt-2 hidden">
                         </div>
                         <div>
                             <label class="block font-bold text-slate-700 mb-1">Question Statement</label>
-                            <input type="text" id="adminQuestion" placeholder="Enter full question..."
-                                class="w-full p-2.5 border border-slate-300 rounded-lg">
+                            <input type="text" id="adminQuestion" placeholder="Enter full question..." class="w-full p-2.5 border border-slate-300 rounded-lg">
                         </div>
                     </div>
 
@@ -933,12 +798,10 @@
                             <option value="2">Correct Answer: Option C</option>
                             <option value="3">Correct Answer: Option D</option>
                         </select>
-                        <input type="text" id="adminExplanation" placeholder="Explanation detail..."
-                            class="p-2.5 border border-slate-300 rounded-lg">
+                        <input type="text" id="adminExplanation" placeholder="Explanation detail..." class="p-2.5 border border-slate-300 rounded-lg">
                     </div>
 
-                    <button onclick="saveNewMcqFromAdmin()"
-                        class="bg-emerald-700 hover:bg-emerald-800 text-white font-bold px-6 py-2.5 rounded-lg text-xs sm:text-sm transition">
+                    <button onclick="saveNewMcqFromAdmin()" class="bg-emerald-700 hover:bg-emerald-800 text-white font-bold px-6 py-2.5 rounded-lg text-xs sm:text-sm transition">
                         Save MCQ Question
                     </button>
                 </div>
@@ -949,17 +812,12 @@
                         <i class="fa-solid fa-file-pen text-amber-600"></i> 2. Add Editorial Article / Essay Outline
                     </h3>
                     <div class="grid sm:grid-cols-3 gap-3 text-xs sm:text-sm">
-                        <input type="text" id="adminArtTitle" placeholder="Article Title"
-                            class="p-2.5 border rounded-lg">
-                        <input type="text" id="adminArtCat" placeholder="Subject / Category"
-                            class="p-2.5 border rounded-lg">
-                        <input type="text" id="adminArtAuthor" placeholder="Author Name"
-                            class="p-2.5 border rounded-lg">
+                        <input type="text" id="adminArtTitle" placeholder="Article Title" class="p-2.5 border rounded-lg">
+                        <input type="text" id="adminArtCat" placeholder="Subject / Category" class="p-2.5 border rounded-lg">
+                        <input type="text" id="adminArtAuthor" placeholder="Author Name" class="p-2.5 border rounded-lg">
                     </div>
-                    <textarea id="adminArtContent" rows="4" placeholder="Full article content / Essay outline..."
-                        class="w-full p-2.5 border rounded-lg text-xs font-mono"></textarea>
-                    <button onclick="saveNewArticleFromAdmin()"
-                        class="bg-amber-600 hover:bg-amber-700 text-white font-bold px-6 py-2.5 rounded-lg text-xs sm:text-sm transition">
+                    <textarea id="adminArtContent" rows="4" placeholder="Full article content / Essay outline..." class="w-full p-2.5 border rounded-lg text-xs font-mono"></textarea>
+                    <button onclick="saveNewArticleFromAdmin()" class="bg-amber-600 hover:bg-amber-700 text-white font-bold px-6 py-2.5 rounded-lg text-xs sm:text-sm transition">
                         Save Article / Essay
                     </button>
                 </div>
@@ -972,30 +830,22 @@
                     <div class="grid sm:grid-cols-3 gap-3 text-xs sm:text-sm">
                         <input type="text" id="libBookTitle" placeholder="Book Title" class="p-2.5 border rounded-lg">
                         <input type="text" id="libBookCat" placeholder="Category" class="p-2.5 border rounded-lg">
-                        <input type="text" id="libBookSize" placeholder="File Size (e.g. 12 MB PDF)"
-                            class="p-2.5 border rounded-lg">
+                        <input type="text" id="libBookSize" placeholder="File Size (e.g. 12 MB PDF)" class="p-2.5 border rounded-lg">
                     </div>
-
+                    
                     <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-3 text-xs sm:text-sm">
                         <div>
-                            <label class="block font-bold text-slate-800 mb-1">Option A: Select PDF File from
-                                Laptop/Mobile</label>
-                            <input type="file" id="libLocalPdfInput" accept=".pdf"
-                                onchange="handleAdminLocalPdfSelect(event)"
-                                class="w-full text-xs p-1.5 bg-white border border-slate-300 rounded-lg">
+                            <label class="block font-bold text-slate-800 mb-1">Option A: Select PDF File from Laptop/Mobile</label>
+                            <input type="file" id="libLocalPdfInput" accept=".pdf" onchange="handleAdminLocalPdfSelect(event)" class="w-full text-xs p-1.5 bg-white border border-slate-300 rounded-lg">
                         </div>
                         <div class="text-center font-bold text-slate-400 text-xs">— OR —</div>
                         <div>
-                            <label class="block font-bold text-slate-800 mb-1">Option B: Paste Google Drive / External
-                                PDF Link</label>
-                            <input type="text" id="libBookUrl"
-                                placeholder="Google Drive Link (https://drive.google.com/...)"
-                                class="w-full p-2.5 border rounded-lg text-xs bg-white">
+                            <label class="block font-bold text-slate-800 mb-1">Option B: Paste Google Drive / External PDF Link</label>
+                            <input type="text" id="libBookUrl" placeholder="Google Drive Link (https://drive.google.com/...)" class="w-full p-2.5 border rounded-lg text-xs bg-white">
                         </div>
                     </div>
 
-                    <button onclick="saveNewBookFromAdmin()"
-                        class="bg-indigo-900 hover:bg-indigo-800 text-white font-bold px-6 py-2.5 rounded-lg text-xs sm:text-sm transition">
+                    <button onclick="saveNewBookFromAdmin()" class="bg-indigo-900 hover:bg-indigo-800 text-white font-bold px-6 py-2.5 rounded-lg text-xs sm:text-sm transition">
                         Add Book to Library
                     </button>
                 </div>
@@ -1007,15 +857,10 @@
                             <i class="fa-solid fa-list-check text-indigo-600"></i> Manage Content Items (Edit & Delete)
                         </h3>
                         <div class="flex gap-2">
-                            <button onclick="switchAdminSubTab('MCQS')" id="admin-sub-MCQS"
-                                class="px-3 py-1 rounded-lg text-xs font-bold bg-slate-900 text-white">MCQs</button>
-                            <button onclick="switchAdminSubTab('VOCAB')" id="admin-sub-VOCAB"
-                                class="px-3 py-1 rounded-lg text-xs font-bold bg-slate-100 text-slate-700">Dawn
-                                Vocab</button>
-                            <button onclick="switchAdminSubTab('ARTICLES')" id="admin-sub-ARTICLES"
-                                class="px-3 py-1 rounded-lg text-xs font-bold bg-slate-100 text-slate-700">Articles</button>
-                            <button onclick="switchAdminSubTab('BOOKS')" id="admin-sub-BOOKS"
-                                class="px-3 py-1 rounded-lg text-xs font-bold bg-slate-100 text-slate-700">Books</button>
+                            <button onclick="switchAdminSubTab('MCQS')" id="admin-sub-MCQS" class="px-3 py-1 rounded-lg text-xs font-bold bg-slate-900 text-white">MCQs</button>
+                            <button onclick="switchAdminSubTab('VOCAB')" id="admin-sub-VOCAB" class="px-3 py-1 rounded-lg text-xs font-bold bg-slate-100 text-slate-700">Dawn Vocab</button>
+                            <button onclick="switchAdminSubTab('ARTICLES')" id="admin-sub-ARTICLES" class="px-3 py-1 rounded-lg text-xs font-bold bg-slate-100 text-slate-700">Articles</button>
+                            <button onclick="switchAdminSubTab('BOOKS')" id="admin-sub-BOOKS" class="px-3 py-1 rounded-lg text-xs font-bold bg-slate-100 text-slate-700">Books</button>
                         </div>
                     </div>
 
@@ -1025,23 +870,19 @@
                 </div>
 
                 <!-- Database Backup Tools -->
-                <div
-                    class="bg-indigo-50 p-4 rounded-xl border border-indigo-200 flex flex-col sm:flex-row justify-between items-center gap-3">
+                <div class="bg-indigo-50 p-4 rounded-xl border border-indigo-200 flex flex-col sm:flex-row justify-between items-center gap-3">
                     <div>
                         <h4 class="font-bold text-indigo-950 text-xs sm:text-sm">Database Export & Backup</h4>
                         <p class="text-xs text-indigo-700">Download all website content as JSON backup file anytime.</p>
                     </div>
                     <div class="flex gap-2">
-                        <button onclick="exportDatabase()"
-                            class="bg-indigo-900 hover:bg-indigo-800 text-white font-bold px-4 py-2 rounded-lg text-xs transition flex items-center gap-1">
+                        <button onclick="exportDatabase()" class="bg-indigo-900 hover:bg-indigo-800 text-white font-bold px-4 py-2 rounded-lg text-xs transition flex items-center gap-1">
                             <i class="fa-solid fa-download"></i> Export JSON
                         </button>
-                        <button onclick="document.getElementById('importFileInput').click()"
-                            class="bg-slate-800 hover:bg-slate-900 text-white font-bold px-4 py-2 rounded-lg text-xs transition flex items-center gap-1">
+                        <button onclick="document.getElementById('importFileInput').click()" class="bg-slate-800 hover:bg-slate-900 text-white font-bold px-4 py-2 rounded-lg text-xs transition flex items-center gap-1">
                             <i class="fa-solid fa-upload"></i> Import JSON
                         </button>
-                        <input type="file" id="importFileInput" onchange="importDatabase(event)" class="hidden"
-                            accept=".json">
+                        <input type="file" id="importFileInput" onchange="importDatabase(event)" class="hidden" accept=".json">
                     </div>
                 </div>
 
@@ -1051,8 +892,7 @@
     </main>
 
     <!-- Footer Section -->
-    <footer
-        class="bg-slate-900 text-slate-400 py-8 border-t border-slate-800 text-xs text-center mt-12 space-y-4 no-print">
+    <footer class="bg-slate-900 text-slate-400 py-8 border-t border-slate-800 text-xs text-center mt-12 space-y-4 no-print">
         <div class="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row justify-between items-center gap-4">
             <div>
                 <p class="font-bold text-white text-sm">ExamInPocket.com</p>
@@ -1065,8 +905,7 @@
                 <a href="#" class="hover:text-amber-400 transition"><i class="fa-brands fa-youtube"></i></a>
             </div>
         </div>
-        <p class="text-slate-500 text-[11px] border-t border-slate-800/60 pt-4">© 2026 ExamInPocket.com — All Rights
-            Reserved.</p>
+        <p class="text-slate-500 text-[11px] border-t border-slate-800/60 pt-4">© 2026 ExamInPocket.com — All Rights Reserved.</p>
     </footer>
 
     <!-- JavaScript Application Engine -->
@@ -1255,7 +1094,7 @@
                 state.mcqs = (JSON.parse(localStorage.getItem('eip_mcqs')) || DEFAULT_MCQS).map((m, i) => ({ ...m, id: Number(m.id) || (1000 + i + 1) }));
                 state.dawnWords = (JSON.parse(localStorage.getItem('eip_dawn_words')) || DEFAULT_DAWN_WORDS).map((w, i) => ({ ...w, id: Number(w.id) || (2000 + i + 1) }));
                 state.articles = (JSON.parse(localStorage.getItem('eip_articles')) || DEFAULT_ARTICLES).map((a, i) => ({ ...a, id: Number(a.id) || (4000 + i + 1) }));
-
+                
                 // Sanitize Library URL fields from corrupted JSON pollution
                 const loadedLib = JSON.parse(localStorage.getItem('eip_library')) || DEFAULT_LIBRARY_ITEMS;
                 state.library = loadedLib.map((b, i) => {
@@ -1277,7 +1116,7 @@
 
                 state.dawnHeadlines = JSON.parse(localStorage.getItem('eip_dawn_headlines')) || DEFAULT_DAWN_HEADLINES;
                 state.apiKey = localStorage.getItem('eip_api_key') || '';
-
+                
                 // Fixed Credentials Enforced
                 state.adminUser = 'kaleemrjoyo';
                 state.adminPass = '@KRj321';
@@ -1294,7 +1133,7 @@
                 localStorage.setItem('eip_mcqs', JSON.stringify(state.mcqs));
                 localStorage.setItem('eip_dawn_words', JSON.stringify(state.dawnWords));
                 localStorage.setItem('eip_articles', JSON.stringify(state.articles));
-
+                
                 // Filter out blob URLs before saving library to storage
                 const libToSave = state.library.map(b => ({
                     ...b,
@@ -1309,7 +1148,7 @@
                 localStorage.setItem('eip_api_key', state.apiKey);
                 localStorage.setItem('eip_admin_user', state.adminUser);
                 localStorage.setItem('eip_admin_pass', state.adminPass);
-            } catch (e) { }
+            } catch (e) {}
 
             const totalSaved = state.savedMcqs.length + state.savedVocab.length + state.savedArticles.length + state.savedBooks.length;
             const countElem = document.getElementById('saved-count');
@@ -1553,7 +1392,7 @@
 
             document.getElementById('readerModalTitle').innerText = art.title;
             document.getElementById('readerModalCat').innerText = `Editorial Essay • ${art.category}`;
-
+            
             const iframe = document.getElementById('pdfFrame');
             const textViewer = document.getElementById('textDocViewer');
             iframe.classList.add('hidden');
@@ -1614,7 +1453,7 @@
 
             document.getElementById('readerModalTitle').innerText = item.title;
             document.getElementById('readerModalCat').innerText = `ExamInPocket Library • ${item.cat}`;
-
+            
             // Check session map or url
             const sessionBlobUrl = localPdfBlobMap[item.id];
             const targetUrl = sessionBlobUrl || item.url || '';
@@ -1816,7 +1655,7 @@
                 const secs = mockTestState.secondsLeft % 60;
                 const timerElem = document.getElementById('testTimer');
                 if (timerElem) timerElem.innerText = `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
-
+                
                 if (mockTestState.secondsLeft <= 0) {
                     clearInterval(mockTestState.timer);
                     submitMockTest();
@@ -1936,7 +1775,7 @@
                     if (data.candidates && data.candidates[0].content.parts[0].text) {
                         botReply = data.candidates[0].content.parts[0].text;
                     }
-                } catch (err) { }
+                } catch (err) {}
             }
 
             if (!botReply) {
@@ -2005,7 +1844,7 @@
 
             // Create Blob URL for current session
             pendingLocalPdfUrl = URL.createObjectURL(file);
-            document.getElementById('libBookUrl').value = '';
+            document.getElementById('libBookUrl').value = ''; 
             showToast('Local PDF file ready to view!');
         }
 
@@ -2045,7 +1884,7 @@
             const o1 = document.getElementById('adminOpt1').value.trim();
             const o2 = document.getElementById('adminOpt2').value.trim();
             const o3 = document.getElementById('adminOpt3').value.trim();
-
+            
             const selectVal = document.getElementById('adminCategory').value;
             const customVal = document.getElementById('adminCustomCategory').value.trim();
             const cat = selectVal === '__NEW_SUBJECT__' ? (customVal || 'General Knowledge') : selectVal;
@@ -2204,10 +2043,10 @@
             const m = state.mcqs.find(item => Number(item.id) === Number(id));
             if (!m) return;
             document.getElementById('editMcqId').value = m.id;
-
+            
             const catSelect = document.getElementById('editMcqCat');
             const customInput = document.getElementById('editMcqCustomCat');
-
+            
             if (Array.from(catSelect.options).some(opt => opt.value === m.category)) {
                 catSelect.value = m.category;
                 customInput.classList.add('hidden');
@@ -2317,7 +2156,7 @@
             b.title = document.getElementById('editBookTitle').value.trim();
             b.cat = document.getElementById('editBookCat').value.trim();
             b.size = document.getElementById('editBookSize').value.trim();
-
+            
             let u = document.getElementById('editBookUrl').value.trim();
             if (u.startsWith('{') || u.includes('"mcqs"')) u = '';
             b.url = u;
