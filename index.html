@@ -50,13 +50,21 @@
 
         /* Clean Print Formatting */
         @media print {
-            header, footer, nav, .no-print, #noticeTicker, #toastContainer {
+
+            header,
+            footer,
+            nav,
+            .no-print,
+            #noticeTicker,
+            #toastContainer {
                 display: none !important;
             }
+
             body {
                 background-color: #ffffff !important;
                 color: #000000 !important;
             }
+
             .printable-area {
                 box-shadow: none !important;
                 border: none !important;
@@ -68,8 +76,13 @@
 
         /* Ticker Marquee Animation */
         @keyframes tickerMarquee {
-            0% { transform: translateX(100%); }
-            100% { transform: translateX(-100%); }
+            0% {
+                transform: translateX(100%);
+            }
+
+            100% {
+                transform: translateX(-100%);
+            }
         }
 
         .ticker-marquee-content {
@@ -84,8 +97,17 @@
 
         /* Glowing Animation for New Material */
         @keyframes newMaterialGlow {
-            0%, 100% { border-color: #fbbf24; box-shadow: 0 0 10px rgba(251, 191, 36, 0.4); }
-            50% { border-color: #6366f1; box-shadow: 0 0 14px rgba(99, 102, 241, 0.45); }
+
+            0%,
+            100% {
+                border-color: #fbbf24;
+                box-shadow: 0 0 10px rgba(251, 191, 36, 0.4);
+            }
+
+            50% {
+                border-color: #6366f1;
+                box-shadow: 0 0 14px rgba(99, 102, 241, 0.45);
+            }
         }
 
         .new-card-glow {
@@ -100,16 +122,20 @@
     <div id="toastContainer" class="fixed bottom-5 right-5 z-50 flex flex-col gap-2 no-print pointer-events-none"></div>
 
     <!-- Custom Confirmation Modal -->
-    <div id="confirmModal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 no-print">
+    <div id="confirmModal"
+        class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 no-print">
         <div class="bg-white w-full max-w-sm rounded-2xl shadow-xl border border-slate-200 p-6 space-y-4 text-center">
-            <div class="bg-amber-100 text-amber-700 w-12 h-12 rounded-full flex items-center justify-center mx-auto text-xl">
+            <div
+                class="bg-amber-100 text-amber-700 w-12 h-12 rounded-full flex items-center justify-center mx-auto text-xl">
                 <i class="fa-solid fa-triangle-exclamation"></i>
             </div>
             <h3 id="confirmModalTitle" class="text-base font-bold text-slate-900">Are you sure?</h3>
             <p id="confirmModalText" class="text-xs text-slate-500">This action cannot be undone.</p>
             <div class="flex gap-2 pt-2">
-                <button onclick="closeConfirmModal(false)" class="w-1/2 bg-slate-100 text-slate-700 font-bold py-2 rounded-lg text-xs hover:bg-slate-200 transition">Cancel</button>
-                <button id="confirmModalActionBtn" onclick="closeConfirmModal(true)" class="w-1/2 bg-rose-600 text-white font-bold py-2 rounded-lg text-xs hover:bg-rose-700 transition">Confirm</button>
+                <button onclick="closeConfirmModal(false)"
+                    class="w-1/2 bg-slate-100 text-slate-700 font-bold py-2 rounded-lg text-xs hover:bg-slate-200 transition">Cancel</button>
+                <button id="confirmModalActionBtn" onclick="closeConfirmModal(true)"
+                    class="w-1/2 bg-rose-600 text-white font-bold py-2 rounded-lg text-xs hover:bg-rose-700 transition">Confirm</button>
             </div>
         </div>
     </div>
@@ -118,9 +144,11 @@
     <header class="bg-slate-900 text-white sticky top-0 z-40 border-b border-slate-800 shadow-md no-print">
         <div class="max-w-7xl mx-auto px-4 py-3 flex flex-wrap justify-between items-center gap-2">
 
-            <!-- Logo Branding -->
-            <div onclick="switchTab('homeTab')" class="flex items-center gap-3 cursor-pointer">
-                <div class="bg-amber-400 text-slate-950 font-extrabold text-xl px-3 py-1.5 rounded-xl shadow-sm">
+            <!-- Logo Branding (Secret 5-Click Admin Portal Trigger) -->
+            <div onclick="handleLogoClick()" class="flex items-center gap-3 cursor-pointer select-none"
+                title="ExamInPocket Portal (Click 5 times for Admin Portal)">
+                <div
+                    class="bg-amber-400 text-slate-950 font-extrabold text-xl px-3 py-1.5 rounded-xl shadow-sm hover:bg-amber-300 transition">
                     EiP
                 </div>
                 <div>
@@ -130,7 +158,7 @@
                 </div>
             </div>
 
-            <!-- Navigation Links -->
+            <!-- Public Navigation Links (No Admin Link Exposed) -->
             <nav class="flex flex-wrap items-center gap-1 text-xs sm:text-sm font-medium">
                 <button onclick="switchTab('homeTab')" id="nav-homeTab"
                     class="nav-link active-link px-3 py-2 rounded-lg hover:bg-slate-800 transition">
@@ -144,6 +172,10 @@
                     class="nav-link px-3 py-2 rounded-lg hover:bg-slate-800 transition">
                     <i class="fa-solid fa-newspaper mr-1"></i> Dawn Vocab
                 </button>
+                <button onclick="switchTab('articlesTab')" id="nav-articlesTab"
+                    class="nav-link px-3 py-2 rounded-lg hover:bg-slate-800 transition">
+                    <i class="fa-solid fa-file-lines mr-1"></i> Articles
+                </button>
                 <button onclick="switchTab('libraryTab')" id="nav-libraryTab"
                     class="nav-link px-3 py-2 rounded-lg hover:bg-slate-800 transition">
                     <i class="fa-solid fa-book-open mr-1"></i> Library
@@ -156,12 +188,8 @@
                     class="nav-link px-3 py-2 rounded-lg bg-indigo-900 text-amber-300 hover:bg-indigo-800 transition border border-indigo-700">
                     <i class="fa-solid fa-robot mr-1"></i> AI Tutor
                 </button>
-                <button onclick="switchTab('adminTab')" id="nav-adminTab"
-                    class="nav-link px-3 py-2 rounded-lg border border-slate-700 hover:bg-slate-800 transition">
-                    <i class="fa-solid fa-user-gear mr-1"></i> Admin
-                </button>
                 <button onclick="toggleAuthModal()" id="userAuthBtn"
-                    class="bg-amber-400 text-slate-950 font-semibold px-3 py-2 rounded-lg hover:bg-amber-300 transition">
+                    class="bg-amber-400 text-slate-950 font-semibold px-3 py-2 rounded-lg hover:bg-amber-300 transition ml-1">
                     <i class="fa-solid fa-user mr-1"></i> Login
                 </button>
             </nav>
@@ -169,75 +197,97 @@
     </header>
 
     <!-- Animated Notice Ticker -->
-    <div id="noticeTicker" class="bg-gradient-to-r from-amber-50 via-amber-100 to-amber-50 border-b border-amber-300 text-amber-950 py-2.5 px-4 text-xs font-semibold overflow-hidden no-print shadow-inner flex items-center gap-3">
-        <div class="flex items-center gap-1.5 bg-amber-400 text-slate-950 px-2.5 py-0.5 rounded-full font-extrabold shrink-0 text-[11px] shadow-sm">
+    <div id="noticeTicker"
+        class="bg-gradient-to-r from-amber-50 via-amber-100 to-amber-50 border-b border-amber-300 text-amber-950 py-2.5 px-4 text-xs font-semibold overflow-hidden no-print shadow-inner flex items-center gap-3">
+        <div
+            class="flex items-center gap-1.5 bg-amber-400 text-slate-950 px-2.5 py-0.5 rounded-full font-extrabold shrink-0 text-[11px] shadow-sm">
             <span class="relative flex h-2 w-2">
-                <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-slate-900 opacity-75"></span>
+                <span
+                    class="animate-ping absolute inline-flex h-full w-full rounded-full bg-slate-900 opacity-75"></span>
                 <span class="relative inline-flex rounded-full h-2 w-2 bg-slate-950"></span>
             </span>
             LIVE UPDATE
         </div>
         <div class="w-full overflow-hidden relative flex items-center">
             <div class="ticker-marquee-content">
-                📢 <span class="font-bold">Latest Exam Update:</span> CSS MPT & SPSC CCE Solved Past Paper MCQs Added • Daily Dawn Vocabulary Active • Live Gemini AI Tutor Active!
+                📢 <span class="font-bold">Latest Exam Update:</span> CSS MPT & SPSC CCE Solved Past Paper MCQs Added •
+                Daily Dawn Vocabulary Active • Live Gemini AI Tutor Active!
             </div>
         </div>
     </div>
 
     <!-- On-Screen Reader Modal -->
-    <div id="readerModal" class="hidden fixed inset-0 bg-slate-900/80 backdrop-blur-md z-50 flex items-center justify-center p-2 sm:p-6 no-print">
-        <div class="bg-white w-full max-w-5xl h-[92vh] rounded-2xl shadow-2xl border border-slate-200 flex flex-col overflow-hidden relative">
-            
-            <!-- Modal Toolbar Header -->
-            <div class="bg-slate-900 text-white p-3 sm:p-4 flex justify-between items-center border-b border-slate-800 gap-2">
+    <div id="readerModal"
+        class="hidden fixed inset-0 bg-slate-900/80 backdrop-blur-md z-50 flex items-center justify-center p-2 sm:p-6 no-print">
+        <div
+            class="bg-white w-full max-w-5xl h-[92vh] rounded-2xl shadow-2xl border border-slate-200 flex flex-col overflow-hidden relative">
+
+            <div
+                class="bg-slate-900 text-white p-3 sm:p-4 flex justify-between items-center border-b border-slate-800 gap-2">
                 <div class="flex items-center gap-3 overflow-hidden">
-                    <div class="bg-amber-400 text-slate-950 p-2 sm:p-2.5 rounded-xl font-bold text-xs sm:text-sm shrink-0">
+                    <div
+                        class="bg-amber-400 text-slate-950 p-2 sm:p-2.5 rounded-xl font-bold text-xs sm:text-sm shrink-0">
                         <i class="fa-solid fa-book-reader"></i>
                     </div>
                     <div class="truncate">
-                        <h3 id="readerModalTitle" class="font-bold text-xs sm:text-base text-white truncate">Document Viewer</h3>
-                        <p id="readerModalCat" class="text-[10px] sm:text-xs text-amber-400 font-medium truncate">ExamInPocket Academic Library</p>
+                        <h3 id="readerModalTitle" class="font-bold text-xs sm:text-base text-white truncate">Document
+                            Viewer</h3>
+                        <p id="readerModalCat" class="text-[10px] sm:text-xs text-amber-400 font-medium truncate">
+                            ExamInPocket Academic Library</p>
                     </div>
                 </div>
-                
+
                 <div class="flex items-center gap-2 shrink-0">
-                    <button onclick="printReaderContent()" class="bg-indigo-700 hover:bg-indigo-600 text-white px-2.5 py-1.5 sm:px-3 sm:py-2 rounded-lg text-xs font-bold transition flex items-center gap-1">
+                    <a id="readerExternalBtn" href="#" target="_blank" rel="noopener noreferrer"
+                        class="bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 px-2.5 py-1.5 sm:px-3 sm:py-2 rounded-lg text-xs font-bold transition flex items-center gap-1"
+                        title="Open direct URL in new tab">
+                        <i class="fa-solid fa-arrow-up-right-from-square"></i> <span class="hidden sm:inline">Open
+                            Direct</span>
+                    </a>
+                    <button onclick="printReaderContent()"
+                        class="bg-indigo-700 hover:bg-indigo-600 text-white px-2.5 py-1.5 sm:px-3 sm:py-2 rounded-lg text-xs font-bold transition flex items-center gap-1">
                         <i class="fa-solid fa-print"></i> <span class="hidden sm:inline">Print</span>
                     </button>
-                    <a id="readerDownloadBtn" href="#" target="_blank" rel="noopener noreferrer" class="bg-amber-400 hover:bg-amber-300 text-slate-950 px-2.5 py-1.5 sm:px-3 sm:py-2 rounded-lg text-xs font-bold transition flex items-center gap-1">
+                    <a id="readerDownloadBtn" href="#" target="_blank" rel="noopener noreferrer"
+                        class="bg-amber-400 hover:bg-amber-300 text-slate-950 px-2.5 py-1.5 sm:px-3 sm:py-2 rounded-lg text-xs font-bold transition flex items-center gap-1">
                         <i class="fa-solid fa-download"></i> <span class="hidden sm:inline">Download</span>
                     </a>
-                    <button onclick="closeReaderModal()" class="text-slate-400 hover:text-white p-1.5 sm:p-2 rounded-lg transition text-lg sm:text-xl">
+                    <button onclick="closeReaderModal()"
+                        class="text-slate-400 hover:text-white p-1.5 sm:p-2 rounded-lg transition text-lg sm:text-xl">
                         <i class="fa-solid fa-xmark"></i>
                     </button>
                 </div>
             </div>
 
-            <!-- Modal Viewer Container -->
             <div class="flex-grow bg-slate-100 p-2 sm:p-4 overflow-y-auto flex justify-center items-center">
-                <!-- PDF / Google Drive Frame -->
-                <iframe id="pdfFrame" class="w-full h-full rounded-xl border border-slate-300 bg-white shadow-inner hidden"></iframe>
-                
-                <!-- Text Doc Fallback -->
-                <div id="textDocViewer" class="w-full max-w-4xl h-full bg-white p-6 sm:p-10 rounded-xl border border-slate-200 shadow-sm overflow-y-auto printable-area hidden space-y-4">
+                <!-- PDF / Embed Iframe -->
+                <iframe id="pdfFrame"
+                    class="w-full h-full rounded-xl border border-slate-300 bg-white shadow-inner hidden"></iframe>
+
+                <!-- Clean Text Doc Viewer Fallback -->
+                <div id="textDocViewer"
+                    class="w-full max-w-4xl h-full bg-white p-6 sm:p-10 rounded-xl border border-slate-200 shadow-sm overflow-y-auto printable-area hidden space-y-4">
                     <div class="border-b pb-4 mb-4 text-center">
-                        <h2 id="textDocTitle" class="text-xl sm:text-2xl font-extrabold text-slate-900">Document Title</h2>
+                        <h2 id="textDocTitle" class="text-xl sm:text-2xl font-extrabold text-slate-900">Document Title
+                        </h2>
                         <p class="text-xs text-amber-600 font-semibold mt-1">ExamInPocket Verified Study Guide</p>
                     </div>
                     <div id="textDocBody" class="text-xs sm:text-sm text-slate-800 leading-relaxed space-y-3">
-                        <!-- Dynamic Document Content -->
+                        <!-- Content -->
                     </div>
                 </div>
             </div>
-            
+
             <div class="bg-slate-50 p-2 text-center text-[11px] text-slate-500 border-t border-slate-200">
-                📖 Tip: Google Drive links and PDFs open directly inside this reader. You can also print notes using the Print button.
+                📖 Tip: Google Drive links & local PDFs load directly inside this reader frame. Use "Open Direct" or
+                "Download" if external sites restrict iframe embedding.
             </div>
         </div>
     </div>
 
     <!-- Edit Book Modal -->
-    <div id="editBookModal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div id="editBookModal"
+        class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
         <div class="bg-white w-full max-w-md rounded-2xl shadow-xl border border-slate-200 p-6 space-y-4 relative">
             <button onclick="closeEditBookModal()" class="absolute right-4 top-4 text-slate-400 hover:text-slate-600">
                 <i class="fa-solid fa-xmark text-lg"></i>
@@ -261,17 +311,127 @@
                 </div>
                 <div>
                     <label class="block font-bold text-slate-700 mb-1">Google Drive / PDF Link</label>
-                    <input type="text" id="editBookUrl" class="w-full p-2.5 border border-slate-300 rounded-lg" placeholder="https://drive.google.com/...">
+                    <input type="text" id="editBookUrl" class="w-full p-2.5 border border-slate-300 rounded-lg"
+                        placeholder="https://drive.google.com/...">
                 </div>
-                <button onclick="saveBookEdits()" class="w-full bg-indigo-900 text-white font-bold py-2.5 rounded-lg hover:bg-indigo-800 transition">
+                <button onclick="saveBookEdits()"
+                    class="w-full bg-indigo-900 text-white font-bold py-2.5 rounded-lg hover:bg-indigo-800 transition">
                     Save Changes & Update
                 </button>
             </div>
         </div>
     </div>
 
+    <!-- Edit MCQ Modal -->
+    <div id="editMcqModal"
+        class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div class="bg-white w-full max-w-lg rounded-2xl shadow-xl border border-slate-200 p-6 space-y-4 relative">
+            <button onclick="closeEditMcqModal()" class="absolute right-4 top-4 text-slate-400 hover:text-slate-600">
+                <i class="fa-solid fa-xmark text-lg"></i>
+            </button>
+            <h3 class="text-lg font-bold text-slate-900 border-b pb-2 flex items-center gap-2">
+                <i class="fa-solid fa-pen-to-square text-amber-500"></i> Edit MCQ Question
+            </h3>
+            <input type="hidden" id="editMcqId">
+            <div class="space-y-3 text-xs sm:text-sm">
+                <div>
+                    <label class="block font-bold text-slate-700 mb-1">Subject Category</label>
+                    <select id="editMcqCat" onchange="handleEditCategoryChange(this)"
+                        class="w-full p-2.5 border border-slate-300 rounded-lg bg-slate-50">
+                        <option value="General Knowledge">General Knowledge</option>
+                        <option value="Pakistan Studies">Pakistan Studies</option>
+                        <option value="Everyday Science">Everyday Science</option>
+                        <option value="Islamic Studies">Islamic Studies</option>
+                        <option value="Basic Computer Operations & IT">Basic Computer Operations & IT</option>
+                        <option value="Mathematics">Mathematics</option>
+                        <option value="Intelligence Tests">Intelligence Tests</option>
+                        <option value="Common Observation Questions">Common Observation Questions</option>
+                        <option value="English">English</option>
+                        <option value="Abbreviations">Abbreviations</option>
+                        <option value="Foreign Words">Foreign Words</option>
+                        <option value="Current Affairs">Current Affairs</option>
+                        <option value="Sindhology">Sindhology</option>
+                        <option value="Past Papers MCQs">Past Papers MCQs</option>
+                        <option value="__NEW_SUBJECT__">➕ Add New / Custom Subject...</option>
+                    </select>
+                    <input type="text" id="editMcqCustomCat" placeholder="Type custom subject name..."
+                        class="w-full p-2.5 border border-amber-300 rounded-lg mt-2 hidden">
+                </div>
+                <div>
+                    <label class="block font-bold text-slate-700 mb-1">Question Statement</label>
+                    <textarea id="editMcqQ" rows="2" class="w-full p-2.5 border border-slate-300 rounded-lg"></textarea>
+                </div>
+                <div class="grid grid-cols-2 gap-2">
+                    <input type="text" id="editMcqOpt0" placeholder="Option A" class="p-2 border rounded-lg">
+                    <input type="text" id="editMcqOpt1" placeholder="Option B" class="p-2 border rounded-lg">
+                    <input type="text" id="editMcqOpt2" placeholder="Option C" class="p-2 border rounded-lg">
+                    <input type="text" id="editMcqOpt3" placeholder="Option D" class="p-2 border rounded-lg">
+                </div>
+                <div>
+                    <label class="block font-bold text-slate-700 mb-1">Correct Answer Index</label>
+                    <select id="editMcqAns" class="w-full p-2.5 border border-slate-300 rounded-lg">
+                        <option value="0">Option A</option>
+                        <option value="1">Option B</option>
+                        <option value="2">Option C</option>
+                        <option value="3">Option D</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block font-bold text-slate-700 mb-1">Explanation</label>
+                    <input type="text" id="editMcqExp" class="w-full p-2.5 border border-slate-300 rounded-lg">
+                </div>
+                <button onclick="saveMcqEdits()"
+                    class="w-full bg-slate-900 text-amber-400 font-bold py-2.5 rounded-lg hover:bg-slate-800 transition">
+                    Save MCQ Updates
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Article Modal -->
+    <div id="editArticleModal"
+        class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div
+            class="bg-white w-full max-w-lg rounded-2xl shadow-xl border border-slate-200 p-6 space-y-4 relative max-h-[90vh] overflow-y-auto">
+            <button onclick="closeEditArticleModal()"
+                class="absolute right-4 top-4 text-slate-400 hover:text-slate-600">
+                <i class="fa-solid fa-xmark text-lg"></i>
+            </button>
+            <h3 class="text-lg font-bold text-slate-900 border-b pb-2 flex items-center gap-2">
+                <i class="fa-solid fa-file-pen text-amber-600"></i> Edit Article / Essay Outline
+            </h3>
+            <input type="hidden" id="editArtId">
+            <div class="space-y-3 text-xs sm:text-sm">
+                <div>
+                    <label class="block font-bold text-slate-700 mb-1">Article Title</label>
+                    <input type="text" id="editArtTitle" class="w-full p-2.5 border border-slate-300 rounded-lg">
+                </div>
+                <div class="grid grid-cols-2 gap-2">
+                    <div>
+                        <label class="block font-bold text-slate-700 mb-1">Subject / Category</label>
+                        <input type="text" id="editArtCat" class="w-full p-2.5 border border-slate-300 rounded-lg">
+                    </div>
+                    <div>
+                        <label class="block font-bold text-slate-700 mb-1">Author</label>
+                        <input type="text" id="editArtAuthor" class="w-full p-2.5 border border-slate-300 rounded-lg">
+                    </div>
+                </div>
+                <div>
+                    <label class="block font-bold text-slate-700 mb-1">Full Article / Outline Content</label>
+                    <textarea id="editArtContent" rows="6"
+                        class="w-full p-2.5 border border-slate-300 rounded-lg font-mono text-xs"></textarea>
+                </div>
+                <button onclick="saveArticleEdits()"
+                    class="w-full bg-amber-500 text-slate-950 font-bold py-2.5 rounded-lg hover:bg-amber-400 transition">
+                    Save Article Updates
+                </button>
+            </div>
+        </div>
+    </div>
+
     <!-- User Auth Modal -->
-    <div id="authModal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 no-print">
+    <div id="authModal"
+        class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 no-print">
         <div class="bg-white w-full max-w-md rounded-2xl shadow-xl border border-slate-200 p-6 space-y-4 relative">
             <button onclick="toggleAuthModal()" class="absolute right-4 top-4 text-slate-400 hover:text-slate-600">
                 <i class="fa-solid fa-xmark text-lg"></i>
@@ -310,7 +470,8 @@
                     Prepare for <span class="text-amber-400">CSS, PMS, PCS, CCE</span> & All Competitive Exams
                 </h2>
                 <p class="text-xs sm:text-sm text-slate-300 max-w-2xl">
-                    Access thousands of verified MCQs, solved past papers, Dawn vocabulary, and AI-powered study guides.
+                    Access thousands of verified MCQs, solved past papers, Dawn vocabulary, editorial articles, and
+                    AI-powered study guides.
                 </p>
 
                 <!-- Search Input Bar -->
@@ -321,23 +482,9 @@
                         class="w-full pl-11 pr-4 py-3 rounded-xl border-0 text-slate-900 text-sm focus:ring-2 focus:ring-amber-400 outline-none shadow-inner">
                 </div>
 
-                <!-- Subject Category Filter Pills -->
-                <div class="flex flex-wrap gap-2 pt-2">
-                    <button onclick="filterCategory('ALL')" class="bg-amber-400 text-slate-950 font-bold px-3 py-1.5 rounded-lg text-xs hover:bg-amber-300 transition">All Subjects</button>
-                    <button onclick="filterCategory('General Knowledge')" class="bg-slate-800 text-slate-200 px-3 py-1.5 rounded-lg text-xs hover:bg-slate-700 transition">General Knowledge</button>
-                    <button onclick="filterCategory('Pakistan Studies')" class="bg-slate-800 text-slate-200 px-3 py-1.5 rounded-lg text-xs hover:bg-slate-700 transition">Pak Studies</button>
-                    <button onclick="filterCategory('Everyday Science')" class="bg-slate-800 text-slate-200 px-3 py-1.5 rounded-lg text-xs hover:bg-slate-700 transition">Everyday Science</button>
-                    <button onclick="filterCategory('Islamic Studies')" class="bg-slate-800 text-slate-200 px-3 py-1.5 rounded-lg text-xs hover:bg-slate-700 transition">Islamiyat</button>
-                    <button onclick="filterCategory('Basic Computer Operations & IT')" class="bg-slate-800 text-slate-200 px-3 py-1.5 rounded-lg text-xs hover:bg-slate-700 transition">Computer / IT</button>
-                    <button onclick="filterCategory('Mathematics')" class="bg-slate-800 text-slate-200 px-3 py-1.5 rounded-lg text-xs hover:bg-slate-700 transition">Math</button>
-                    <button onclick="filterCategory('Intelligence Tests')" class="bg-slate-800 text-slate-200 px-3 py-1.5 rounded-lg text-xs hover:bg-slate-700 transition">Intelligence</button>
-                    <button onclick="filterCategory('Common Observation Questions')" class="bg-slate-800 text-slate-200 px-3 py-1.5 rounded-lg text-xs hover:bg-slate-700 transition">Common Observation</button>
-                    <button onclick="filterCategory('English')" class="bg-slate-800 text-slate-200 px-3 py-1.5 rounded-lg text-xs hover:bg-slate-700 transition">English</button>
-                    <button onclick="filterCategory('Abbreviations')" class="bg-slate-800 text-slate-200 px-3 py-1.5 rounded-lg text-xs hover:bg-slate-700 transition">Abbreviations</button>
-                    <button onclick="filterCategory('Foreign Words')" class="bg-slate-800 text-slate-200 px-3 py-1.5 rounded-lg text-xs hover:bg-slate-700 transition">Foreign Words</button>
-                    <button onclick="filterCategory('Current Affairs')" class="bg-slate-800 text-slate-200 px-3 py-1.5 rounded-lg text-xs hover:bg-slate-700 transition">Current Affairs</button>
-                    <button onclick="filterCategory('Sindhology')" class="bg-slate-800 text-slate-200 px-3 py-1.5 rounded-lg text-xs hover:bg-slate-700 transition">Sindhology</button>
-                    <button onclick="filterCategory('Past Papers MCQs')" class="bg-slate-800 text-slate-200 px-3 py-1.5 rounded-lg text-xs hover:bg-slate-700 transition">Past Papers</button>
+                <!-- Dynamic Subject Category Filter Pills -->
+                <div id="categoryPillsContainer" class="flex flex-wrap gap-2 pt-2">
+                    <!-- Injected via JavaScript -->
                 </div>
             </div>
 
@@ -354,7 +501,8 @@
                     <h2 class="text-xl font-bold text-slate-900 flex items-center gap-2">
                         <i class="fa-solid fa-stopwatch text-indigo-600"></i> Online Timed Mock Test Engine
                     </h2>
-                    <p class="text-xs text-slate-500 mt-1">Practice under real examination conditions with countdown timer and automated performance reporting.</p>
+                    <p class="text-xs text-slate-500 mt-1">Practice under real examination conditions with countdown
+                        timer and automated performance reporting.</p>
                 </div>
 
                 <div id="testSetupArea" class="grid md:grid-cols-3 gap-4 mb-6">
@@ -395,7 +543,8 @@
                             <span class="text-xs font-bold text-indigo-700">Exam Mode Active</span>
                             <h3 class="text-sm font-bold text-indigo-950" id="testProgress">Question 1 of 5</h3>
                         </div>
-                        <div class="bg-slate-900 text-amber-400 px-4 py-2 rounded-xl font-mono font-bold text-lg" id="testTimer">
+                        <div class="bg-slate-900 text-amber-400 px-4 py-2 rounded-xl font-mono font-bold text-lg"
+                            id="testTimer">
                             05:00
                         </div>
                     </div>
@@ -414,7 +563,9 @@
                 <div id="testResultArea"
                     class="hidden bg-slate-50 p-6 sm:p-8 rounded-2xl border border-slate-200 space-y-6">
                     <div class="text-center space-y-2 border-b pb-4">
-                        <span id="resultBadge" class="bg-indigo-100 text-indigo-900 text-xs font-extrabold px-3 py-1 rounded-full border border-indigo-200">Test Completed</span>
+                        <span id="resultBadge"
+                            class="bg-indigo-100 text-indigo-900 text-xs font-extrabold px-3 py-1 rounded-full border border-indigo-200">Test
+                            Completed</span>
                         <h3 class="text-2xl sm:text-3xl font-black text-slate-900">📊 Your Exam Performance Report</h3>
                         <div class="text-5xl font-black text-indigo-700 my-3" id="resultScore">0 / 0</div>
                         <p class="text-sm font-semibold text-slate-700" id="resultPercentage">Score: 0%</p>
@@ -443,7 +594,8 @@
                     <!-- Weak Subject & Recommendations Section -->
                     <div class="bg-white p-5 rounded-xl border border-slate-200 space-y-3">
                         <h4 class="font-bold text-slate-900 text-sm flex items-center gap-2 border-b pb-2">
-                            <i class="fa-solid fa-chart-pie text-amber-500"></i> Subject Analysis & Focus Recommendations
+                            <i class="fa-solid fa-chart-pie text-amber-500"></i> Subject Analysis & Focus
+                            Recommendations
                         </h4>
                         <div id="weakSubjectsList" class="text-xs text-slate-700 space-y-2 leading-relaxed">
                             <!-- Injected JS -->
@@ -451,9 +603,12 @@
                     </div>
 
                     <!-- Motivational Quote Card -->
-                    <div class="bg-gradient-to-r from-slate-900 to-indigo-950 text-white p-5 rounded-2xl shadow-sm text-center space-y-2 border border-slate-800">
+                    <div
+                        class="bg-gradient-to-r from-slate-900 to-indigo-950 text-white p-5 rounded-2xl shadow-sm text-center space-y-2 border border-slate-800">
                         <i class="fa-solid fa-quote-left text-amber-400 text-xl"></i>
-                        <p id="motivationalQuote" class="text-xs sm:text-sm font-medium italic text-slate-200">"Success is no accident. It is hard work, perseverance, learning, studying, sacrifice and most of all, love of what you are doing."</p>
+                        <p id="motivationalQuote" class="text-xs sm:text-sm font-medium italic text-slate-200">"Success
+                            is no accident. It is hard work, perseverance, learning, studying, sacrifice and most of
+                            all, love of what you are doing."</p>
                         <p class="text-[11px] text-amber-400 font-bold">— ExamInPocket Senior Mentor</p>
                     </div>
 
@@ -472,9 +627,11 @@
             <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
                 <div class="border-b pb-4 mb-6">
                     <h2 class="text-xl font-bold text-slate-900 flex items-center gap-2">
-                        <i class="fa-solid fa-newspaper text-indigo-600"></i> Daily Dawn Editorial Vocabulary & Headlines
+                        <i class="fa-solid fa-newspaper text-indigo-600"></i> Daily Dawn Editorial Vocabulary &
+                        Headlines
                     </h2>
-                    <p class="text-xs text-slate-500 mt-1">High-yield vocabulary words with Urdu meanings, context, and daily national headlines for CSS/PMS candidates.</p>
+                    <p class="text-xs text-slate-500 mt-1">High-yield vocabulary words with Urdu meanings, context, and
+                        daily national headlines for CSS/PMS candidates.</p>
                 </div>
 
                 <div class="grid md:grid-cols-2 gap-6">
@@ -492,7 +649,8 @@
                             <i class="fa-solid fa-bullhorn text-amber-500"></i> Top National Headlines
                         </h3>
                         <div class="bg-slate-50 p-4 rounded-xl border border-slate-200">
-                            <ul id="dawnHeadlinesContainer" class="list-disc pl-5 text-xs sm:text-sm text-slate-700 space-y-2">
+                            <ul id="dawnHeadlinesContainer"
+                                class="list-disc pl-5 text-xs sm:text-sm text-slate-700 space-y-2">
                                 <!-- Injected JS -->
                             </ul>
                         </div>
@@ -501,14 +659,31 @@
             </div>
         </section>
 
-        <!-- TAB 4: LIBRARY -->
+        <!-- TAB 4: ARTICLES & ESSAYS -->
+        <section id="articlesTab" class="tab-content space-y-6">
+            <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 space-y-4">
+                <div class="border-b pb-4">
+                    <h2 class="text-xl font-bold text-slate-900 flex items-center gap-2">
+                        <i class="fa-solid fa-file-pen text-amber-600"></i> Editorial Articles & CSS/PMS Essay Outlines
+                    </h2>
+                    <p class="text-xs text-slate-500">Comprehensive essay breakdowns, current affairs analysis, and
+                        subject outlines.</p>
+                </div>
+                <div id="articlesContainer" class="grid md:grid-cols-2 gap-4">
+                    <!-- Injected JS -->
+                </div>
+            </div>
+        </section>
+
+        <!-- TAB 5: LIBRARY -->
         <section id="libraryTab" class="tab-content space-y-6">
             <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
                 <div class="border-b pb-4 mb-6">
                     <h2 class="text-xl font-bold text-slate-900 flex items-center gap-2">
                         <i class="fa-solid fa-book-open text-indigo-600"></i> PDF Notes & Books Library
                     </h2>
-                    <p class="text-xs text-slate-500 mt-1">Read online or download authentic PDF notes, solved past papers, and subject guides.</p>
+                    <p class="text-xs text-slate-500 mt-1">Read online or download authentic PDF notes, solved past
+                        papers, and subject guides.</p>
                 </div>
 
                 <div id="libraryContainer" class="grid sm:grid-cols-2 md:grid-cols-3 gap-4">
@@ -517,23 +692,31 @@
             </div>
         </section>
 
-        <!-- TAB 5: SAVED QUESTIONS, VOCAB & BOOKS -->
+        <!-- TAB 6: SAVED FAVORITES -->
         <section id="savedTab" class="tab-content space-y-6">
             <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
-                <div class="border-b pb-4 mb-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                <div
+                    class="border-b pb-4 mb-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                     <div>
                         <h2 class="text-xl font-bold text-slate-900 flex items-center gap-2">
                             <i class="fa-solid fa-bookmark text-amber-500"></i> Saved Revision Favorites
                         </h2>
-                        <p class="text-xs text-slate-500 mt-1">Questions, vocabulary words, and library books bookmarked for quick revision.</p>
+                        <p class="text-xs text-slate-500 mt-1">Questions, vocabulary words, articles, and library books
+                            bookmarked for quick revision.</p>
                     </div>
 
                     <!-- Saved Sub-Filter Pills -->
                     <div class="flex gap-2">
-                        <button onclick="switchSavedSubFilter('ALL')" id="saved-sub-ALL" class="bg-amber-400 text-slate-950 font-bold px-3 py-1 rounded-lg text-xs">All</button>
-                        <button onclick="switchSavedSubFilter('MCQS')" id="saved-sub-MCQS" class="bg-slate-100 text-slate-700 font-medium px-3 py-1 rounded-lg text-xs">MCQs</button>
-                        <button onclick="switchSavedSubFilter('VOCAB')" id="saved-sub-VOCAB" class="bg-slate-100 text-slate-700 font-medium px-3 py-1 rounded-lg text-xs">Vocab</button>
-                        <button onclick="switchSavedSubFilter('BOOKS')" id="saved-sub-BOOKS" class="bg-slate-100 text-slate-700 font-medium px-3 py-1 rounded-lg text-xs">Books</button>
+                        <button onclick="switchSavedSubFilter('ALL')" id="saved-sub-ALL"
+                            class="bg-amber-400 text-slate-950 font-bold px-3 py-1 rounded-lg text-xs">All</button>
+                        <button onclick="switchSavedSubFilter('MCQS')" id="saved-sub-MCQS"
+                            class="bg-slate-100 text-slate-700 font-medium px-3 py-1 rounded-lg text-xs">MCQs</button>
+                        <button onclick="switchSavedSubFilter('VOCAB')" id="saved-sub-VOCAB"
+                            class="bg-slate-100 text-slate-700 font-medium px-3 py-1 rounded-lg text-xs">Vocab</button>
+                        <button onclick="switchSavedSubFilter('ARTICLES')" id="saved-sub-ARTICLES"
+                            class="bg-slate-100 text-slate-700 font-medium px-3 py-1 rounded-lg text-xs">Articles</button>
+                        <button onclick="switchSavedSubFilter('BOOKS')" id="saved-sub-BOOKS"
+                            class="bg-slate-100 text-slate-700 font-medium px-3 py-1 rounded-lg text-xs">Books</button>
                     </div>
                 </div>
 
@@ -543,12 +726,13 @@
             </div>
         </section>
 
-        <!-- TAB 6: AI TUTOR CHATBOT -->
+        <!-- TAB 7: AI TUTOR CHATBOT -->
         <section id="aiTab" class="tab-content space-y-6">
             <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
-                
+
                 <!-- Chatbot Header -->
-                <div class="border-b pb-4 mb-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+                <div
+                    class="border-b pb-4 mb-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
                     <div class="flex items-center gap-3">
                         <div class="bg-indigo-900 text-amber-400 p-3 rounded-2xl text-2xl shadow-sm">
                             <i class="fa-solid fa-robot"></i>
@@ -556,41 +740,54 @@
                         <div>
                             <h2 class="text-xl font-bold text-slate-900 flex items-center gap-2">
                                 Gemini AI Exam Tutor Chatbot
-                                <span class="bg-emerald-100 text-emerald-800 text-[10px] font-bold px-2 py-0.5 rounded-full border border-emerald-300">Live AI Powered</span>
+                                <span
+                                    class="bg-emerald-100 text-emerald-800 text-[10px] font-bold px-2 py-0.5 rounded-full border border-emerald-300">Live
+                                    AI Powered</span>
                             </h2>
-                            <p class="text-xs text-slate-500">Ask any question, get topic explanations in simple Roman Urdu/Hinglish, or generate study schedules instantly.</p>
+                            <p class="text-xs text-slate-500">Ask any question, get topic explanations in simple Roman
+                                Urdu/Hinglish, or generate study schedules instantly.</p>
                         </div>
                     </div>
 
-                    <button onclick="clearAiChat()" class="text-xs font-bold text-slate-500 hover:text-red-600 transition flex items-center gap-1 border border-slate-200 px-3 py-1.5 rounded-lg">
+                    <button onclick="clearAiChat()"
+                        class="text-xs font-bold text-slate-500 hover:text-red-600 transition flex items-center gap-1 border border-slate-200 px-3 py-1.5 rounded-lg">
                         <i class="fa-solid fa-trash-can"></i> Clear Chat
                     </button>
                 </div>
 
                 <!-- Clean Suggested Prompt Pills -->
                 <div class="flex flex-wrap gap-2 mb-4">
-                    <button onclick="sendAiChatMessage('Give me a 7-day high yield study timetable for CSS MPT Exam')" class="bg-indigo-50 text-indigo-900 border border-indigo-200 hover:bg-indigo-100 px-3 py-1 rounded-lg text-xs font-medium transition">
+                    <button onclick="sendAiChatMessage('Give me a 7-day high yield study timetable for CSS MPT Exam')"
+                        class="bg-indigo-50 text-indigo-900 border border-indigo-200 hover:bg-indigo-100 px-3 py-1 rounded-lg text-xs font-medium transition">
                         📅 CSS 7-Day Timetable
                     </button>
-                    <button onclick="sendAiChatMessage('Give me top tips for English Essay & Precis preparation for CSS/PMS')" class="bg-indigo-50 text-indigo-900 border border-indigo-200 hover:bg-indigo-100 px-3 py-1 rounded-lg text-xs font-medium transition">
+                    <button
+                        onclick="sendAiChatMessage('Give me top tips for English Essay & Precis preparation for CSS/PMS')"
+                        class="bg-indigo-50 text-indigo-900 border border-indigo-200 hover:bg-indigo-100 px-3 py-1 rounded-lg text-xs font-medium transition">
                         ✍️ English Essay Tips
                     </button>
-                    <button onclick="sendAiChatMessage('How to score high in General Knowledge for SPSC CCE & FPSC exams?')" class="bg-indigo-50 text-indigo-900 border border-indigo-200 hover:bg-indigo-100 px-3 py-1 rounded-lg text-xs font-medium transition">
+                    <button
+                        onclick="sendAiChatMessage('How to score high in General Knowledge for SPSC CCE & FPSC exams?')"
+                        class="bg-indigo-50 text-indigo-900 border border-indigo-200 hover:bg-indigo-100 px-3 py-1 rounded-lg text-xs font-medium transition">
                         💡 General Knowledge Strategy
                     </button>
                 </div>
 
                 <!-- Chat Messages Scroll Container -->
-                <div id="aiChatWindow" class="bg-slate-50 p-4 rounded-2xl border border-slate-200 min-h-[380px] max-h-[500px] overflow-y-auto space-y-4 shadow-inner">
-                    <!-- Default Bot Greeting Message -->
+                <div id="aiChatWindow"
+                    class="bg-slate-50 p-4 rounded-2xl border border-slate-200 min-h-[380px] max-h-[500px] overflow-y-auto space-y-4 shadow-inner">
                     <div class="flex gap-3 items-start">
                         <div class="bg-indigo-900 text-amber-400 p-2 rounded-xl text-sm shrink-0">
                             <i class="fa-solid fa-robot"></i>
                         </div>
-                        <div class="bg-white p-4 rounded-2xl rounded-tl-none border border-slate-200 text-xs sm:text-sm text-slate-800 space-y-2 shadow-sm max-w-2xl">
+                        <div
+                            class="bg-white p-4 rounded-2xl rounded-tl-none border border-slate-200 text-xs sm:text-sm text-slate-800 space-y-2 shadow-sm max-w-2xl">
                             <p class="font-bold text-indigo-950">Assalam-o-Alaikum Student! 🎓</p>
-                            <p>Main aap ka <strong>ExamInPocket Gemini AI Tutor Chatbot</strong> hoon. FPSC, PPSC, SPSC, CSS, PMS, CCE, Past Papers, ya kisi bhi subject ka koi bhi topic poochain — main aap ko <strong>easy Hinglish / Roman Urdu</strong> mein explain karoon ga.</p>
-                            <p class="text-[11px] text-slate-500 border-t pt-1">💡 <em>Tip: Niche box mein apna sawal type karain ya upar wale buttons par click karain!</em></p>
+                            <p>Main aap ka <strong>ExamInPocket Gemini AI Tutor Chatbot</strong> hoon. FPSC, PPSC, SPSC,
+                                CSS, PMS, CCE, Past Papers, ya kisi bhi subject ka koi bhi topic poochain — main aap ko
+                                <strong>easy Hinglish / Roman Urdu</strong> mein explain karoon ga.</p>
+                            <p class="text-[11px] text-slate-500 border-t pt-1">💡 <em>Tip: Niche box mein apna sawal
+                                    type karain ya upar wale buttons par click karain!</em></p>
                         </div>
                     </div>
                 </div>
@@ -611,63 +808,58 @@
             </div>
         </section>
 
-        <!-- TAB 7: ADMIN PANEL -->
+        <!-- TAB 8: SECRET PROTECTED ADMIN PANEL -->
         <section id="adminTab" class="tab-content space-y-6">
 
             <!-- Admin Authentication Login Box -->
-            <div id="adminLoginCard" class="bg-white p-6 sm:p-8 rounded-2xl shadow-sm border border-slate-200 max-w-md mx-auto space-y-4">
+            <div id="adminLoginCard"
+                class="bg-white p-6 sm:p-8 rounded-2xl shadow-sm border border-slate-200 max-w-md mx-auto space-y-4">
                 <div class="text-center space-y-2">
-                    <div class="bg-indigo-100 text-indigo-900 p-3 rounded-full w-12 h-12 flex items-center justify-center mx-auto text-xl">
-                        <i class="fa-solid fa-lock"></i>
+                    <div
+                        class="bg-indigo-100 text-indigo-900 p-3 rounded-full w-12 h-12 flex items-center justify-center mx-auto text-xl">
+                        <i class="fa-solid fa-user-lock"></i>
                     </div>
                     <h3 class="text-xl font-bold text-slate-900">Protected Admin Portal</h3>
-                    <p class="text-xs text-slate-500">Please enter admin credentials to access website management options.</p>
+                    <p class="text-xs text-slate-500">Please enter credentials to access content management tools.</p>
                 </div>
 
                 <div class="space-y-3 text-xs sm:text-sm">
                     <div>
                         <label class="block font-bold text-slate-700 mb-1">Admin Username</label>
-                        <input type="text" id="adminUsernameInput" placeholder="Enter Admin Username" class="w-full p-2.5 border border-slate-300 rounded-lg">
+                        <input type="text" id="adminUsernameInput" placeholder="Enter Username"
+                            class="w-full p-2.5 border border-slate-300 rounded-lg">
                     </div>
                     <div>
                         <label class="block font-bold text-slate-700 mb-1">Admin Password</label>
-                        <input type="password" id="adminPasswordInput" placeholder="••••••••" class="w-full p-2.5 border border-slate-300 rounded-lg">
+                        <input type="password" id="adminPasswordInput" placeholder="••••••••"
+                            class="w-full p-2.5 border border-slate-300 rounded-lg">
                     </div>
-                    <button onclick="verifyAdminLogin()" class="w-full bg-slate-900 hover:bg-slate-800 text-white font-bold py-2.5 rounded-lg transition">
-                        Login to Control Panel
+                    <button onclick="verifyAdminLogin()"
+                        class="w-full bg-slate-900 hover:bg-slate-800 text-amber-400 font-bold py-2.5 rounded-lg transition">
+                        Unlock Admin Control Panel
                     </button>
                 </div>
             </div>
 
-            <!-- Admin Dashboard (Logged In) -->
+            <!-- Admin Dashboard (Logged In View) -->
             <div id="adminDashboardContent" class="hidden space-y-6">
 
                 <!-- Admin Status Bar -->
-                <div class="bg-slate-900 text-white p-4 rounded-2xl flex flex-col sm:flex-row justify-between items-center gap-3">
+                <div
+                    class="bg-slate-900 text-white p-4 rounded-2xl flex flex-col sm:flex-row justify-between items-center gap-3">
                     <div class="flex items-center gap-3">
-                        <span class="bg-emerald-500 text-white text-[10px] font-bold px-2.5 py-1 rounded-md">AUTHENTICATED ADMIN</span>
+                        <span
+                            class="bg-emerald-500 text-white text-[10px] font-bold px-2.5 py-1 rounded-md">AUTHENTICATED
+                            ADMIN</span>
                         <div>
                             <h3 class="font-bold text-sm sm:text-base">ExamInPocket Control Panel</h3>
-                            <p class="text-xs text-slate-400">Manage MCQs, Upload PDF Books, Set AI Key & Edit Library Items</p>
+                            <p class="text-xs text-slate-400">Manage MCQs, Dawn Vocab, Articles, Library Books & AI Key
+                            </p>
                         </div>
                     </div>
-                    <button onclick="adminLogout()" class="bg-red-600 hover:bg-red-500 text-white text-xs font-bold px-3 py-1.5 rounded-lg transition">
+                    <button onclick="adminLogout()"
+                        class="bg-red-600 hover:bg-red-500 text-white text-xs font-bold px-3 py-1.5 rounded-lg transition">
                         <i class="fa-solid fa-right-from-bracket"></i> Logout
-                    </button>
-                </div>
-
-                <!-- Security: Change Credentials Option -->
-                <div class="bg-indigo-50 p-5 rounded-2xl border border-indigo-200 space-y-3">
-                    <h4 class="font-bold text-indigo-950 text-sm flex items-center gap-2">
-                        <i class="fa-solid fa-user-shield text-indigo-600"></i> Security: Change Admin Credentials
-                    </h4>
-                    <div class="grid sm:grid-cols-3 gap-2 text-xs">
-                        <input type="text" id="newAdminUser" placeholder="New Username" class="p-2 border rounded-lg bg-white">
-                        <input type="password" id="currAdminPass" placeholder="Current Password" class="p-2 border rounded-lg bg-white">
-                        <input type="password" id="newAdminPass" placeholder="New Password" class="p-2 border rounded-lg bg-white">
-                    </div>
-                    <button onclick="changeAdminCredentials()" class="bg-indigo-900 hover:bg-indigo-800 text-white text-xs font-bold px-4 py-2 rounded-lg transition">
-                        Update Credentials
                     </button>
                 </div>
 
@@ -677,26 +869,29 @@
                         <i class="fa-solid fa-key text-amber-600"></i> AI Tutor Key Settings (1-Time Setup)
                     </h4>
                     <p class="text-xs text-amber-800 leading-relaxed">
-                        Enter your <strong>Free Gemini API Key</strong> below (Get free key from <strong>aistudio.google.com</strong>). Students visiting your website will use this key automatically for real-time AI explanations without needing their own key.
+                        Enter your <strong>Free Gemini API Key</strong> from <strong>aistudio.google.com</strong>.
                     </p>
                     <div class="flex flex-col sm:flex-row gap-2">
-                        <input type="password" id="adminApiKeyInput" placeholder="Paste Gemini API Key (e.g. AIzaSy...)" class="flex-grow p-2.5 border border-amber-300 rounded-lg text-xs bg-white">
-                        <button onclick="saveAdminApiKey()" class="bg-amber-600 hover:bg-amber-700 text-white font-bold px-4 py-2.5 rounded-lg text-xs transition">
+                        <input type="password" id="adminApiKeyInput" placeholder="Paste Gemini API Key (AIzaSy...)"
+                            class="flex-grow p-2.5 border border-amber-300 rounded-lg text-xs bg-white">
+                        <button onclick="saveAdminApiKey()"
+                            class="bg-amber-600 hover:bg-amber-700 text-white font-bold px-4 py-2.5 rounded-lg text-xs transition">
                             Save AI Key
                         </button>
                     </div>
                 </div>
 
-                <!-- Section 1: Add New MCQ Question -->
+                <!-- CRUD Section 1: Add MCQ -->
                 <div class="bg-white p-5 rounded-2xl border border-slate-200 space-y-4">
                     <h3 class="font-bold text-slate-800 text-sm flex items-center gap-2 border-b pb-2">
-                        <i class="fa-solid fa-plus-circle text-emerald-600"></i> 1. Add New MCQ Question
+                        <i class="fa-solid fa-plus-circle text-emerald-600"></i> 1. Add / Create MCQ Question
                     </h3>
 
                     <div class="grid sm:grid-cols-2 gap-3 text-xs sm:text-sm">
                         <div>
-                            <label class="block font-bold text-slate-700 mb-1">Subject Field</label>
-                            <select id="adminCategory" class="w-full p-2.5 border border-slate-300 rounded-lg bg-slate-50">
+                            <label class="block font-bold text-slate-700 mb-1">Subject Field / Category</label>
+                            <select id="adminCategory" onchange="handleAdminCategoryChange(this)"
+                                class="w-full p-2.5 border border-slate-300 rounded-lg bg-slate-50">
                                 <option value="General Knowledge">General Knowledge</option>
                                 <option value="Pakistan Studies">Pakistan Studies</option>
                                 <option value="Everyday Science">Everyday Science</option>
@@ -711,19 +906,24 @@
                                 <option value="Current Affairs">Current Affairs</option>
                                 <option value="Sindhology">Sindhology</option>
                                 <option value="Past Papers MCQs">Past Papers MCQs</option>
+                                <option value="__NEW_SUBJECT__">➕ Add New / Custom Subject...</option>
                             </select>
+                            <input type="text" id="adminCustomCategory"
+                                placeholder="Type new subject name (e.g. Gender Studies)"
+                                class="w-full p-2.5 border border-amber-300 rounded-lg mt-2 hidden">
                         </div>
                         <div>
                             <label class="block font-bold text-slate-700 mb-1">Question Statement</label>
-                            <input type="text" id="adminQuestion" placeholder="Enter full question statement..." class="w-full p-2.5 border border-slate-300 rounded-lg">
+                            <input type="text" id="adminQuestion" placeholder="Enter full question..."
+                                class="w-full p-2.5 border border-slate-300 rounded-lg">
                         </div>
                     </div>
 
                     <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs sm:text-sm">
-                        <input type="text" id="adminOpt0" placeholder="Option A" class="p-2 border border-slate-300 rounded-lg">
-                        <input type="text" id="adminOpt1" placeholder="Option B" class="p-2 border border-slate-300 rounded-lg">
-                        <input type="text" id="adminOpt2" placeholder="Option C" class="p-2 border border-slate-300 rounded-lg">
-                        <input type="text" id="adminOpt3" placeholder="Option D" class="p-2 border border-slate-300 rounded-lg">
+                        <input type="text" id="adminOpt0" placeholder="Option A" class="p-2 border rounded-lg">
+                        <input type="text" id="adminOpt1" placeholder="Option B" class="p-2 border rounded-lg">
+                        <input type="text" id="adminOpt2" placeholder="Option C" class="p-2 border rounded-lg">
+                        <input type="text" id="adminOpt3" placeholder="Option D" class="p-2 border rounded-lg">
                     </div>
 
                     <div class="grid sm:grid-cols-2 gap-3 text-xs sm:text-sm">
@@ -733,97 +933,115 @@
                             <option value="2">Correct Answer: Option C</option>
                             <option value="3">Correct Answer: Option D</option>
                         </select>
-                        <input type="text" id="adminExplanation" placeholder="Short explanation statement..." class="p-2.5 border border-slate-300 rounded-lg">
+                        <input type="text" id="adminExplanation" placeholder="Explanation detail..."
+                            class="p-2.5 border border-slate-300 rounded-lg">
                     </div>
 
-                    <button onclick="saveNewMcqFromAdmin()" class="bg-emerald-700 hover:bg-emerald-800 text-white font-bold px-6 py-2.5 rounded-lg text-xs sm:text-sm transition">
+                    <button onclick="saveNewMcqFromAdmin()"
+                        class="bg-emerald-700 hover:bg-emerald-800 text-white font-bold px-6 py-2.5 rounded-lg text-xs sm:text-sm transition">
                         Save MCQ Question
                     </button>
                 </div>
 
-                <!-- Section 2: Add PDF Book or Note to Library -->
+                <!-- CRUD Section 2: Add Article -->
                 <div class="bg-white p-5 rounded-2xl border border-slate-200 space-y-4">
                     <h3 class="font-bold text-slate-800 text-sm flex items-center gap-2 border-b pb-2">
-                        <i class="fa-solid fa-file-pdf text-red-600"></i> 2. Add PDF Notes / Books to Library
+                        <i class="fa-solid fa-file-pen text-amber-600"></i> 2. Add Editorial Article / Essay Outline
                     </h3>
-
                     <div class="grid sm:grid-cols-3 gap-3 text-xs sm:text-sm">
-                        <div>
-                            <label class="block font-bold text-slate-700 mb-1">Book / Document Title</label>
-                            <input type="text" id="libBookTitle" placeholder="e.g. Caravan General Knowledge 2026" class="w-full p-2.5 border border-slate-300 rounded-lg">
-                        </div>
-                        <div>
-                            <label class="block font-bold text-slate-700 mb-1">Subject Category</label>
-                            <input type="text" id="libBookCat" placeholder="e.g. General Knowledge" class="w-full p-2.5 border border-slate-300 rounded-lg">
-                        </div>
-                        <div>
-                            <label class="block font-bold text-slate-700 mb-1">File Size / Format</label>
-                            <input type="text" id="libBookSize" placeholder="e.g. 15 MB PDF" class="w-full p-2.5 border border-slate-300 rounded-lg">
-                        </div>
+                        <input type="text" id="adminArtTitle" placeholder="Article Title"
+                            class="p-2.5 border rounded-lg">
+                        <input type="text" id="adminArtCat" placeholder="Subject / Category"
+                            class="p-2.5 border rounded-lg">
+                        <input type="text" id="adminArtAuthor" placeholder="Author Name"
+                            class="p-2.5 border rounded-lg">
+                    </div>
+                    <textarea id="adminArtContent" rows="4" placeholder="Full article content / Essay outline..."
+                        class="w-full p-2.5 border rounded-lg text-xs font-mono"></textarea>
+                    <button onclick="saveNewArticleFromAdmin()"
+                        class="bg-amber-600 hover:bg-amber-700 text-white font-bold px-6 py-2.5 rounded-lg text-xs sm:text-sm transition">
+                        Save Article / Essay
+                    </button>
+                </div>
+
+                <!-- CRUD Section 3: Add PDF Book -->
+                <div class="bg-white p-5 rounded-2xl border border-slate-200 space-y-4">
+                    <h3 class="font-bold text-slate-800 text-sm flex items-center gap-2 border-b pb-2">
+                        <i class="fa-solid fa-file-pdf text-red-600"></i> 3. Add PDF Notes / Books to Library
+                    </h3>
+                    <div class="grid sm:grid-cols-3 gap-3 text-xs sm:text-sm">
+                        <input type="text" id="libBookTitle" placeholder="Book Title" class="p-2.5 border rounded-lg">
+                        <input type="text" id="libBookCat" placeholder="Category" class="p-2.5 border rounded-lg">
+                        <input type="text" id="libBookSize" placeholder="File Size (e.g. 12 MB PDF)"
+                            class="p-2.5 border rounded-lg">
                     </div>
 
-                    <!-- Dual PDF Input Options -->
-                    <div class="space-y-3 bg-slate-50 p-4 rounded-xl border border-slate-200 text-xs sm:text-sm">
+                    <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-3 text-xs sm:text-sm">
                         <div>
-                            <label class="block font-bold text-slate-800 mb-1">Option A: Select PDF File from Device</label>
-                            <input type="file" id="libLocalPdfInput" accept=".pdf" onchange="handleLocalPdfUpload(event)" class="w-full text-xs p-1 bg-white border border-slate-300 rounded-lg">
+                            <label class="block font-bold text-slate-800 mb-1">Option A: Select PDF File from
+                                Laptop/Mobile</label>
+                            <input type="file" id="libLocalPdfInput" accept=".pdf"
+                                onchange="handleAdminLocalPdfSelect(event)"
+                                class="w-full text-xs p-1.5 bg-white border border-slate-300 rounded-lg">
                         </div>
                         <div class="text-center font-bold text-slate-400 text-xs">— OR —</div>
                         <div>
-                            <label class="block font-bold text-slate-800 mb-1">Option B: Paste Google Drive / Media PDF Link</label>
-                            <input type="text" id="libBookUrl" placeholder="https://drive.google.com/file/d/.../view" class="w-full p-2.5 border border-slate-300 rounded-lg bg-white">
+                            <label class="block font-bold text-slate-800 mb-1">Option B: Paste Google Drive / External
+                                PDF Link</label>
+                            <input type="text" id="libBookUrl"
+                                placeholder="Google Drive Link (https://drive.google.com/...)"
+                                class="w-full p-2.5 border rounded-lg text-xs bg-white">
                         </div>
                     </div>
 
-                    <button onclick="saveNewBookFromAdmin()" class="bg-indigo-900 hover:bg-indigo-800 text-white font-bold px-6 py-2.5 rounded-lg text-xs sm:text-sm transition">
+                    <button onclick="saveNewBookFromAdmin()"
+                        class="bg-indigo-900 hover:bg-indigo-800 text-white font-bold px-6 py-2.5 rounded-lg text-xs sm:text-sm transition">
                         Add Book to Library
                     </button>
                 </div>
 
-                <!-- Section 3: Add Dawn Editorial Vocab & Headlines -->
+                <!-- Unified Content Items Manager Table -->
                 <div class="bg-white p-5 rounded-2xl border border-slate-200 space-y-4">
-                    <h3 class="font-bold text-slate-800 text-sm flex items-center gap-2 border-b pb-2">
-                        <i class="fa-solid fa-newspaper text-indigo-600"></i> 3. Add Dawn Vocab & Headlines
-                    </h3>
-
-                    <div class="grid sm:grid-cols-4 gap-2 text-xs sm:text-sm">
-                        <input type="text" id="dawnWord" placeholder="English Word (e.g. Pragmatic)" class="p-2 border border-slate-300 rounded-lg">
-                        <input type="text" id="dawnType" placeholder="Type (Noun/Adj)" class="p-2 border border-slate-300 rounded-lg">
-                        <input type="text" id="dawnUrdu" placeholder="Urdu Meaning (عملی)" class="p-2 border border-slate-300 rounded-lg">
-                        <input type="text" id="dawnMeaning" placeholder="English Meaning" class="p-2 border border-slate-300 rounded-lg">
+                    <div class="flex flex-wrap justify-between items-center border-b pb-2 gap-2">
+                        <h3 class="font-bold text-slate-800 text-sm flex items-center gap-2">
+                            <i class="fa-solid fa-list-check text-indigo-600"></i> Manage Content Items (Edit & Delete)
+                        </h3>
+                        <div class="flex gap-2">
+                            <button onclick="switchAdminSubTab('MCQS')" id="admin-sub-MCQS"
+                                class="px-3 py-1 rounded-lg text-xs font-bold bg-slate-900 text-white">MCQs</button>
+                            <button onclick="switchAdminSubTab('VOCAB')" id="admin-sub-VOCAB"
+                                class="px-3 py-1 rounded-lg text-xs font-bold bg-slate-100 text-slate-700">Dawn
+                                Vocab</button>
+                            <button onclick="switchAdminSubTab('ARTICLES')" id="admin-sub-ARTICLES"
+                                class="px-3 py-1 rounded-lg text-xs font-bold bg-slate-100 text-slate-700">Articles</button>
+                            <button onclick="switchAdminSubTab('BOOKS')" id="admin-sub-BOOKS"
+                                class="px-3 py-1 rounded-lg text-xs font-bold bg-slate-100 text-slate-700">Books</button>
+                        </div>
                     </div>
-                    <input type="text" id="dawnSentence" placeholder="Example sentence context..." class="w-full p-2.5 border border-slate-300 rounded-lg text-xs sm:text-sm">
 
-                    <button onclick="saveNewDawnWordFromAdmin()" class="bg-slate-800 hover:bg-slate-900 text-white font-bold px-6 py-2 rounded-lg text-xs sm:text-sm transition">
-                        Save Vocab Word
-                    </button>
-                </div>
-
-                <!-- Section 4: Manage Uploaded Books Library -->
-                <div class="bg-white p-5 rounded-2xl border border-slate-200 space-y-4">
-                    <h3 class="font-bold text-slate-800 text-sm flex items-center gap-2 border-b pb-2">
-                        <i class="fa-solid fa-list-check text-amber-500"></i> 4. Manage Uploaded Library Books
-                    </h3>
-
-                    <div id="adminBooksListTable" class="space-y-2 text-xs">
-                        <!-- Dynamically Injected Admin Books Table -->
+                    <div id="adminContentManagerList" class="space-y-2 text-xs max-h-96 overflow-y-auto">
+                        <!-- Injected JS -->
                     </div>
                 </div>
 
                 <!-- Database Backup Tools -->
-                <div class="bg-indigo-50 p-4 rounded-xl border border-indigo-200 flex flex-col sm:flex-row justify-between items-center gap-3">
+                <div
+                    class="bg-indigo-50 p-4 rounded-xl border border-indigo-200 flex flex-col sm:flex-row justify-between items-center gap-3">
                     <div>
                         <h4 class="font-bold text-indigo-950 text-xs sm:text-sm">Database Export & Backup</h4>
                         <p class="text-xs text-indigo-700">Download all website content as JSON backup file anytime.</p>
                     </div>
                     <div class="flex gap-2">
-                        <button onclick="exportDatabase()" class="bg-indigo-900 hover:bg-indigo-800 text-white font-bold px-4 py-2 rounded-lg text-xs transition flex items-center gap-1">
+                        <button onclick="exportDatabase()"
+                            class="bg-indigo-900 hover:bg-indigo-800 text-white font-bold px-4 py-2 rounded-lg text-xs transition flex items-center gap-1">
                             <i class="fa-solid fa-download"></i> Export JSON
                         </button>
-                        <button onclick="document.getElementById('importFileInput').click()" class="bg-slate-800 hover:bg-slate-900 text-white font-bold px-4 py-2 rounded-lg text-xs transition flex items-center gap-1">
+                        <button onclick="document.getElementById('importFileInput').click()"
+                            class="bg-slate-800 hover:bg-slate-900 text-white font-bold px-4 py-2 rounded-lg text-xs transition flex items-center gap-1">
                             <i class="fa-solid fa-upload"></i> Import JSON
                         </button>
-                        <input type="file" id="importFileInput" onchange="importDatabase(event)" class="hidden" accept=".json">
+                        <input type="file" id="importFileInput" onchange="importDatabase(event)" class="hidden"
+                            accept=".json">
                     </div>
                 </div>
 
@@ -833,25 +1051,27 @@
     </main>
 
     <!-- Footer Section -->
-    <footer class="bg-slate-900 text-slate-400 py-8 border-t border-slate-800 text-xs text-center mt-12 space-y-4 no-print">
+    <footer
+        class="bg-slate-900 text-slate-400 py-8 border-t border-slate-800 text-xs text-center mt-12 space-y-4 no-print">
         <div class="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row justify-between items-center gap-4">
             <div>
                 <p class="font-bold text-white text-sm">ExamInPocket.com</p>
                 <p class="text-slate-400 text-xs">Empowering CSS, PMS, PCS, CCE & Competitive Exam Preparation.</p>
             </div>
             <div class="flex gap-4 text-lg">
-                <a href="#" class="hover:text-amber-400 transition" title="Facebook"><i class="fa-brands fa-facebook"></i></a>
-                <a href="#" class="hover:text-amber-400 transition" title="WhatsApp Channel"><i class="fa-brands fa-whatsapp"></i></a>
-                <a href="#" class="hover:text-amber-400 transition" title="Telegram"><i class="fa-brands fa-telegram"></i></a>
-                <a href="#" class="hover:text-amber-400 transition" title="YouTube"><i class="fa-brands fa-youtube"></i></a>
+                <a href="#" class="hover:text-amber-400 transition"><i class="fa-brands fa-facebook"></i></a>
+                <a href="#" class="hover:text-amber-400 transition"><i class="fa-brands fa-whatsapp"></i></a>
+                <a href="#" class="hover:text-amber-400 transition"><i class="fa-brands fa-telegram"></i></a>
+                <a href="#" class="hover:text-amber-400 transition"><i class="fa-brands fa-youtube"></i></a>
             </div>
         </div>
-        <p class="text-slate-500 text-[11px] border-t border-slate-800/60 pt-4">© 2026 ExamInPocket.com — All Rights Reserved.</p>
+        <p class="text-slate-500 text-[11px] border-t border-slate-800/60 pt-4">© 2026 ExamInPocket.com — All Rights
+            Reserved.</p>
     </footer>
 
     <!-- JavaScript Application Engine -->
     <script>
-        // Seed High-Yield Data with Explicit Unique IDs
+        // Seed High-Yield Data with Strict Unique IDs
         const DEFAULT_MCQS = [
             {
                 id: 1001,
@@ -882,7 +1102,7 @@
             {
                 id: 1004,
                 category: "Foreign Words",
-                question: "What is the meaning of the foreign Latin term 'De Facto' commonly used in Law and Political Science exams?",
+                question: "What is the meaning of the Latin term 'De Facto' commonly used in Law and Political Science exams?",
                 options: ["By law", "In reality / in fact", "By force", "Without agreement"],
                 answerIndex: 1,
                 explanation: "'De Facto' means existing in reality or fact, regardless of whether it is legally recognized (De Jure)."
@@ -931,6 +1151,16 @@
             "SCO Council Summit in Islamabad highlights trade and regional connectivity."
         ];
 
+        const DEFAULT_ARTICLES = [
+            {
+                id: 4001,
+                title: "Pakistan's Economic Challenges & Structural Reforms",
+                category: "Current Affairs",
+                author: "ExamInPocket Senior Editorial Team",
+                content: "1. Introduction:\nPakistan's economy faces persistent structural bottlenecks including fiscal deficits, energy sector circular debt, and narrow tax base.\n\n2. Key Reform Priorities:\n- Tax diversification and broadening tax-to-GDP ratio.\n- Restructuring State-Owned Enterprises (SOEs).\n- Boosting export competitiveness.\n\n3. Way Forward:\nLong-term sustainable fiscal planning and policy continuity are essential for economic stabilization."
+            }
+        ];
+
         const DEFAULT_LIBRARY_ITEMS = [
             { id: 3001, title: "Caravan General Knowledge 2026 Edition", size: "42 MB PDF", cat: "General Knowledge", url: "https://drive.google.com/file/d/1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs/view", isNew: true },
             { id: 3002, title: "CSS Pakistan Affairs High-Yield Solved Papers", size: "15 MB PDF", cat: "CSS / PMS Notes", url: "" },
@@ -946,20 +1176,45 @@
         // Global State Management
         let state = {
             mcqs: [],
-            savedMcqs: [],
-            savedVocab: [],
-            savedBooks: [],
             dawnWords: [],
             dawnHeadlines: [],
+            articles: [],
             library: [],
+            savedMcqs: [],
+            savedVocab: [],
+            savedArticles: [],
+            savedBooks: [],
             apiKey: '',
-            adminUser: 'admin',
-            adminPass: '123',
+            adminUser: 'kaleemrjoyo',
+            adminPass: '@KRj321',
             isAdminLoggedIn: false,
-            activeSavedSubFilter: 'ALL'
+            activeSavedSubFilter: 'ALL',
+            activeAdminSubTab: 'MCQS'
         };
 
-        // Toast Notification Function (No native alert)
+        // Temporary session storage for local blob URLs
+        let localPdfBlobMap = {};
+        let pendingLocalPdfUrl = '';
+
+        // Secret Admin Logo Click Counter State
+        let logoClickCount = 0;
+        let logoClickTimer = null;
+
+        function handleLogoClick() {
+            logoClickCount++;
+            clearTimeout(logoClickTimer);
+            logoClickTimer = setTimeout(() => {
+                logoClickCount = 0;
+            }, 2500);
+
+            if (logoClickCount >= 5) {
+                logoClickCount = 0;
+                switchTab('adminTab');
+                showToast('🔒 Secret Admin Portal Unlocked!');
+            }
+        }
+
+        // Toast Notification System
         function showToast(message, type = 'success') {
             const container = document.getElementById('toastContainer');
             if (!container) return;
@@ -970,17 +1225,14 @@
             toast.innerHTML = `<i class="${type === 'error' ? 'fa-solid fa-circle-exclamation text-rose-400' : 'fa-solid fa-circle-check text-amber-400'}"></i> ${message}`;
 
             container.appendChild(toast);
-            setTimeout(() => {
-                toast.classList.remove('translate-y-2', 'opacity-0');
-            }, 10);
-
+            setTimeout(() => { toast.classList.remove('translate-y-2', 'opacity-0'); }, 10);
             setTimeout(() => {
                 toast.classList.add('opacity-0');
                 setTimeout(() => toast.remove(), 300);
             }, 3000);
         }
 
-        // Custom Confirm Modal Handler (No native confirm)
+        // Confirmation Modal Handler
         let pendingConfirmCallback = null;
         function showConfirmModal(title, text, onConfirm) {
             document.getElementById('confirmModalTitle').innerText = title || "Are you sure?";
@@ -989,36 +1241,50 @@
             document.getElementById('confirmModal').classList.remove('hidden');
         }
 
-        function closeConfirmModal(result) {
+        function closeConfirmModal(confirmed) {
             document.getElementById('confirmModal').classList.add('hidden');
-            if (result && typeof pendingConfirmCallback === 'function') {
+            if (confirmed && typeof pendingConfirmCallback === 'function') {
                 pendingConfirmCallback();
             }
             pendingConfirmCallback = null;
         }
 
-        // Load & Sanitize State (Ensures every item has a distinct ID to prevent multi-favorite bug)
+        // Load & Sanitize State
         function loadAndSanitizeState() {
             try {
-                const storedMcqs = JSON.parse(localStorage.getItem('eip_mcqs')) || DEFAULT_MCQS;
-                const storedDawn = JSON.parse(localStorage.getItem('eip_dawn_words')) || DEFAULT_DAWN_WORDS;
-                const storedLib = JSON.parse(localStorage.getItem('eip_library')) || DEFAULT_LIBRARY_ITEMS;
+                state.mcqs = (JSON.parse(localStorage.getItem('eip_mcqs')) || DEFAULT_MCQS).map((m, i) => ({ ...m, id: Number(m.id) || (1000 + i + 1) }));
+                state.dawnWords = (JSON.parse(localStorage.getItem('eip_dawn_words')) || DEFAULT_DAWN_WORDS).map((w, i) => ({ ...w, id: Number(w.id) || (2000 + i + 1) }));
+                state.articles = (JSON.parse(localStorage.getItem('eip_articles')) || DEFAULT_ARTICLES).map((a, i) => ({ ...a, id: Number(a.id) || (4000 + i + 1) }));
 
-                state.mcqs = storedMcqs.map((m, idx) => ({ ...m, id: Number(m.id) || (1000 + idx + 1) }));
-                state.dawnWords = storedDawn.map((w, idx) => ({ ...w, id: Number(w.id) || (2000 + idx + 1) }));
-                state.library = storedLib.map((b, idx) => ({ ...b, id: Number(b.id) || (3000 + idx + 1) }));
+                // Sanitize Library URL fields from corrupted JSON pollution
+                const loadedLib = JSON.parse(localStorage.getItem('eip_library')) || DEFAULT_LIBRARY_ITEMS;
+                state.library = loadedLib.map((b, i) => {
+                    let cleanUrl = typeof b.url === 'string' ? b.url.trim() : '';
+                    if (cleanUrl.startsWith('{') || cleanUrl.includes('"mcqs"') || cleanUrl.includes('"adminCreds"')) {
+                        cleanUrl = '';
+                    }
+                    return {
+                        ...b,
+                        id: Number(b.id) || (3000 + i + 1),
+                        url: cleanUrl
+                    };
+                });
 
                 state.savedMcqs = (JSON.parse(localStorage.getItem('eip_saved_mcqs')) || []).map(Number);
                 state.savedVocab = (JSON.parse(localStorage.getItem('eip_saved_vocab')) || []).map(Number);
+                state.savedArticles = (JSON.parse(localStorage.getItem('eip_saved_articles')) || []).map(Number);
                 state.savedBooks = (JSON.parse(localStorage.getItem('eip_saved_books')) || []).map(Number);
 
                 state.dawnHeadlines = JSON.parse(localStorage.getItem('eip_dawn_headlines')) || DEFAULT_DAWN_HEADLINES;
                 state.apiKey = localStorage.getItem('eip_api_key') || '';
-                state.adminUser = localStorage.getItem('eip_admin_user') || 'admin';
-                state.adminPass = localStorage.getItem('eip_admin_pass') || '123';
+
+                // Fixed Credentials Enforced
+                state.adminUser = 'kaleemrjoyo';
+                state.adminPass = '@KRj321';
             } catch (e) {
                 state.mcqs = DEFAULT_MCQS;
                 state.dawnWords = DEFAULT_DAWN_WORDS;
+                state.articles = DEFAULT_ARTICLES;
                 state.library = DEFAULT_LIBRARY_ITEMS;
             }
         }
@@ -1026,35 +1292,54 @@
         function saveState() {
             try {
                 localStorage.setItem('eip_mcqs', JSON.stringify(state.mcqs));
+                localStorage.setItem('eip_dawn_words', JSON.stringify(state.dawnWords));
+                localStorage.setItem('eip_articles', JSON.stringify(state.articles));
+
+                // Filter out blob URLs before saving library to storage
+                const libToSave = state.library.map(b => ({
+                    ...b,
+                    url: (b.url && b.url.startsWith('blob:')) ? '' : b.url
+                }));
+                localStorage.setItem('eip_library', JSON.stringify(libToSave));
+
                 localStorage.setItem('eip_saved_mcqs', JSON.stringify(state.savedMcqs));
                 localStorage.setItem('eip_saved_vocab', JSON.stringify(state.savedVocab));
+                localStorage.setItem('eip_saved_articles', JSON.stringify(state.savedArticles));
                 localStorage.setItem('eip_saved_books', JSON.stringify(state.savedBooks));
-                localStorage.setItem('eip_dawn_words', JSON.stringify(state.dawnWords));
-                localStorage.setItem('eip_dawn_headlines', JSON.stringify(state.dawnHeadlines));
-                
-                const sanitizedLib = state.library.map(b => ({
-                    id: Number(b.id),
-                    title: b.title,
-                    size: b.size,
-                    cat: b.cat,
-                    url: b.url ? (b.url.length > 500 ? '' : b.url) : '',
-                    isNew: b.isNew
-                }));
-                localStorage.setItem('eip_library', JSON.stringify(sanitizedLib));
-
                 localStorage.setItem('eip_api_key', state.apiKey);
                 localStorage.setItem('eip_admin_user', state.adminUser);
                 localStorage.setItem('eip_admin_pass', state.adminPass);
-            } catch (e) {
-                console.log('Storage save completed.');
-            }
+            } catch (e) { }
 
-            const totalSaved = state.savedMcqs.length + state.savedVocab.length + state.savedBooks.length;
+            const totalSaved = state.savedMcqs.length + state.savedVocab.length + state.savedArticles.length + state.savedBooks.length;
             const countElem = document.getElementById('saved-count');
             if (countElem) countElem.innerText = totalSaved;
         }
 
-        // Tab Switching Logic
+        // Dynamic Category Filter Pills Generator
+        function renderCategoryPills() {
+            const container = document.getElementById('categoryPillsContainer');
+            if (!container) return;
+
+            const defaultCategories = [
+                "General Knowledge", "Pakistan Studies", "Everyday Science", "Islamic Studies",
+                "Basic Computer Operations & IT", "Mathematics", "Intelligence Tests",
+                "Common Observation Questions", "English", "Abbreviations", "Foreign Words",
+                "Current Affairs", "Sindhology", "Past Papers MCQs"
+            ];
+
+            const existingCategories = state.mcqs.map(m => m.category).filter(Boolean);
+            const allUniqueCategories = Array.from(new Set([...defaultCategories, ...existingCategories]));
+
+            container.innerHTML = `
+                <button onclick="filterCategory('ALL')" class="bg-amber-400 text-slate-950 font-bold px-3 py-1.5 rounded-lg text-xs hover:bg-amber-300 transition">All Subjects</button>
+                ${allUniqueCategories.map(cat => `
+                    <button onclick="filterCategory('${cat}')" class="bg-slate-800 text-slate-200 px-3 py-1.5 rounded-lg text-xs hover:bg-slate-700 transition">${cat}</button>
+                `).join('')}
+            `;
+        }
+
+        // Tab Switcher
         function switchTab(tabId) {
             document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
             const targetTab = document.getElementById(tabId);
@@ -1064,67 +1349,60 @@
             const activeBtn = document.getElementById('nav-' + tabId);
             if (activeBtn) activeBtn.classList.add('active-link');
 
+            if (tabId === 'homeTab') { renderCategoryPills(); renderMcqs(); }
             if (tabId === 'savedTab') renderSaved();
             if (tabId === 'dawnTab') renderDawn();
+            if (tabId === 'articlesTab') renderArticles();
             if (tabId === 'libraryTab') renderLibrary();
-            if (tabId === 'adminTab' && state.isAdminLoggedIn) renderAdminBooksTable();
+            if (tabId === 'adminTab' && state.isAdminLoggedIn) renderAdminContentManager();
         }
 
-        // Format AI Markdown symbols (*, #, -) to Clean HTML Output
+        // Format AI Responses Cleanly
         function formatAiResponse(text) {
             if (!text) return '';
             let formatted = text;
-
             formatted = formatted.replace(/^#{1,6}\s*(.*)$/gim, '<strong class="text-indigo-950 block text-sm sm:text-base font-extrabold mt-3 mb-1 border-b pb-0.5">$1</strong>');
             formatted = formatted.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
             formatted = formatted.replace(/\*(.*?)\*/g, '<em>$1</em>');
             formatted = formatted.replace(/^\s*[\*\-]\s+(.*)$/gim, '<div class="flex items-start gap-2 my-1 ml-1"><span class="text-amber-500 font-extrabold">•</span><span>$1</span></div>');
-            formatted = formatted.replace(/^\s*(\d+)\.\s+(.*)$/gim, '<div class="flex items-start gap-2 my-1 ml-1"><span class="font-bold text-indigo-700">$1.</span><span>$2</span></div>');
             formatted = formatted.replace(/\n\n/g, '<br><br>').replace(/\n/g, '<br>');
-
             return formatted;
         }
 
-        // Google Drive Embed Converter
+        // Robust Google Drive & External Link Embed Converter
         function formatGoogleDriveUrl(url) {
-            if (!url) return '';
-            if (url.includes('drive.google.com')) {
-                let match = url.match(/\/d\/([a-zA-Z0-9_-]+)/) || url.match(/id=([a-zA-Z0-9_-]+)/);
+            if (!url || typeof url !== 'string') return '';
+            let trimmed = url.trim();
+            if (trimmed.startsWith('{') || trimmed.includes('"mcqs"') || trimmed.includes('"adminCreds"')) {
+                return '';
+            }
+
+            if (trimmed.includes('drive.google.com')) {
+                let match = trimmed.match(/\/d\/([a-zA-Z0-9_-]+)/) || trimmed.match(/id=([a-zA-Z0-9_-]+)/);
                 if (match && match[1]) {
                     return `https://drive.google.com/file/d/${match[1]}/preview`;
                 }
             }
-            return url;
+            return trimmed;
         }
 
-        // Render Home MCQs Feed
+        // Render MCQs Feed
         function renderMcqs(list = state.mcqs) {
             const container = document.getElementById('mcqContainer');
             if (!container) return;
 
             if (list.length === 0) {
-                container.innerHTML = `<div class="bg-white p-8 text-center text-slate-500 rounded-xl border border-slate-200 text-xs sm:text-sm">No MCQs found matching your criteria.</div>`;
+                container.innerHTML = `<div class="bg-white p-8 text-center text-slate-500 rounded-xl border border-slate-200 text-xs sm:text-sm">No MCQs found matching your query.</div>`;
                 return;
             }
 
-            container.innerHTML = list.map((mcq) => {
+            container.innerHTML = list.map(mcq => {
                 const isSaved = state.savedMcqs.includes(Number(mcq.id));
                 return `
                 <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 space-y-4 ${mcq.isNew ? 'new-card-glow' : ''}">
                     <div class="flex justify-between items-center">
-                        <div class="flex items-center gap-2">
-                            <span class="bg-indigo-100 text-indigo-900 text-[11px] font-bold px-2.5 py-1 rounded-lg">${mcq.category}</span>
-                            ${mcq.isNew ? `
-                                <span class="bg-amber-400 text-slate-950 font-extrabold text-[10px] px-2 py-0.5 rounded-full flex items-center gap-1 shadow-sm">
-                                    <span class="relative flex h-1.5 w-1.5">
-                                        <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-slate-900 opacity-75"></span>
-                                        <span class="relative inline-flex rounded-full h-1.5 w-1.5 bg-slate-950"></span>
-                                    </span>
-                                    NEW UPDATE
-                                </span>
-                            ` : ''}
-                        </div>
-                        <button onclick="toggleBookmarkMcq(${mcq.id})" class="text-slate-400 hover:text-amber-500 transition" title="Bookmark MCQ">
+                        <span class="bg-indigo-100 text-indigo-900 text-[11px] font-bold px-2.5 py-1 rounded-lg">${mcq.category}</span>
+                        <button onclick="toggleBookmarkMcq(${mcq.id})" class="text-slate-400 hover:text-amber-500 transition">
                             <i class="${isSaved ? 'fa-solid text-amber-500' : 'fa-regular'} fa-bookmark text-base"></i>
                         </button>
                     </div>
@@ -1152,13 +1430,11 @@
             }).join('');
         }
 
-        // MCQ Interactive Answer Checker
         function checkAnswer(mcqId, selectedOptIndex, btnElement) {
             const mcq = state.mcqs.find(m => Number(m.id) === Number(mcqId));
             if (!mcq) return;
 
-            const allOptBtns = document.querySelectorAll(`.opt-btn-${mcqId}`);
-            allOptBtns.forEach((btn, idx) => {
+            document.querySelectorAll(`.opt-btn-${mcqId}`).forEach((btn, idx) => {
                 btn.disabled = true;
                 if (idx === mcq.answerIndex) {
                     btn.classList.add('opt-correct');
@@ -1173,7 +1449,6 @@
             if (expDiv) expDiv.classList.remove('hidden');
         }
 
-        // Search & Category Filters
         function filterMcqs() {
             const query = (document.getElementById('searchInput').value || '').toLowerCase();
             const filtered = state.mcqs.filter(m =>
@@ -1189,132 +1464,215 @@
             else renderMcqs(state.mcqs.filter(m => m.category === cat));
         }
 
-        // Single Favorite Toggle Logic (Strict ID Matching)
-        function toggleBookmarkMcq(mcqId) {
-            const targetId = Number(mcqId);
-            if (state.savedMcqs.includes(targetId)) {
-                state.savedMcqs = state.savedMcqs.filter(id => id !== targetId);
-                showToast('MCQ removed from saved favorites.');
+        // Bookmark Toggles
+        function toggleBookmarkMcq(id) {
+            const numId = Number(id);
+            if (state.savedMcqs.includes(numId)) {
+                state.savedMcqs = state.savedMcqs.filter(i => i !== numId);
+                showToast('MCQ removed from saved.');
             } else {
-                state.savedMcqs.push(targetId);
+                state.savedMcqs.push(numId);
                 showToast('MCQ saved to favorites!');
             }
             saveState();
             filterMcqs();
         }
 
-        function toggleBookmarkVocab(vocabId) {
-            const targetId = Number(vocabId);
-            if (state.savedVocab.includes(targetId)) {
-                state.savedVocab = state.savedVocab.filter(id => id !== targetId);
-                showToast('Vocab word removed from favorites.');
+        function toggleBookmarkVocab(id) {
+            const numId = Number(id);
+            if (state.savedVocab.includes(numId)) {
+                state.savedVocab = state.savedVocab.filter(i => i !== numId);
+                showToast('Vocab removed from saved.');
             } else {
-                state.savedVocab.push(targetId);
-                showToast('Vocab word saved to favorites!');
+                state.savedVocab.push(numId);
+                showToast('Vocab saved!');
             }
             saveState();
             renderDawn();
         }
 
-        function toggleBookmarkBook(bookId) {
-            const targetId = Number(bookId);
-            if (state.savedBooks.includes(targetId)) {
-                state.savedBooks = state.savedBooks.filter(id => id !== targetId);
-                showToast('Book removed from saved library.');
+        function toggleBookmarkArticle(id) {
+            const numId = Number(id);
+            if (state.savedArticles.includes(numId)) {
+                state.savedArticles = state.savedArticles.filter(i => i !== numId);
+                showToast('Article removed from saved.');
             } else {
-                state.savedBooks.push(targetId);
+                state.savedArticles.push(numId);
+                showToast('Article saved to bookmarks!');
+            }
+            saveState();
+            renderArticles();
+        }
+
+        function toggleBookmarkBook(id) {
+            const numId = Number(id);
+            if (state.savedBooks.includes(numId)) {
+                state.savedBooks = state.savedBooks.filter(i => i !== numId);
+                showToast('Book removed from saved.');
+            } else {
+                state.savedBooks.push(numId);
                 showToast('Book saved to library favorites!');
             }
             saveState();
             renderLibrary();
         }
 
-        function switchSavedSubFilter(type) {
-            state.activeSavedSubFilter = type;
-            ['ALL', 'MCQS', 'VOCAB', 'BOOKS'].forEach(t => {
-                const btn = document.getElementById(`saved-sub-${t}`);
-                if (btn) {
-                    if (t === type) {
-                        btn.className = 'bg-amber-400 text-slate-950 font-bold px-3 py-1 rounded-lg text-xs';
-                    } else {
-                        btn.className = 'bg-slate-100 text-slate-700 font-medium px-3 py-1 rounded-lg text-xs';
-                    }
-                }
-            });
-            renderSaved();
-        }
-
-        function renderSaved() {
-            const container = document.getElementById('savedContainer');
+        // Render Articles Tab
+        function renderArticles() {
+            const container = document.getElementById('articlesContainer');
             if (!container) return;
 
-            const savedMcqsList = state.mcqs.filter(m => state.savedMcqs.includes(Number(m.id)));
-            const savedVocabList = state.dawnWords.filter(w => state.savedVocab.includes(Number(w.id)));
-            const savedBooksList = state.library.filter(b => state.savedBooks.includes(Number(b.id)));
-
-            if (savedMcqsList.length === 0 && savedVocabList.length === 0 && savedBooksList.length === 0) {
-                container.innerHTML = `<div class="bg-slate-50 p-8 text-center text-slate-500 rounded-2xl border border-slate-200 text-xs sm:text-sm">No saved favorites yet. Click the bookmark icon on any MCQ, Vocab word, or Book to save it here.</div>`;
+            if (state.articles.length === 0) {
+                container.innerHTML = `<div class="bg-white p-6 text-center text-slate-500 rounded-xl border border-slate-200 text-xs sm:text-sm">No editorial articles available yet.</div>`;
                 return;
             }
 
-            let html = '';
-
-            if ((state.activeSavedSubFilter === 'ALL' || state.activeSavedSubFilter === 'MCQS') && savedMcqsList.length > 0) {
-                html += `<h3 class="font-bold text-slate-800 text-sm border-b pb-2 flex items-center gap-2"><i class="fa-solid fa-list-check text-indigo-600"></i> Saved MCQs (${savedMcqsList.length})</h3>`;
-                html += savedMcqsList.map(m => `
-                    <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-2 text-xs sm:text-sm">
-                        <div class="flex justify-between items-center">
-                            <span class="bg-indigo-100 text-indigo-900 font-bold text-[10px] px-2 py-0.5 rounded">${m.category}</span>
-                            <button onclick="toggleBookmarkMcq(${m.id})" class="text-amber-500 hover:text-red-500 text-xs font-bold">Remove</button>
-                        </div>
-                        <p class="font-semibold text-slate-900">${m.question}</p>
-                        <p class="text-emerald-700 font-bold text-xs">Correct: ${m.options[m.answerIndex]}</p>
+            container.innerHTML = state.articles.map(art => {
+                const isSaved = state.savedArticles.includes(Number(art.id));
+                return `
+                <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm space-y-3">
+                    <div class="flex justify-between items-center">
+                        <span class="bg-amber-100 text-amber-900 text-[10px] font-bold px-2 py-0.5 rounded">${art.category}</span>
+                        <button onclick="toggleBookmarkArticle(${art.id})" class="text-slate-400 hover:text-amber-500 text-xs">
+                            <i class="${isSaved ? 'fa-solid text-amber-500' : 'fa-regular'} fa-bookmark"></i>
+                        </button>
                     </div>
-                `).join('');
-            }
-
-            if ((state.activeSavedSubFilter === 'ALL' || state.activeSavedSubFilter === 'VOCAB') && savedVocabList.length > 0) {
-                html += `<h3 class="font-bold text-slate-800 text-sm border-b pb-2 flex items-center gap-2 mt-4"><i class="fa-solid fa-book text-amber-500"></i> Saved Vocab Words (${savedVocabList.length})</h3>`;
-                html += savedVocabList.map(w => `
-                    <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-1 text-xs sm:text-sm">
-                        <div class="flex justify-between items-center">
-                            <h4 class="font-bold text-indigo-900">${w.word} <span class="text-[11px] text-slate-500 font-normal">(${w.type})</span></h4>
-                            <button onclick="toggleBookmarkVocab(${w.id})" class="text-amber-500 hover:text-red-500 text-xs font-bold">Remove</button>
-                        </div>
-                        <p class="text-slate-700"><strong>Urdu:</strong> ${w.urdu} | <strong>Meaning:</strong> ${w.meaning}</p>
-                    </div>
-                `).join('');
-            }
-
-            if ((state.activeSavedSubFilter === 'ALL' || state.activeSavedSubFilter === 'BOOKS') && savedBooksList.length > 0) {
-                html += `<h3 class="font-bold text-slate-800 text-sm border-b pb-2 flex items-center gap-2 mt-4"><i class="fa-solid fa-book-open text-indigo-600"></i> Saved Books (${savedBooksList.length})</h3>`;
-                html += savedBooksList.map(b => `
-                    <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 flex justify-between items-center text-xs sm:text-sm">
-                        <div>
-                            <h4 class="font-bold text-slate-900">${b.title}</h4>
-                            <p class="text-slate-500 text-xs">${b.cat} • ${b.size}</p>
-                        </div>
-                        <button onclick="toggleBookmarkBook(${b.id})" class="text-amber-500 hover:text-red-500 text-xs font-bold">Remove</button>
-                    </div>
-                `).join('');
-            }
-
-            container.innerHTML = html;
+                    <h3 class="font-bold text-slate-900 text-xs sm:text-sm">${art.title}</h3>
+                    <p class="text-[11px] text-slate-500">By ${art.author || 'Editorial Team'}</p>
+                    <button onclick="openArticleReader(${art.id})" class="bg-slate-900 text-amber-400 hover:bg-slate-800 text-xs font-bold px-3 py-1.5 rounded-lg transition">
+                        <i class="fa-solid fa-eye mr-1"></i> Read Full Essay / Article
+                    </button>
+                </div>
+                `;
+            }).join('');
         }
 
-        // Render Dawn Vocab Section
+        function openArticleReader(artId) {
+            const art = state.articles.find(a => Number(a.id) === Number(artId));
+            if (!art) return;
+
+            document.getElementById('readerModalTitle').innerText = art.title;
+            document.getElementById('readerModalCat').innerText = `Editorial Essay • ${art.category}`;
+
+            const iframe = document.getElementById('pdfFrame');
+            const textViewer = document.getElementById('textDocViewer');
+            iframe.classList.add('hidden');
+            textViewer.classList.remove('hidden');
+
+            document.getElementById('textDocTitle').innerText = art.title;
+            document.getElementById('textDocBody').innerHTML = `
+                <div class="space-y-4">
+                    <div class="flex justify-between text-xs text-slate-500 border-b pb-2">
+                        <span><strong>Author:</strong> ${art.author || 'Editorial Team'}</span>
+                        <span><strong>Subject:</strong> ${art.category}</span>
+                    </div>
+                    <div class="whitespace-pre-line text-slate-800 leading-relaxed font-sans text-xs sm:text-sm">
+                        ${art.content}
+                    </div>
+                </div>
+            `;
+
+            document.getElementById('readerModal').classList.remove('hidden');
+        }
+
+        // Render Library Section
+        function renderLibrary() {
+            const container = document.getElementById('libraryContainer');
+            if (!container) return;
+
+            container.innerHTML = state.library.map(item => {
+                const isSaved = state.savedBooks.includes(Number(item.id));
+                return `
+                <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 flex flex-col justify-between text-xs sm:text-sm space-y-3 ${item.isNew ? 'new-card-glow' : ''}">
+                    <div class="space-y-2">
+                        <div class="flex justify-between items-start">
+                            <span class="text-[10px] font-bold bg-indigo-100 text-indigo-900 px-2 py-0.5 rounded">${item.cat}</span>
+                            <button onclick="toggleBookmarkBook(${item.id})" class="text-slate-400 hover:text-amber-500 transition">
+                                <i class="${isSaved ? 'fa-solid text-amber-500' : 'fa-regular'} fa-bookmark"></i>
+                            </button>
+                        </div>
+                        <h4 class="font-bold text-slate-900 leading-snug">${item.title}</h4>
+                        <p class="text-slate-400 text-xs">Size: ${item.size}</p>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-2 pt-2 border-t border-slate-200">
+                        <button onclick="openReaderModal(${item.id})" class="bg-amber-400 hover:bg-amber-300 text-slate-950 font-bold py-2 px-2 rounded-lg text-xs transition flex items-center justify-center gap-1">
+                            <i class="fa-solid fa-eye"></i> Read Online
+                        </button>
+                        <button onclick="downloadBook(${item.id})" class="bg-indigo-900 hover:bg-indigo-800 text-white font-semibold py-2 px-2 rounded-lg text-xs transition flex items-center justify-center gap-1">
+                            <i class="fa-solid fa-download"></i> Download
+                        </button>
+                    </div>
+                </div>
+                `;
+            }).join('');
+        }
+
+        function openReaderModal(bookId) {
+            const item = state.library.find(b => Number(b.id) === Number(bookId));
+            if (!item) return;
+
+            document.getElementById('readerModalTitle').innerText = item.title;
+            document.getElementById('readerModalCat').innerText = `ExamInPocket Library • ${item.cat}`;
+
+            // Check session map or url
+            const sessionBlobUrl = localPdfBlobMap[item.id];
+            const targetUrl = sessionBlobUrl || item.url || '';
+
+            document.getElementById('readerDownloadBtn').href = targetUrl || '#';
+            document.getElementById('readerExternalBtn').href = targetUrl || '#';
+
+            const iframe = document.getElementById('pdfFrame');
+            const textViewer = document.getElementById('textDocViewer');
+
+            if (targetUrl && typeof targetUrl === 'string' && targetUrl.trim() !== '' && !targetUrl.startsWith('{') && !targetUrl.includes('"mcqs"')) {
+                const embedUrl = formatGoogleDriveUrl(targetUrl);
+                iframe.src = embedUrl;
+                iframe.classList.remove('hidden');
+                textViewer.classList.add('hidden');
+            } else {
+                iframe.classList.add('hidden');
+                textViewer.classList.remove('hidden');
+                document.getElementById('textDocTitle').innerText = item.title;
+                document.getElementById('textDocBody').innerHTML = `
+                    <div class="space-y-3">
+                        <p class="font-bold text-slate-900">Study Guide Summary:</p>
+                        <p class="text-slate-700">Verified study guide for <strong>${item.title}</strong> (${item.cat}).</p>
+                        <div class="bg-indigo-50 p-4 rounded-xl border border-indigo-100 text-indigo-950 space-y-1">
+                            <p class="font-bold">💡 How to view complete PDF:</p>
+                            <p class="text-xs">Paste a valid Google Drive URL in the Admin Panel or upload the local PDF file from your phone/computer.</p>
+                        </div>
+                    </div>
+                `;
+            }
+
+            document.getElementById('readerModal').classList.remove('hidden');
+        }
+
+        function closeReaderModal() {
+            document.getElementById('readerModal').classList.add('hidden');
+            document.getElementById('pdfFrame').src = '';
+        }
+
+        function printReaderContent() { window.print(); }
+
+        function downloadBook(bookId) {
+            const item = state.library.find(b => Number(b.id) === Number(bookId));
+            const sessionUrl = localPdfBlobMap[bookId] || (item ? item.url : '');
+            if (sessionUrl && sessionUrl.trim() !== '') window.open(sessionUrl, '_blank');
+            else showToast(`Opening book details for: ${item ? item.title : 'Book'}`);
+        }
+
+        // Render Dawn Vocab
         function renderDawn() {
             const container = document.getElementById('dawnWordsContainer');
             if (container) {
                 container.innerHTML = state.dawnWords.map(w => {
                     const isSaved = state.savedVocab.includes(Number(w.id));
                     return `
-                    <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-1 text-xs sm:text-sm relative ${w.isNew ? 'new-card-glow' : ''}">
+                    <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-1 text-xs sm:text-sm">
                         <div class="flex justify-between items-center">
-                            <div class="flex items-center gap-2">
-                                <h4 class="font-bold text-indigo-900 text-sm sm:text-base">${w.word} <span class="text-[11px] text-slate-500 font-normal">(${w.type})</span></h4>
-                                ${w.isNew ? '<span class="bg-amber-400 text-slate-950 text-[9px] font-extrabold px-1.5 py-0.5 rounded-full">NEW</span>' : ''}
-                            </div>
+                            <h4 class="font-bold text-indigo-900 text-sm">${w.word} <span class="text-[11px] text-slate-500 font-normal">(${w.type})</span></h4>
                             <button onclick="toggleBookmarkVocab(${w.id})" class="text-slate-400 hover:text-amber-500 transition">
                                 <i class="${isSaved ? 'fa-solid text-amber-500' : 'fa-regular'} fa-bookmark"></i>
                             </button>
@@ -1329,104 +1687,80 @@
 
             const headContainer = document.getElementById('dawnHeadlinesContainer');
             if (headContainer) {
-                headContainer.innerHTML = state.dawnHeadlines.map(h => `
-                    <li class="hover:text-indigo-700 cursor-pointer transition leading-snug">${h}</li>
-                `).join('');
+                headContainer.innerHTML = state.dawnHeadlines.map(h => `<li class="hover:text-indigo-700 transition">${h}</li>`).join('');
             }
         }
 
-        // Render Library Section
-        function renderLibrary() {
-            const container = document.getElementById('libraryContainer');
+        // Saved Favorites Renderer
+        function switchSavedSubFilter(filter) {
+            state.activeSavedSubFilter = filter;
+            ['ALL', 'MCQS', 'VOCAB', 'ARTICLES', 'BOOKS'].forEach(f => {
+                const btn = document.getElementById(`saved-sub-${f}`);
+                if (btn) btn.className = f === filter ? 'bg-amber-400 text-slate-950 font-bold px-3 py-1 rounded-lg text-xs' : 'bg-slate-100 text-slate-700 font-medium px-3 py-1 rounded-lg text-xs';
+            });
+            renderSaved();
+        }
+
+        function renderSaved() {
+            const container = document.getElementById('savedContainer');
             if (!container) return;
 
-            container.innerHTML = state.library.map(item => {
-                const isSaved = state.savedBooks.includes(Number(item.id));
-                return `
-                <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 flex flex-col justify-between text-xs sm:text-sm space-y-3 ${item.isNew ? 'new-card-glow' : ''}">
-                    <div class="space-y-2">
-                        <div class="flex justify-between items-start">
-                            <div class="flex items-center gap-2">
-                                <span class="text-[10px] font-bold bg-indigo-100 text-indigo-900 px-2 py-0.5 rounded">${item.cat}</span>
-                                ${item.isNew ? '<span class="bg-amber-400 text-slate-950 text-[9px] font-extrabold px-1.5 py-0.5 rounded-full">NEW</span>' : ''}
-                            </div>
-                            <button onclick="toggleBookmarkBook(${item.id})" class="text-slate-400 hover:text-amber-500 transition">
-                                <i class="${isSaved ? 'fa-solid text-amber-500' : 'fa-regular'} fa-bookmark"></i>
-                            </button>
-                        </div>
-                        <h4 class="font-bold text-slate-900 leading-snug">${item.title}</h4>
-                        <p class="text-slate-400 text-xs">Size: ${item.size}</p>
-                    </div>
+            const savedM = state.mcqs.filter(m => state.savedMcqs.includes(Number(m.id)));
+            const savedV = state.dawnWords.filter(w => state.savedVocab.includes(Number(w.id)));
+            const savedA = state.articles.filter(a => state.savedArticles.includes(Number(a.id)));
+            const savedB = state.library.filter(b => state.savedBooks.includes(Number(b.id)));
 
-                    <div class="grid grid-cols-2 gap-2 pt-2 border-t border-slate-200">
-                        <button onclick="openReaderModal('${item.id}')" class="bg-amber-400 hover:bg-amber-300 text-slate-950 font-bold py-2 px-2 rounded-lg text-xs transition flex items-center justify-center gap-1">
-                            <i class="fa-solid fa-eye"></i> Read Online
-                        </button>
-                        <button onclick="downloadBook('${item.id}')" class="bg-indigo-900 hover:bg-indigo-800 text-white font-semibold py-2 px-2 rounded-lg text-xs transition flex items-center justify-center gap-1">
-                            <i class="fa-solid fa-download"></i> Download
-                        </button>
-                    </div>
-                </div>
-                `;
-            }).join('');
-        }
-
-        // Open Reader Modal
-        function openReaderModal(bookId) {
-            const item = state.library.find(b => Number(b.id) === Number(bookId));
-            if (!item) return;
-
-            document.getElementById('readerModalTitle').innerText = item.title;
-            document.getElementById('readerModalCat').innerText = `ExamInPocket • ${item.cat}`;
-            document.getElementById('readerDownloadBtn').href = item.url || '#';
-
-            const iframe = document.getElementById('pdfFrame');
-            const textViewer = document.getElementById('textDocViewer');
-
-            if (item.url && item.url.trim() !== '') {
-                const embedUrl = formatGoogleDriveUrl(item.url);
-                iframe.src = embedUrl;
-                iframe.classList.remove('hidden');
-                textViewer.classList.add('hidden');
-            } else {
-                iframe.classList.add('hidden');
-                textViewer.classList.remove('hidden');
-                document.getElementById('textDocTitle').innerText = item.title;
-                document.getElementById('textDocBody').innerHTML = `
-                    <p class="font-bold text-slate-800">Study Note Contents:</p>
-                    <p>This is an authentic verified study guide for <strong>${item.title}</strong> covering key syllabus topics for FPSC, PPSC, SPSC, CSS, PMS, and CCE examinations.</p>
-                    <p class="bg-indigo-50 p-3 rounded-lg border border-indigo-100 text-indigo-950">💡 <strong>Exam Tip:</strong> High-yield past paper MCQs and short explanations are updated regularly in the ExamInPocket home feed.</p>
-                `;
+            if (savedM.length === 0 && savedV.length === 0 && savedA.length === 0 && savedB.length === 0) {
+                container.innerHTML = `<div class="bg-slate-50 p-8 text-center text-slate-500 rounded-2xl border border-slate-200 text-xs sm:text-sm">No saved items yet. Click bookmarks across the portal to save study items here!</div>`;
+                return;
             }
 
-            document.getElementById('readerModal').classList.remove('hidden');
-        }
-
-        function closeReaderModal() {
-            document.getElementById('readerModal').classList.add('hidden');
-            document.getElementById('pdfFrame').src = '';
-        }
-
-        function printReaderContent() {
-            window.print();
-        }
-
-        function downloadBook(bookId) {
-            const item = state.library.find(b => Number(b.id) === Number(bookId));
-            if (item && item.url) {
-                window.open(item.url, '_blank');
-            } else {
-                showToast(`Opening download link for: ${item ? item.title : 'Book'}`);
+            let html = '';
+            if ((state.activeSavedSubFilter === 'ALL' || state.activeSavedSubFilter === 'MCQS') && savedM.length > 0) {
+                html += `<h3 class="font-bold text-slate-800 text-sm border-b pb-2 flex items-center gap-2"><i class="fa-solid fa-list-check text-indigo-600"></i> Saved MCQs (${savedM.length})</h3>`;
+                html += savedM.map(m => `
+                    <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 text-xs sm:text-sm space-y-2">
+                        <div class="flex justify-between items-center"><span class="bg-indigo-100 text-indigo-900 font-bold px-2 py-0.5 rounded text-[10px]">${m.category}</span><button onclick="toggleBookmarkMcq(${m.id})" class="text-amber-500 font-bold">Remove</button></div>
+                        <p class="font-bold text-slate-900">${m.question}</p>
+                    </div>
+                `).join('');
             }
+
+            if ((state.activeSavedSubFilter === 'ALL' || state.activeSavedSubFilter === 'VOCAB') && savedV.length > 0) {
+                html += `<h3 class="font-bold text-slate-800 text-sm border-b pb-2 flex items-center gap-2 mt-4"><i class="fa-solid fa-book text-amber-500"></i> Saved Vocab (${savedV.length})</h3>`;
+                html += savedV.map(w => `
+                    <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 text-xs flex justify-between items-center">
+                        <div><strong class="text-indigo-950">${w.word}</strong> - ${w.urdu}</div>
+                        <button onclick="toggleBookmarkVocab(${w.id})" class="text-amber-500 font-bold">Remove</button>
+                    </div>
+                `).join('');
+            }
+
+            if ((state.activeSavedSubFilter === 'ALL' || state.activeSavedSubFilter === 'ARTICLES') && savedA.length > 0) {
+                html += `<h3 class="font-bold text-slate-800 text-sm border-b pb-2 flex items-center gap-2 mt-4"><i class="fa-solid fa-file-pen text-amber-600"></i> Saved Articles (${savedA.length})</h3>`;
+                html += savedA.map(a => `
+                    <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 text-xs flex justify-between items-center">
+                        <div><strong class="text-slate-900">${a.title}</strong> (${a.category})</div>
+                        <button onclick="toggleBookmarkArticle(${a.id})" class="text-amber-500 font-bold">Remove</button>
+                    </div>
+                `).join('');
+            }
+
+            if ((state.activeSavedSubFilter === 'ALL' || state.activeSavedSubFilter === 'BOOKS') && savedB.length > 0) {
+                html += `<h3 class="font-bold text-slate-800 text-sm border-b pb-2 flex items-center gap-2 mt-4"><i class="fa-solid fa-book-open text-indigo-600"></i> Saved Books (${savedB.length})</h3>`;
+                html += savedB.map(b => `
+                    <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 text-xs flex justify-between items-center">
+                        <div><strong class="text-slate-900">${b.title}</strong> (${b.cat})</div>
+                        <button onclick="toggleBookmarkBook(${b.id})" class="text-amber-500 font-bold">Remove</button>
+                    </div>
+                `).join('');
+            }
+
+            container.innerHTML = html;
         }
 
         // Mock Test Engine
-        let mockTestState = {
-            timer: null,
-            secondsLeft: 300,
-            questions: [],
-            userAnswers: {}
-        };
+        let mockTestState = { timer: null, secondsLeft: 300, questions: [], userAnswers: {} };
 
         function startMockTest() {
             const cat = document.getElementById('testCategory').value;
@@ -1482,7 +1816,7 @@
                 const secs = mockTestState.secondsLeft % 60;
                 const timerElem = document.getElementById('testTimer');
                 if (timerElem) timerElem.innerText = `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
-                
+
                 if (mockTestState.secondsLeft <= 0) {
                     clearInterval(mockTestState.timer);
                     submitMockTest();
@@ -1492,18 +1826,14 @@
 
         function submitMockTest() {
             clearInterval(mockTestState.timer);
-            let correctCount = 0;
-            let wrongCount = 0;
-            let unattemptedCount = 0;
+            let correctCount = 0, wrongCount = 0, unattemptedCount = 0;
             let categoryErrors = {};
 
             mockTestState.questions.forEach(q => {
                 const userAns = mockTestState.userAnswers[q.id];
-                if (userAns === undefined) {
-                    unattemptedCount++;
-                } else if (userAns === q.answerIndex) {
-                    correctCount++;
-                } else {
+                if (userAns === undefined) unattemptedCount++;
+                else if (userAns === q.answerIndex) correctCount++;
+                else {
                     wrongCount++;
                     categoryErrors[q.category] = (categoryErrors[q.category] || 0) + 1;
                 }
@@ -1525,18 +1855,17 @@
             const weakDiv = document.getElementById('weakSubjectsList');
             const errorCategories = Object.keys(categoryErrors);
             if (errorCategories.length === 0) {
-                weakDiv.innerHTML = `<p class="text-emerald-700 font-bold">🎉 Outstanding performance! You answered all attempted questions correctly.</p>`;
+                weakDiv.innerHTML = `<p class="text-emerald-700 font-bold">🎉 Outstanding performance! All attempted questions answered correctly.</p>`;
             } else {
                 weakDiv.innerHTML = `
-                    <p class="font-bold text-rose-800">Subjects Needing Attention:</p>
+                    <p class="font-bold text-rose-800">Focus Subject Areas:</p>
                     <ul class="list-disc pl-5 space-y-1">
-                        ${errorCategories.map(cat => `<li><strong>${cat}:</strong> ${categoryErrors[cat]} mistake(s). Revise ${cat} notes in Library & Home feed.</li>`).join('')}
+                        ${errorCategories.map(cat => `<li><strong>${cat}:</strong> ${categoryErrors[cat]} mistake(s). Revise ${cat} notes in Library.</li>`).join('')}
                     </ul>
                 `;
             }
 
-            const randomQuote = MOTIVATIONAL_QUOTES[Math.floor(Math.random() * MOTIVATIONAL_QUOTES.length)];
-            document.getElementById('motivationalQuote').innerText = randomQuote;
+            document.getElementById('motivationalQuote').innerText = MOTIVATIONAL_QUOTES[Math.floor(Math.random() * MOTIVATIONAL_QUOTES.length)];
         }
 
         function resetMockTest() {
@@ -1544,7 +1873,7 @@
             document.getElementById('testResultArea').classList.add('hidden');
         }
 
-        // Live Gemini Chatbot Integration
+        // Live Gemini Chatbot
         function handleAiInputKey(e) {
             if (e.key === 'Enter' && !e.shiftKey) {
                 e.preventDefault();
@@ -1556,8 +1885,7 @@
             const mcq = state.mcqs.find(m => Number(m.id) === Number(mcqId));
             if (!mcq) return;
             switchTab('aiTab');
-            const prompt = `Explain this competitive exam question in simple Hinglish/Roman Urdu:\n\nQuestion: "${mcq.question}"\nCorrect Answer: "${mcq.options[mcq.answerIndex]}"`;
-            sendAiChatMessage(prompt);
+            sendAiChatMessage(`Explain this competitive exam question in simple Roman Urdu:\n\nQuestion: "${mcq.question}"\nCorrect Answer: "${mcq.options[mcq.answerIndex]}"`);
         }
 
         async function sendAiChatMessage(customPrompt) {
@@ -1566,7 +1894,6 @@
             if (!prompt) return;
 
             if (!customPrompt) inputField.value = '';
-
             const chatWindow = document.getElementById('aiChatWindow');
 
             chatWindow.innerHTML += `
@@ -1575,18 +1902,14 @@
                         <p class="font-bold text-amber-300 text-[11px]">You (Student)</p>
                         <p>${prompt.replace(/\n/g, '<br>')}</p>
                     </div>
-                    <div class="bg-amber-400 text-slate-950 p-2 rounded-xl text-sm shrink-0 font-bold">
-                        <i class="fa-solid fa-user"></i>
-                    </div>
+                    <div class="bg-amber-400 text-slate-950 p-2 rounded-xl text-sm shrink-0 font-bold"><i class="fa-solid fa-user"></i></div>
                 </div>
             `;
 
             const typingId = 'typing-' + Date.now();
             chatWindow.innerHTML += `
                 <div id="${typingId}" class="flex gap-3 items-start">
-                    <div class="bg-indigo-900 text-amber-400 p-2 rounded-xl text-sm shrink-0">
-                        <i class="fa-solid fa-robot"></i>
-                    </div>
+                    <div class="bg-indigo-900 text-amber-400 p-2 rounded-xl text-sm shrink-0"><i class="fa-solid fa-robot"></i></div>
                     <div class="bg-white p-3.5 rounded-2xl rounded-tl-none border border-slate-200 text-xs text-slate-500 shadow-sm flex items-center gap-2">
                         <i class="fa-solid fa-spinner fa-spin text-indigo-600"></i> Gemini AI Tutor is thinking...
                     </div>
@@ -1595,52 +1918,40 @@
             chatWindow.scrollTop = chatWindow.scrollHeight;
 
             let botReply = '';
-
             if (state.apiKey && state.apiKey.trim() !== '') {
                 try {
                     const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${state.apiKey}`, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({
-                            contents: [
-                                {
-                                    parts: [
-                                        { text: "You are ExamInPocket Gemini AI Tutor, a friendly CSS/PMS senior mentor in Pakistan. Explain competitive exam concepts in simple Roman Urdu/Hinglish with bullet points and clear examples." },
-                                        { text: prompt }
-                                    ]
-                                }
-                            ]
+                            contents: [{
+                                parts: [
+                                    { text: "You are ExamInPocket Gemini AI Tutor, a friendly CSS/PMS senior mentor in Pakistan. Explain concepts in simple Roman Urdu / Hinglish with clear points." },
+                                    { text: prompt }
+                                ]
+                            }]
                         })
                     });
-
                     const data = await response.json();
                     if (data.candidates && data.candidates[0].content.parts[0].text) {
                         botReply = data.candidates[0].content.parts[0].text;
                     }
-                } catch (err) {
-                    console.log('Gemini API Error, reverting to local tutor logic');
-                }
+                } catch (err) { }
             }
 
             if (!botReply) {
-                botReply = `Suno student! Is concept **"${prompt}"** ko simple Roman Urdu mein samajhte hain:\n\n* **Core Concept:** Yeh competitive exams (FPSC, SPSC, PPSC, CSS, PMS) ka high-yield subject topic hai.\n* **Key Point:** Is topic se related past papers mein repeatedly multi-choice questions pooche jate hain.\n* **Exam Tip:** Local library section se notes download karke revision shuru karain!`;
+                botReply = `Suno student! Is topic **"${prompt}"** ko simple Roman Urdu mein samajhte hain:\n\n* **Core Concept:** Yeh competitive exams (FPSC, SPSC, PPSC, CSS) ka high-yield concept hai.\n* **Exam Tip:** Local library section se solved notes check karke revision continue karain!`;
             }
 
             const typingElem = document.getElementById(typingId);
             if (typingElem) typingElem.remove();
 
-            const cleanFormattedReply = formatAiResponse(botReply);
-
             chatWindow.innerHTML += `
                 <div class="flex gap-3 items-start">
-                    <div class="bg-indigo-900 text-amber-400 p-2 rounded-xl text-sm shrink-0">
-                        <i class="fa-solid fa-robot"></i>
-                    </div>
+                    <div class="bg-indigo-900 text-amber-400 p-2 rounded-xl text-sm shrink-0"><i class="fa-solid fa-robot"></i></div>
                     <div class="bg-white p-4 rounded-2xl rounded-tl-none border border-slate-200 text-xs sm:text-sm text-slate-800 space-y-2 shadow-sm max-w-2xl leading-relaxed">
-                        <p class="font-bold text-indigo-950 flex items-center gap-1.5">
-                            <i class="fa-solid fa-sparkles text-amber-500"></i> Gemini AI Tutor Response
-                        </p>
-                        <div>${cleanFormattedReply}</div>
+                        <p class="font-bold text-indigo-950 flex items-center gap-1.5"><i class="fa-solid fa-sparkles text-amber-500"></i> Gemini AI Tutor Response</p>
+                        <div>${formatAiResponse(botReply)}</div>
                     </div>
                 </div>
             `;
@@ -1652,19 +1963,53 @@
             if (chatWindow) {
                 chatWindow.innerHTML = `
                     <div class="flex gap-3 items-start">
-                        <div class="bg-indigo-900 text-amber-400 p-2 rounded-xl text-sm shrink-0">
-                            <i class="fa-solid fa-robot"></i>
-                        </div>
+                        <div class="bg-indigo-900 text-amber-400 p-2 rounded-xl text-sm shrink-0"><i class="fa-solid fa-robot"></i></div>
                         <div class="bg-white p-4 rounded-2xl rounded-tl-none border border-slate-200 text-xs sm:text-sm text-slate-800 space-y-2 shadow-sm max-w-2xl">
                             <p class="font-bold text-indigo-950">Chat Cleared 🎓</p>
-                            <p>Ask any new question, topic explanation, or schedule request!</p>
+                            <p>Ask any new question, topic explanation, or study guide request!</p>
                         </div>
                     </div>
                 `;
             }
         }
 
-        // Admin Security & Management Logic
+        // Custom Subject Toggle Handlers
+        function handleAdminCategoryChange(selectElem) {
+            const customInput = document.getElementById('adminCustomCategory');
+            if (selectElem.value === '__NEW_SUBJECT__') {
+                customInput.classList.remove('hidden');
+            } else {
+                customInput.classList.add('hidden');
+            }
+        }
+
+        function handleEditCategoryChange(selectElem) {
+            const customInput = document.getElementById('editMcqCustomCat');
+            if (selectElem.value === '__NEW_SUBJECT__') {
+                customInput.classList.remove('hidden');
+            } else {
+                customInput.classList.add('hidden');
+            }
+        }
+
+        // Local PDF File Selection Handler using Blob URLs
+        function handleAdminLocalPdfSelect(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            document.getElementById('libBookTitle').value = file.name.replace(/\.pdf$/i, '');
+            document.getElementById('libBookSize').value = (file.size / (1024 * 1024)).toFixed(1) + ' MB PDF';
+            if (!document.getElementById('libBookCat').value) {
+                document.getElementById('libBookCat').value = 'Downloaded PDF Notes';
+            }
+
+            // Create Blob URL for current session
+            pendingLocalPdfUrl = URL.createObjectURL(file);
+            document.getElementById('libBookUrl').value = '';
+            showToast('Local PDF file ready to view!');
+        }
+
+        // Admin Security & Content CRUD
         function verifyAdminLogin() {
             const u = document.getElementById('adminUsernameInput').value.trim();
             const p = document.getElementById('adminPasswordInput').value.trim();
@@ -1674,8 +2019,8 @@
                 document.getElementById('adminLoginCard').classList.add('hidden');
                 document.getElementById('adminDashboardContent').classList.remove('hidden');
                 if (state.apiKey) document.getElementById('adminApiKeyInput').value = state.apiKey;
-                renderAdminBooksTable();
-                showToast('Welcome Admin!');
+                renderAdminContentManager();
+                showToast('Authenticated Admin Access Granted!');
             } else {
                 showToast('Invalid Admin Credentials!', 'error');
             }
@@ -1685,27 +2030,13 @@
             state.isAdminLoggedIn = false;
             document.getElementById('adminLoginCard').classList.remove('hidden');
             document.getElementById('adminDashboardContent').classList.add('hidden');
-            showToast('Logged out of Admin Portal.');
-        }
-
-        function changeAdminCredentials() {
-            const nu = document.getElementById('newAdminUser').value.trim();
-            const cp = document.getElementById('currAdminPass').value.trim();
-            const np = document.getElementById('newAdminPass').value.trim();
-
-            if (cp !== state.adminPass) return showToast('Current Password Incorrect!', 'error');
-            if (nu) state.adminUser = nu;
-            if (np) state.adminPass = np;
-
-            saveState();
-            showToast('Admin credentials updated successfully!');
+            showToast('Admin Logged Out.');
         }
 
         function saveAdminApiKey() {
-            const key = document.getElementById('adminApiKeyInput').value.trim();
-            state.apiKey = key;
+            state.apiKey = document.getElementById('adminApiKeyInput').value.trim();
             saveState();
-            showToast('Gemini API Key saved for all website students!');
+            showToast('Gemini API Key saved for all students!');
         }
 
         function saveNewMcqFromAdmin() {
@@ -1714,11 +2045,15 @@
             const o1 = document.getElementById('adminOpt1').value.trim();
             const o2 = document.getElementById('adminOpt2').value.trim();
             const o3 = document.getElementById('adminOpt3').value.trim();
-            const cat = document.getElementById('adminCategory').value;
+
+            const selectVal = document.getElementById('adminCategory').value;
+            const customVal = document.getElementById('adminCustomCategory').value.trim();
+            const cat = selectVal === '__NEW_SUBJECT__' ? (customVal || 'General Knowledge') : selectVal;
+
             const ansIdx = parseInt(document.getElementById('adminAnswerIndex').value);
             const exp = document.getElementById('adminExplanation').value.trim();
 
-            if (!q || !o0 || !o1 || !o2 || !o3) return showToast('Please fill in all question fields!', 'error');
+            if (!q || !o0 || !o1 || !o2 || !o3) return showToast('Please fill all question fields!', 'error');
 
             const newMcq = {
                 id: Date.now(),
@@ -1732,8 +2067,10 @@
 
             state.mcqs.unshift(newMcq);
             saveState();
+            renderCategoryPills();
             renderMcqs();
-            showToast('New Question Saved Successfully!');
+            if (state.isAdminLoggedIn) renderAdminContentManager();
+            showToast(`New MCQ Saved under '${cat}'!`);
 
             document.getElementById('adminQuestion').value = '';
             document.getElementById('adminOpt0').value = '';
@@ -1741,194 +2078,325 @@
             document.getElementById('adminOpt2').value = '';
             document.getElementById('adminOpt3').value = '';
             document.getElementById('adminExplanation').value = '';
+            document.getElementById('adminCustomCategory').value = '';
+            document.getElementById('adminCategory').value = 'General Knowledge';
+            document.getElementById('adminCustomCategory').classList.add('hidden');
         }
 
-        function handleLocalPdfUpload(e) {
-            const file = e.target.files[0];
-            if (!file) return;
+        function saveNewArticleFromAdmin() {
+            const title = document.getElementById('adminArtTitle').value.trim();
+            const cat = document.getElementById('adminArtCat').value.trim() || 'Current Affairs';
+            const author = document.getElementById('adminArtAuthor').value.trim() || 'Editorial Team';
+            const content = document.getElementById('adminArtContent').value.trim();
 
-            document.getElementById('libBookTitle').value = file.name.replace('.pdf', '');
-            document.getElementById('libBookSize').value = (file.size / (1024 * 1024)).toFixed(1) + ' MB PDF';
-            document.getElementById('libBookCat').value = 'Downloaded PDF Notes';
+            if (!title || !content) return showToast('Please fill title and article content!', 'error');
+
+            const newArt = {
+                id: Date.now(),
+                title: title,
+                category: cat,
+                author: author,
+                content: content
+            };
+
+            state.articles.unshift(newArt);
+            saveState();
+            renderArticles();
+            if (state.isAdminLoggedIn) renderAdminContentManager();
+            showToast('New Article Saved!');
+
+            document.getElementById('adminArtTitle').value = '';
+            document.getElementById('adminArtCat').value = '';
+            document.getElementById('adminArtAuthor').value = '';
+            document.getElementById('adminArtContent').value = '';
         }
 
         function saveNewBookFromAdmin() {
             const title = document.getElementById('libBookTitle').value.trim();
             const cat = document.getElementById('libBookCat').value.trim() || 'General Knowledge';
-            const size = document.getElementById('libBookSize').value.trim() || 'PDF Document';
-            const url = document.getElementById('libBookUrl').value.trim();
+            const size = document.getElementById('libBookSize').value.trim() || 'PDF Book';
+            const inputUrl = document.getElementById('libBookUrl').value.trim();
 
-            if (!title) return showToast('Please enter a book title!', 'error');
+            // Validate against JSON string pollution
+            let url = pendingLocalPdfUrl || inputUrl;
+            if (typeof url === 'string' && (url.startsWith('{') || url.includes('"mcqs"'))) {
+                url = '';
+            }
 
-            const newBook = {
-                id: Date.now(),
-                title: title,
-                cat: cat,
-                size: size,
-                url: url,
-                isNew: true
-            };
+            if (!title) return showToast('Please enter book title!', 'error');
 
+            const bookId = Date.now();
+            if (pendingLocalPdfUrl) {
+                localPdfBlobMap[bookId] = pendingLocalPdfUrl;
+            }
+
+            const newBook = { id: bookId, title, cat, size, url, isNew: true };
             state.library.unshift(newBook);
             saveState();
             renderLibrary();
-            renderAdminBooksTable();
-            showToast('Book added to library successfully!');
+            if (state.isAdminLoggedIn) renderAdminContentManager();
+            showToast('Book Added to Library!');
 
+            pendingLocalPdfUrl = '';
             document.getElementById('libBookTitle').value = '';
             document.getElementById('libBookCat').value = '';
             document.getElementById('libBookSize').value = '';
             document.getElementById('libBookUrl').value = '';
+            document.getElementById('libLocalPdfInput').value = '';
         }
 
-        function saveNewDawnWordFromAdmin() {
-            const w = document.getElementById('dawnWord').value.trim();
-            const t = document.getElementById('dawnType').value.trim() || 'Noun';
-            const u = document.getElementById('dawnUrdu').value.trim();
-            const m = document.getElementById('dawnMeaning').value.trim();
-            const s = document.getElementById('dawnSentence').value.trim();
-
-            if (!w || !u) return showToast('Please enter English Word & Urdu Meaning!', 'error');
-
-            const newVocab = {
-                id: Date.now(),
-                word: w,
-                type: t,
-                urdu: u,
-                meaning: m,
-                sentence: s,
-                isNew: true
-            };
-
-            state.dawnWords.unshift(newVocab);
-            saveState();
-            renderDawn();
-            showToast('Vocab Word Added Successfully!');
-
-            document.getElementById('dawnWord').value = '';
-            document.getElementById('dawnUrdu').value = '';
-            document.getElementById('dawnMeaning').value = '';
-            document.getElementById('dawnSentence').value = '';
+        function switchAdminSubTab(tab) {
+            state.activeAdminSubTab = tab;
+            ['MCQS', 'VOCAB', 'ARTICLES', 'BOOKS'].forEach(t => {
+                const btn = document.getElementById(`admin-sub-${t}`);
+                if (btn) btn.className = t === tab ? 'px-3 py-1 rounded-lg text-xs font-bold bg-slate-900 text-white' : 'px-3 py-1 rounded-lg text-xs font-bold bg-slate-100 text-slate-700';
+            });
+            renderAdminContentManager();
         }
 
-        // Admin Book Management Table
-        function renderAdminBooksTable() {
-            const container = document.getElementById('adminBooksListTable');
+        function renderAdminContentManager() {
+            const container = document.getElementById('adminContentManagerList');
             if (!container) return;
 
-            if (state.library.length === 0) {
-                container.innerHTML = `<p class="text-slate-400 py-2">No library books uploaded yet.</p>`;
-                return;
+            const tab = state.activeAdminSubTab;
+            if (tab === 'MCQS') {
+                container.innerHTML = state.mcqs.map(m => `
+                    <div class="bg-slate-50 p-3 rounded-lg border border-slate-200 flex justify-between items-center gap-2">
+                        <div class="truncate"><strong class="text-indigo-900">[${m.category}]</strong> ${m.question}</div>
+                        <div class="flex gap-1 shrink-0">
+                            <button onclick="openEditMcqModal(${m.id})" class="bg-indigo-900 text-white px-2 py-1 rounded text-xs font-bold">Edit</button>
+                            <button onclick="deleteMcqFromAdmin(${m.id})" class="bg-rose-600 text-white px-2 py-1 rounded text-xs font-bold">Delete</button>
+                        </div>
+                    </div>
+                `).join('');
+            } else if (tab === 'VOCAB') {
+                container.innerHTML = state.dawnWords.map(w => `
+                    <div class="bg-slate-50 p-3 rounded-lg border border-slate-200 flex justify-between items-center gap-2">
+                        <div><strong class="text-indigo-900">${w.word}</strong> (${w.urdu})</div>
+                        <button onclick="deleteVocabFromAdmin(${w.id})" class="bg-rose-600 text-white px-2 py-1 rounded text-xs font-bold">Delete</button>
+                    </div>
+                `).join('');
+            } else if (tab === 'ARTICLES') {
+                container.innerHTML = state.articles.map(a => `
+                    <div class="bg-slate-50 p-3 rounded-lg border border-slate-200 flex justify-between items-center gap-2">
+                        <div class="truncate"><strong class="text-amber-900">[${a.category}]</strong> ${a.title}</div>
+                        <div class="flex gap-1 shrink-0">
+                            <button onclick="openEditArticleModal(${a.id})" class="bg-amber-600 text-white px-2 py-1 rounded text-xs font-bold">Edit</button>
+                            <button onclick="deleteArticleFromAdmin(${a.id})" class="bg-rose-600 text-white px-2 py-1 rounded text-xs font-bold">Delete</button>
+                        </div>
+                    </div>
+                `).join('');
+            } else if (tab === 'BOOKS') {
+                container.innerHTML = state.library.map(b => `
+                    <div class="bg-slate-50 p-3 rounded-lg border border-slate-200 flex justify-between items-center gap-2">
+                        <div class="truncate"><strong class="text-slate-900">${b.title}</strong> (${b.cat})</div>
+                        <div class="flex gap-1 shrink-0">
+                            <button onclick="openEditBookModal(${b.id})" class="bg-indigo-900 text-white px-2 py-1 rounded text-xs font-bold">Edit</button>
+                            <button onclick="deleteBookFromAdmin(${b.id})" class="bg-rose-600 text-white px-2 py-1 rounded text-xs font-bold">Delete</button>
+                        </div>
+                    </div>
+                `).join('');
             }
-
-            container.innerHTML = state.library.map(b => `
-                <div class="bg-slate-50 p-3 rounded-lg border border-slate-200 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
-                    <div>
-                        <p class="font-bold text-slate-900">${b.title}</p>
-                        <p class="text-[11px] text-slate-500">${b.cat} • ${b.size}</p>
-                    </div>
-                    <div class="flex gap-2">
-                        <button onclick="openEditBookModal(${b.id})" class="bg-indigo-900 text-white px-2.5 py-1 rounded hover:bg-indigo-800 transition">Edit</button>
-                        <button onclick="deleteBookFromAdmin(${b.id})" class="bg-red-600 text-white px-2.5 py-1 rounded hover:bg-red-700 transition">Delete</button>
-                    </div>
-                </div>
-            `).join('');
         }
 
-        function openEditBookModal(bookId) {
-            const b = state.library.find(item => Number(item.id) === Number(bookId));
-            if (!b) return;
+        // Edit Modals & Handlers
+        function openEditMcqModal(id) {
+            const m = state.mcqs.find(item => Number(item.id) === Number(id));
+            if (!m) return;
+            document.getElementById('editMcqId').value = m.id;
 
+            const catSelect = document.getElementById('editMcqCat');
+            const customInput = document.getElementById('editMcqCustomCat');
+
+            if (Array.from(catSelect.options).some(opt => opt.value === m.category)) {
+                catSelect.value = m.category;
+                customInput.classList.add('hidden');
+                customInput.value = '';
+            } else {
+                catSelect.value = '__NEW_SUBJECT__';
+                customInput.classList.remove('hidden');
+                customInput.value = m.category;
+            }
+
+            document.getElementById('editMcqQ').value = m.question;
+            document.getElementById('editMcqOpt0').value = m.options[0] || '';
+            document.getElementById('editMcqOpt1').value = m.options[1] || '';
+            document.getElementById('editMcqOpt2').value = m.options[2] || '';
+            document.getElementById('editMcqOpt3').value = m.options[3] || '';
+            document.getElementById('editMcqAns').value = m.answerIndex;
+            document.getElementById('editMcqExp').value = m.explanation || '';
+            document.getElementById('editMcqModal').classList.remove('hidden');
+        }
+        function closeEditMcqModal() { document.getElementById('editMcqModal').classList.add('hidden'); }
+        function saveMcqEdits() {
+            const id = Number(document.getElementById('editMcqId').value);
+            const m = state.mcqs.find(item => Number(item.id) === id);
+            if (!m) return;
+
+            const selectVal = document.getElementById('editMcqCat').value;
+            const customVal = document.getElementById('editMcqCustomCat').value.trim();
+            m.category = selectVal === '__NEW_SUBJECT__' ? (customVal || 'General Knowledge') : selectVal;
+
+            m.question = document.getElementById('editMcqQ').value.trim();
+            m.options = [
+                document.getElementById('editMcqOpt0').value.trim(),
+                document.getElementById('editMcqOpt1').value.trim(),
+                document.getElementById('editMcqOpt2').value.trim(),
+                document.getElementById('editMcqOpt3').value.trim()
+            ];
+            m.answerIndex = parseInt(document.getElementById('editMcqAns').value);
+            m.explanation = document.getElementById('editMcqExp').value.trim();
+            saveState();
+            renderCategoryPills();
+            renderMcqs();
+            renderAdminContentManager();
+            closeEditMcqModal();
+            showToast('MCQ Updated!');
+        }
+        function deleteMcqFromAdmin(id) {
+            showConfirmModal("Delete MCQ?", "Are you sure you want to delete this question?", () => {
+                state.mcqs = state.mcqs.filter(m => Number(m.id) !== Number(id));
+                saveState();
+                renderCategoryPills();
+                renderMcqs();
+                renderAdminContentManager();
+                showToast('MCQ Deleted.');
+            });
+        }
+
+        function openEditArticleModal(id) {
+            const a = state.articles.find(item => Number(item.id) === Number(id));
+            if (!a) return;
+            document.getElementById('editArtId').value = a.id;
+            document.getElementById('editArtTitle').value = a.title;
+            document.getElementById('editArtCat').value = a.category;
+            document.getElementById('editArtAuthor').value = a.author;
+            document.getElementById('editArtContent').value = a.content;
+            document.getElementById('editArticleModal').classList.remove('hidden');
+        }
+        function closeEditArticleModal() { document.getElementById('editArticleModal').classList.add('hidden'); }
+        function saveArticleEdits() {
+            const id = Number(document.getElementById('editArtId').value);
+            const a = state.articles.find(item => Number(item.id) === id);
+            if (!a) return;
+            a.title = document.getElementById('editArtTitle').value.trim();
+            a.category = document.getElementById('editArtCat').value.trim();
+            a.author = document.getElementById('editArtAuthor').value.trim();
+            a.content = document.getElementById('editArtContent').value.trim();
+            saveState();
+            renderArticles();
+            renderAdminContentManager();
+            closeEditArticleModal();
+            showToast('Article Updated!');
+        }
+        function deleteArticleFromAdmin(id) {
+            showConfirmModal("Delete Article?", "Delete this article/outline?", () => {
+                state.articles = state.articles.filter(a => Number(a.id) !== Number(id));
+                saveState();
+                renderArticles();
+                renderAdminContentManager();
+                showToast('Article Deleted.');
+            });
+        }
+
+        function openEditBookModal(id) {
+            const b = state.library.find(item => Number(item.id) === Number(id));
+            if (!b) return;
             document.getElementById('editBookId').value = b.id;
             document.getElementById('editBookTitle').value = b.title;
             document.getElementById('editBookCat').value = b.cat;
             document.getElementById('editBookSize').value = b.size;
             document.getElementById('editBookUrl').value = b.url || '';
-
             document.getElementById('editBookModal').classList.remove('hidden');
         }
-
-        function closeEditBookModal() {
-            document.getElementById('editBookModal').classList.add('hidden');
-        }
-
+        function closeEditBookModal() { document.getElementById('editBookModal').classList.add('hidden'); }
         function saveBookEdits() {
-            const id = document.getElementById('editBookId').value;
-            const b = state.library.find(item => Number(item.id) === Number(id));
+            const id = Number(document.getElementById('editBookId').value);
+            const b = state.library.find(item => Number(item.id) === id);
             if (!b) return;
-
             b.title = document.getElementById('editBookTitle').value.trim();
             b.cat = document.getElementById('editBookCat').value.trim();
             b.size = document.getElementById('editBookSize').value.trim();
-            b.url = document.getElementById('editBookUrl').value.trim();
+
+            let u = document.getElementById('editBookUrl').value.trim();
+            if (u.startsWith('{') || u.includes('"mcqs"')) u = '';
+            b.url = u;
 
             saveState();
             renderLibrary();
-            renderAdminBooksTable();
+            renderAdminContentManager();
             closeEditBookModal();
-            showToast('Book Details Updated Successfully!');
+            showToast('Book Details Updated!');
         }
-
-        function deleteBookFromAdmin(bookId) {
-            const targetId = Number(bookId);
-            showConfirmModal("Delete Book?", "Are you sure you want to delete this book from the library?", () => {
-                state.library = state.library.filter(b => Number(b.id) !== targetId);
-                state.savedBooks = state.savedBooks.filter(id => Number(id) !== targetId);
+        function deleteBookFromAdmin(id) {
+            showConfirmModal("Delete Book?", "Remove this book from library?", () => {
+                state.library = state.library.filter(b => Number(b.id) !== Number(id));
                 saveState();
                 renderLibrary();
-                renderAdminBooksTable();
-                showToast('Book deleted successfully.');
+                renderAdminContentManager();
+                showToast('Book Deleted.');
+            });
+        }
+
+        function deleteVocabFromAdmin(id) {
+            showConfirmModal("Delete Vocab Word?", "Remove this word?", () => {
+                state.dawnWords = state.dawnWords.filter(w => Number(w.id) !== Number(id));
+                saveState();
+                renderDawn();
+                renderAdminContentManager();
+                showToast('Vocab Word Deleted.');
             });
         }
 
         // Database Export & Import
         function exportDatabase() {
             const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(state, null, 2));
-            const dlAnchorElem = document.createElement('a');
-            dlAnchorElem.setAttribute("href", dataStr);
-            dlAnchorElem.setAttribute("download", "examinpocket_database_backup.json");
-            dlAnchorElem.click();
-            showToast('Database exported as JSON backup.');
+            const dlAnchor = document.createElement('a');
+            dlAnchor.setAttribute("href", dataStr);
+            dlAnchor.setAttribute("download", "examinpocket_database_backup.json");
+            dlAnchor.click();
+            showToast('JSON Backup Downloaded.');
         }
 
         function importDatabase(event) {
-            const fileReader = new FileReader();
-            fileReader.onload = function (e) {
+            const reader = new FileReader();
+            reader.onload = function (e) {
                 try {
-                    const importedState = JSON.parse(e.target.result);
-                    if (importedState.mcqs) {
-                        state = importedState;
+                    const imported = JSON.parse(e.target.result);
+                    if (imported.mcqs) {
+                        state = imported;
                         loadAndSanitizeState();
                         saveState();
+                        renderCategoryPills();
                         renderMcqs();
                         renderDawn();
+                        renderArticles();
                         renderLibrary();
                         showToast('Database Imported Successfully!');
                     }
-                } catch (err) { showToast('Invalid JSON File!', 'error'); }
+                } catch (err) { showToast('Invalid JSON file!', 'error'); }
             };
-            fileReader.readAsText(event.target.files[0]);
+            reader.readAsText(event.target.files[0]);
         }
 
         // User Auth
-        function toggleAuthModal() {
-            document.getElementById('authModal').classList.toggle('hidden');
-        }
-
+        function toggleAuthModal() { document.getElementById('authModal').classList.toggle('hidden'); }
         function handleLogin() {
             const email = document.getElementById('authEmail').value.trim();
-            if (!email) return showToast('Please enter an email address!', 'error');
+            if (!email) return showToast('Please enter an email!', 'error');
             document.getElementById('userAuthBtn').innerText = email.split('@')[0];
             toggleAuthModal();
-            showToast('Welcome back, ' + email);
+            showToast('Welcome ' + email);
         }
 
-        // Initialize App
+        // Initialize Application
         window.onload = function () {
             loadAndSanitizeState();
             saveState();
+            renderCategoryPills();
             renderMcqs();
             renderDawn();
+            renderArticles();
             renderLibrary();
         };
     </script>
