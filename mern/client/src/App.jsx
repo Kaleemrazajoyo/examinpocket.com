@@ -490,15 +490,63 @@ export default function App() {
 
                 {activeTab === 'adminPanelTab' && currentUser?.role === 'admin' && (
                     <section className="space-y-6">
-                        <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
-                            <div className="flex justify-between items-center mb-6"><div><h2 className="text-xl font-bold text-slate-900">Admin Dashboard</h2><p className="text-xs text-slate-500">Welcome, {currentUser.name}</p></div><button onClick={()=>{setActiveTab('homeTab');}} className="text-xs text-slate-500">Back to Home</button></div>
-                            <div className="grid md:grid-cols-4 gap-4">
-                                <div className="bg-indigo-50 p-4 rounded-xl border border-indigo-100"><p className="text-xs text-indigo-700">MCQs</p><p className="text-2xl font-bold text-indigo-950">{mcqs.length}</p></div>
-                                <div className="bg-emerald-50 p-4 rounded-xl border border-emerald-100"><p className="text-xs text-emerald-700">Vocab</p><p className="text-2xl font-bold text-emerald-950">{dawnWords.length}</p></div>
-                                <div className="bg-amber-50 p-4 rounded-xl border border-amber-100"><p className="text-xs text-amber-700">Articles</p><p className="text-2xl font-bold text-amber-950">{articles.length}</p></div>
-                                <div className="bg-rose-50 p-4 rounded-xl border border-rose-100"><p className="text-xs text-rose-700">Books</p><p className="text-2xl font-bold text-rose-950">{library.length}</p></div>
+                        <div className="bg-slate-900 text-white p-4 rounded-2xl flex flex-col sm:flex-row justify-between items-center gap-3">
+                            <div className="flex items-center gap-3">
+                                <span className="bg-emerald-500 text-white text-[10px] font-bold px-2.5 py-1 rounded-md">AUTHENTICATED ADMIN</span>
+                                <div><h3 className="font-bold text-sm sm:text-base">ExamInPocket Control Panel</h3><p className="text-xs text-slate-400">Manage MCQs, Dawn Vocab, Articles, Library Books & AI Key</p></div>
                             </div>
-                            <p className="text-xs text-slate-500 mt-4">Full admin CRUD available via API. Data from MongoDB Atlas.</p>
+                            <button onClick={()=>{setCurrentUser(null); setActiveTab('homeTab'); api.post('/auth/logout').catch(()=>{});}} className="bg-red-600 hover:bg-red-500 text-white text-xs font-bold px-3 py-1.5 rounded-lg transition"><i className="fa-solid fa-right-from-bracket"></i> Logout</button>
+                        </div>
+
+                        <div className="bg-amber-50 p-5 rounded-2xl border border-amber-200 space-y-3">
+                            <h4 className="font-bold text-amber-950 text-sm flex items-center gap-2"><i className="fa-solid fa-key text-amber-600"></i> AI Tutor Key Settings (1-Time Setup)</h4>
+                            <p className="text-xs text-amber-800 leading-relaxed">Enter your <strong>Free Gemini API Key</strong> from <strong>aistudio.google.com</strong>.</p>
+                            <div className="flex flex-col sm:flex-row gap-2"><input type="password" className="flex-grow p-2.5 border border-amber-300 rounded-lg text-xs bg-white" placeholder="Paste Gemini API Key (AIzaSy...)" /><button className="bg-amber-600 hover:bg-amber-700 text-white font-bold px-4 py-2.5 rounded-lg text-xs transition">Save AI Key</button></div>
+                        </div>
+
+                        <div className="bg-white p-5 rounded-2xl border border-slate-200 space-y-4">
+                            <h3 className="font-bold text-slate-800 text-sm flex items-center gap-2 border-b pb-2"><i className="fa-solid fa-plus-circle text-emerald-600"></i> 1. Add / Create MCQ Question</h3>
+                            <div className="grid sm:grid-cols-2 gap-3 text-xs sm:text-sm">
+                                <div><label className="block font-bold text-slate-700 mb-1">Subject Field / Category</label><select className="w-full p-2.5 border border-slate-300 rounded-lg bg-slate-50">{categoryList.filter(c=>c!=='ALL').map(c=><option key={c}>{c}</option>)}<option value="__NEW_SUBJECT__">➕ Add New / Custom Subject...</option></select></div>
+                                <div><label className="block font-bold text-slate-700 mb-1">Question Statement</label><input type="text" placeholder="Enter full question..." className="w-full p-2.5 border border-slate-300 rounded-lg" /></div>
+                            </div>
+                            <div className="grid sm:grid-cols-2 gap-2 text-xs"><input type="text" placeholder="Option A" className="p-2 border rounded-lg" /><input type="text" placeholder="Option B" className="p-2 border rounded-lg" /><input type="text" placeholder="Option C" className="p-2 border rounded-lg" /><input type="text" placeholder="Option D" className="p-2 border rounded-lg" /></div>
+                            <div className="grid sm:grid-cols-2 gap-3 text-xs"><div><label className="block font-bold text-slate-700 mb-1">Correct Answer</label><select className="w-full p-2.5 border border-slate-300 rounded-lg bg-slate-50"><option>Option A</option><option>Option B</option><option>Option C</option><option>Option D</option></select></div><div><label className="block font-bold text-slate-700 mb-1">Explanation</label><input type="text" placeholder="Explanation detail..." className="w-full p-2.5 border border-slate-300 rounded-lg" /></div></div>
+                            <button className="bg-emerald-700 hover:bg-emerald-800 text-white font-bold px-6 py-2.5 rounded-lg text-xs"><i className="fa-solid fa-save mr-1"></i> Save MCQ Question</button>
+                        </div>
+
+                        <div className="bg-white p-5 rounded-2xl border border-slate-200 space-y-4">
+                            <h3 className="font-bold text-slate-800 text-sm flex items-center gap-2 border-b pb-2"><i className="fa-solid fa-pen-fancy text-amber-600"></i> 2. Add Editorial Article / Essay Outline</h3>
+                            <div className="grid sm:grid-cols-3 gap-3 text-xs"><input type="text" placeholder="Article Title" className="p-2.5 border rounded-lg" /><input type="text" placeholder="Subject / Category" className="p-2.5 border rounded-lg" /><input type="text" placeholder="Author Name" className="p-2.5 border rounded-lg" /></div>
+                            <textarea rows="4" placeholder="Full article content / Essay outline..." className="w-full p-3 border rounded-xl text-xs"></textarea>
+                            <button className="bg-amber-600 hover:bg-amber-700 text-white font-bold px-6 py-2.5 rounded-lg text-xs"><i className="fa-solid fa-file-circle-plus mr-1"></i> Save Article / Essay</button>
+                        </div>
+
+                        <div className="bg-white p-5 rounded-2xl border border-slate-200 space-y-4">
+                            <h3 className="font-bold text-slate-800 text-sm flex items-center gap-2 border-b pb-2"><i className="fa-solid fa-book-medical text-indigo-600"></i> 3. Add PDF Notes / Books to Library</h3>
+                            <div className="grid sm:grid-cols-3 gap-3 text-xs"><input type="text" placeholder="Book Title" className="p-2.5 border rounded-lg" /><input type="text" placeholder="Category" className="p-2.5 border rounded-lg" /><input type="text" placeholder="File Size (e.g. 12 MB PDF)" className="p-2.5 border rounded-lg" /></div>
+                            <div className="space-y-2"><p className="text-xs font-bold text-slate-700">Option A: Select PDF File from Laptop/Mobile</p><input type="file" className="text-xs" /></div>
+                            <div className="space-y-2"><p className="text-xs font-bold text-slate-700">— OR —</p><p className="text-xs font-bold text-slate-700">Option B: Paste Google Drive / External PDF Link</p><input type="text" placeholder="Google Drive Link (https://drive.google.com/...)" className="w-full p-2.5 border rounded-lg text-xs" /></div>
+                            <button className="bg-indigo-900 hover:bg-indigo-800 text-white font-bold px-6 py-2.5 rounded-lg text-xs"><i className="fa-solid fa-cloud-arrow-up mr-1"></i> Add Book to Library</button>
+                        </div>
+
+                        <div className="bg-white p-5 rounded-2xl border border-slate-200 space-y-4">
+                            <h3 className="font-bold text-slate-800 text-sm flex items-center gap-2 border-b pb-2"><i className="fa-solid fa-database text-slate-700"></i> Manage Content Items (Edit & Delete)</h3>
+                            <div className="flex flex-wrap gap-2"><button className="px-3 py-1 rounded-lg text-xs bg-emerald-700 text-white">MCQs</button><button className="px-3 py-1 rounded-lg text-xs bg-slate-100 text-slate-700">Dawn Vocab</button><button className="px-3 py-1 rounded-lg text-xs bg-slate-100 text-slate-700">Articles</button><button className="px-3 py-1 rounded-lg text-xs bg-slate-100 text-slate-700">Books</button></div>
+                            <div className="space-y-2 max-h-[400px] overflow-y-auto">{mcqs.slice(0,20).map((m,i)=>(<div key={i} className="flex justify-between items-center p-2.5 bg-slate-50 rounded-lg text-xs border border-slate-200"><div className="truncate max-w-[70%]"><span className="bg-indigo-100 text-indigo-900 px-1.5 py-0.5 rounded text-[10px] mr-2">{m.category}</span>{m.question}</div><div className="flex gap-2"><button className="text-indigo-700 font-bold">Edit</button><button className="text-rose-600 font-bold">Delete</button></div></div>))}</div>
+                        </div>
+
+                        <div className="bg-white p-5 rounded-2xl border border-slate-200 space-y-4">
+                            <h3 className="font-bold text-slate-800 text-sm flex items-center gap-2 border-b pb-2"><i className="fa-solid fa-file-export text-emerald-700"></i> Database Export & Backup</h3>
+                            <p className="text-xs text-slate-600">Download all website content as JSON backup file anytime.</p>
+                            <button onClick={()=>{window.open('/api/admin/export','_blank');}} className="bg-emerald-700 hover:bg-emerald-800 text-white font-bold px-6 py-2.5 rounded-lg text-xs"><i className="fa-solid fa-download mr-1"></i> Export JSON</button>
+                        </div>
+
+                        <div className="bg-white p-5 rounded-2xl border border-slate-200 space-y-4">
+                            <h3 className="font-bold text-slate-800 text-sm flex items-center gap-2 border-b pb-2"><i className="fa-solid fa-file-import text-indigo-700"></i> Import JSON</h3>
+                            <p className="text-xs text-slate-600">Import backup JSON data into the database.</p>
+                            <input type="file" accept="application/json" className="text-xs" />
+                            <button className="bg-indigo-900 hover:bg-indigo-800 text-white font-bold px-6 py-2.5 rounded-lg text-xs"><i className="fa-solid fa-upload mr-1"></i> Import JSON</button>
                         </div>
                     </section>
                 )}
