@@ -578,16 +578,33 @@ export default function App() {
 
             {readerOpen && (
                 <div className="fixed inset-0 bg-slate-900/80 backdrop-blur-md z-50 flex items-center justify-center p-2 sm:p-6 no-print">
-                    <div className="bg-white w-full max-w-5xl h-[92vh] rounded-2xl shadow-2xl border border-slate-200 flex flex-col overflow-hidden relative">
+                    <div className="bg-white w-full max-w-6xl h-[95vh] rounded-2xl shadow-2xl border border-slate-200 flex flex-col overflow-hidden relative">
                         <div className="bg-slate-900 text-white p-3 sm:p-4 flex justify-between items-center border-b border-slate-800 gap-2">
                             <div className="flex items-center gap-3 overflow-hidden">
                                 <div className="bg-amber-400 text-slate-950 p-2 rounded-xl"><i className="fa-solid fa-book-reader"></i></div>
                                 <div className="truncate"><h3 className="font-bold text-xs sm:text-base truncate">{readerData.title}</h3><p className="text-[10px] sm:text-xs text-amber-400">{readerData.cat}</p></div>
                             </div>
-                            <button onClick={() => setReaderOpen(false)} className="text-slate-400 hover:text-white"><i className="fa-solid fa-xmark text-lg"></i></button>
+                            <div className="flex items-center gap-2">
+                                {readerData.type !== 'pdf' && readerData.content && (
+                                    <button onClick={() => {
+                                        const blob = new Blob([readerData.content || ''], { type: 'text/plain;charset=utf-8' });
+                                        const url = window.URL.createObjectURL(blob);
+                                        const a = document.createElement('a');
+                                        a.href = url;
+                                        a.download = `${readerData.title || 'article'}.txt`;
+                                        a.click();
+                                        window.URL.revokeObjectURL(url);
+                                        showToast('Download started');
+                                    }} className="bg-emerald-600 hover:bg-emerald-500 text-white px-3 py-1.5 rounded-lg text-xs font-bold"><i className="fa-solid fa-download mr-1"></i> Download</button>
+                                )}
+                                {readerData.type === 'pdf' && readerData.url && (
+                                    <button onClick={() => window.open(readerData.url, '_blank')} className="bg-emerald-600 hover:bg-emerald-500 text-white px-3 py-1.5 rounded-lg text-xs font-bold"><i className="fa-solid fa-download mr-1"></i> Download</button>
+                                )}
+                                <button onClick={() => setReaderOpen(false)} className="text-slate-400 hover:text-white"><i className="fa-solid fa-xmark text-lg"></i></button>
+                            </div>
                         </div>
-                        <div className="flex-grow bg-slate-100 p-2 sm:p-4">
-                            {readerData.type === 'pdf' && readerData.content ? <iframe src={formatGoogleDriveUrl(readerData.content) || readerData.content} className="w-full h-full rounded-xl border border-slate-300 bg-white" allow="autoplay"></iframe> : <div className="w-full max-w-4xl h-full bg-white p-6 sm:p-10 rounded-xl border border-slate-200 shadow-sm overflow-y-auto"><div className="whitespace-pre-line text-slate-800 leading-relaxed text-xs sm:text-sm">{readerData.content}</div></div>}
+                        <div className="flex-grow bg-slate-100 p-2 sm:p-4 overflow-hidden">
+                            {readerData.type === 'pdf' && readerData.content ? <iframe src={formatGoogleDriveUrl(readerData.content) || readerData.content} className="w-full h-full rounded-xl border border-slate-300 bg-white" allow="autoplay"></iframe> : <div className="w-full h-full bg-white p-6 sm:p-10 rounded-xl border border-slate-200 shadow-sm overflow-y-auto"><div className="whitespace-pre-line text-slate-800 leading-relaxed text-xs sm:text-sm max-w-4xl mx-auto">{readerData.content}</div></div>}
                         </div>
                     </div>
                 </div>
