@@ -68,6 +68,8 @@ export default function App() {
     const [readerOpen, setReaderOpen] = useState(false);
     const [readerData, setReaderData] = useState({ title: '', cat: '', type: 'pdf', content: '', url: '' });
     const [siteTicker, setSiteTicker] = useState('📢 <span class="font-bold">Updates:</span> All content loaded from database.');
+    const [currentUser, setCurrentUser] = useState(null);
+    const [adminLoginForm, setAdminLoginForm] = useState({ email: '', password: '' });
 
     const [mcqs, setMcqs] = useState([]);
     const [dawnWords, setDawnWords] = useState([]);
@@ -100,6 +102,9 @@ export default function App() {
             } catch (e) {}
         }
         load();
+        api.get('/auth/me').then((res) => {
+            if (res?.user) setCurrentUser(res.user);
+        }).catch(() => {});
     }, []);
 
     useEffect(() => {
@@ -123,11 +128,29 @@ export default function App() {
             if (nc >= 5) {
                 setLogoClicks(0);
                 switchTab('adminTab');
-                showToast('🔒 Secret Admin Portal Unlocked!');
+                showToast('🔒 Admin Portal');
                 return 0;
             }
             return nc;
         });
+    }
+
+    async function handleAdminLogin() {
+        try {
+            const res = await api.post('/auth/login', { email: adminLoginForm.email, password: adminLoginForm.password });
+            const user = res?.user || res;
+            if (user?.role === 'admin') {
+                setCurrentUser(user);
+                showToast('Admin login successful');
+                setActiveTab('adminPanelTab');
+            } else if (user) {
+                showToast('Access denied - Admin only', 'error');
+            } else {
+                showToast('Login failed', 'error');
+            }
+        } catch (e) {
+            showToast(e.message || 'Invalid credentials', 'error');
+        }
     }
 
     function toggleBookmarkMcq(id) {
@@ -455,8 +478,27 @@ export default function App() {
                 {activeTab === 'adminTab' && (
                     <section className="space-y-6">
                         <div className="bg-white p-6 sm:p-8 rounded-2xl shadow-sm border border-slate-200 max-w-md mx-auto space-y-4">
-                            <div className="text-center space-y-2"><div className="bg-indigo-100 text-indigo-900 p-3 rounded-full w-12 h-12 flex items-center justify-center mx-auto text-xl"><i className="fa-solid fa-user-lock"></i></div><h3 className="text-xl font-bold text-slate-900">Protected Admin Portal</h3><p className="text-xs text-slate-500">Access admin panel</p></div>
-                            <div className="space-y-3 text-xs sm:text-sm"><input type="text" placeholder="Username" className="w-full p-2.5 border border-slate-300 rounded-lg" /><input type="password" placeholder="Password" className="w-full p-2.5 border border-slate-300 rounded-lg" /><button onClick={()=>showToast('Admin access via backend')} className="w-full bg-slate-900 hover:bg-slate-800 text-amber-400 font-bold py-2.5 rounded-lg">Unlock</button></div>
+                            <div className="text-center space-y-2"><div className="bg-indigo-100 text-indigo-900 p-3 rounded-full w-12 h-12 flex items-center justify-center mx-auto text-xl"><i className="fa-solid fa-user-lock"></i></div><h3 className="text-xl font-bold text-slate-900">Admin Portal</h3><p className="text-xs text-slate-500">Login with admin credentials</p></div>
+                            <div className="space-y-3 text-xs sm:text-sm">
+                                <input type="email" placeholder="Email" value={adminLoginForm.email} onChange={(e)=>setAdminLoginForm(p=>({...p,email:e.target.value}))} className="w-full p-2.5 border border-slate-300 rounded-lg" />
+                                <input type="password" placeholder="Password" value={adminLoginForm.password} onChange={(e)=>setAdminLoginForm(p=>({...p,password:e.target.value}))} className="w-full p-2.5 border border-slate-300 rounded-lg" />
+                                <button onClick={handleAdminLogin} className="w-full bg-slate-900 hover:bg-slate-800 text-amber-400 font-bold py-2.5 rounded-lg">Login</button>
+                            </div>
+                        </div>
+                    </section>
+                )}
+
+                {activeTab === 'adminPanelTab' && currentUser?.role === 'admin' && (
+                    <section className="space-y-6">
+                        <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+                            <div className="flex justify-between items-center mb-6"><div><h2 className="text-xl font-bold text-slate-900">Admin Dashboard</h2><p className="text-xs text-slate-500">Welcome, {currentUser.name}</p></div><button onClick={()=>{setActiveTab('homeTab');}} className="text-xs text-slate-500">Back to Home</button></div>
+                            <div className="grid md:grid-cols-4 gap-4">
+                                <div className="bg-indigo-50 p-4 rounded-xl border border-indigo-100"><p className="text-xs text-indigo-700">MCQs</p><p className="text-2xl font-bold text-indigo-950">{mcqs.length}</p></div>
+                                <div className="bg-emerald-50 p-4 rounded-xl border border-emerald-100"><p className="text-xs text-emerald-700">Vocab</p><p className="text-2xl font-bold text-emerald-950">{dawnWords.length}</p></div>
+                                <div className="bg-amber-50 p-4 rounded-xl border border-amber-100"><p className="text-xs text-amber-700">Articles</p><p className="text-2xl font-bold text-amber-950">{articles.length}</p></div>
+                                <div className="bg-rose-50 p-4 rounded-xl border border-rose-100"><p className="text-xs text-rose-700">Books</p><p className="text-2xl font-bold text-rose-950">{library.length}</p></div>
+                            </div>
+                            <p className="text-xs text-slate-500 mt-4">Full admin CRUD available via API. Data from MongoDB Atlas.</p>
                         </div>
                     </section>
                 )}
