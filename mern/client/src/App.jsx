@@ -148,8 +148,8 @@ export default function App() {
 
     async function saveMcqFromAdmin() {
         try {
-            const cat = adminMcqForm.category === '__NEW_SUBJECT__' ? adminMcqForm.customCategory : adminMcqForm.category;
-            if (!adminMcqForm.question || !adminMcqForm.opt0 || !adminMcqForm.opt1 || !adminMcqForm.opt2 || !adminMcqForm.opt3 || !cat) {
+            const cat = adminMcqForm.category || (categoryList.find(c=>c!=='ALL') || 'General Knowledge');
+            if (!adminMcqForm.question || !adminMcqForm.opt0 || !adminMcqForm.opt1 || !adminMcqForm.opt2 || !adminMcqForm.opt3) {
                 showToast('Please fill all required fields', 'error');
                 return;
             }
@@ -605,10 +605,19 @@ export default function App() {
                 {activeTab === 'dawnTab' && (
                     <section className="space-y-6">
                         <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
-                            <h2 className="text-xl font-bold text-slate-900 mb-4 flex items-center gap-2"><i className="fa-solid fa-newspaper text-indigo-600"></i> Daily Dawn Editorial Vocabulary & Headlines</h2>
+                            <div className="border-b pb-4 mb-6">
+                                <h2 className="text-xl font-bold text-slate-900 flex items-center gap-2"><i className="fa-solid fa-newspaper text-indigo-600"></i> Daily Dawn Editorial Vocabulary & Headlines</h2>
+                                <p className="text-xs text-slate-500 mt-1">High-yield vocabulary words with Urdu meanings, context, and daily national headlines for CSS/PMS candidates.</p>
+                            </div>
                             <div className="grid md:grid-cols-2 gap-6">
-                                <div className="space-y-3">{dawnWords.map((w, i) => { const id = w._id || w.id || i; const isSaved = savedVocab.includes(String(id)); return (<div key={id} className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm space-y-2"><div className="flex justify-between items-start"><p className="font-bold text-indigo-950">{w.word} <span className="text-slate-400">({w.type})</span></p><button onClick={() => toggleBookmarkVocab(id)} className="text-slate-400 hover:text-amber-500"><i className={`${isSaved ? 'fa-solid text-amber-500' : 'fa-regular'} fa-bookmark`}></i></button></div><p className="text-slate-700"><strong>Urdu:</strong> {w.urdu}</p><p className="text-slate-600"><strong>Meaning:</strong> {w.meaning}</p><p className="text-slate-500 italic">"{w.sentence}"</p></div>); })}</div>
-                                <div><h3 className="font-bold text-slate-800 text-sm mb-3 flex items-center gap-2"><i className="fa-solid fa-bullhorn text-amber-500"></i> Top National Headlines</h3><div className="bg-slate-50 p-4 rounded-xl border border-slate-200"><ul className="list-disc pl-5 text-xs sm:text-sm text-slate-700 space-y-2">{headlines.map((h, i) => <li key={i}>{h.title || h}</li>)}</ul></div></div>
+                                <div className="space-y-4">
+                                    <h3 className="font-bold text-slate-800 text-sm border-b pb-2 flex items-center gap-2"><i className="fa-solid fa-book text-amber-500"></i> Today's Editorial Vocab</h3>
+                                    <div className="space-y-3">{dawnWords.map((w, i) => { const id = w._id || w.id || i; const isSaved = savedVocab.includes(String(id)); return (<div key={id} className="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-1 text-xs sm:text-sm"><div className="flex justify-between items-center"><h4 className="font-bold text-indigo-900 text-sm">{w.word} <span className="text-[11px] text-slate-500 font-normal">({w.type || w.partsOfSpeech || 'Word'})</span></h4><button onClick={() => toggleBookmarkVocab(id)} className="text-slate-400 hover:text-amber-500 transition"><i className={`${isSaved ? 'fa-solid text-amber-500' : 'fa-regular'} fa-bookmark`}></i></button></div><p className="text-slate-700"><strong>Urdu:</strong> <span className="font-bold text-emerald-800">{w.urdu}</span></p><p className="text-slate-600"><strong>Meaning:</strong> {w.meaning}</p><p className="text-slate-500 italic">"{w.sentence || w.usage || ''}"</p></div>); })}</div>
+                                </div>
+                                <div className="space-y-4">
+                                    <h3 className="font-bold text-slate-800 text-sm border-b pb-2 flex items-center gap-2"><i className="fa-solid fa-bullhorn text-amber-500"></i> Top National Headlines</h3>
+                                    <div className="bg-slate-50 p-4 rounded-xl border border-slate-200"><ul className="list-disc pl-5 text-xs sm:text-sm text-slate-700 space-y-2">{headlines.map((h, i) => <li key={i} className="hover:text-indigo-700 transition">{h.title || h}</li>)}</ul></div>
+                                </div>
                             </div>
                         </div>
                     </section>
@@ -684,7 +693,7 @@ export default function App() {
                         <div className="bg-white p-5 rounded-2xl border border-slate-200 space-y-4">
                             <h3 className="font-bold text-slate-800 text-sm flex items-center gap-2 border-b pb-2"><i className="fa-solid fa-plus-circle text-emerald-600"></i> 1. Add / Create MCQ Question</h3>
                             <div className="grid sm:grid-cols-2 gap-3 text-xs sm:text-sm">
-                                <div><label className="block font-bold text-slate-700 mb-1">Subject Field / Category</label><select value={adminMcqForm.category} onChange={(e)=>setAdminMcqForm(p=>({...p,category:e.target.value}))} className="w-full p-2.5 border border-slate-300 rounded-lg bg-slate-50">{categoryList.filter(c=>c!=='ALL').map(c=><option key={c}>{c}</option>)}<option value="__NEW_SUBJECT__">➕ Add New / Custom Subject...</option></select>{adminMcqForm.category==='__NEW_SUBJECT__' && <input type="text" value={adminMcqForm.customCategory} onChange={(e)=>setAdminMcqForm(p=>({...p,customCategory:e.target.value}))} placeholder="Type new subject name" className="w-full p-2.5 border border-amber-300 rounded-lg mt-2" />}</div>
+                                <div><label className="block font-bold text-slate-700 mb-1">Subject Field / Category</label><select value={adminMcqForm.category} onChange={(e)=>setAdminMcqForm(p=>({...p,category:e.target.value}))} className="w-full p-2.5 border border-slate-300 rounded-lg bg-slate-50">{categoryList.filter(c=>c!=='ALL').map(c=><option key={c}>{c}</option>)}</select></div>
                                 <div><label className="block font-bold text-slate-700 mb-1">Question Statement</label><input type="text" value={adminMcqForm.question} onChange={(e)=>setAdminMcqForm(p=>({...p,question:e.target.value}))} placeholder="Enter full question..." className="w-full p-2.5 border border-slate-300 rounded-lg" /></div>
                             </div>
                             <div className="grid sm:grid-cols-2 gap-2 text-xs"><input type="text" value={adminMcqForm.opt0} onChange={(e)=>setAdminMcqForm(p=>({...p,opt0:e.target.value}))} placeholder="Option A" className="p-2 border rounded-lg" /><input type="text" value={adminMcqForm.opt1} onChange={(e)=>setAdminMcqForm(p=>({...p,opt1:e.target.value}))} placeholder="Option B" className="p-2 border rounded-lg" /><input type="text" value={adminMcqForm.opt2} onChange={(e)=>setAdminMcqForm(p=>({...p,opt2:e.target.value}))} placeholder="Option C" className="p-2 border rounded-lg" /><input type="text" value={adminMcqForm.opt3} onChange={(e)=>setAdminMcqForm(p=>({...p,opt3:e.target.value}))} placeholder="Option D" className="p-2 border rounded-lg" /></div>
@@ -701,7 +710,8 @@ export default function App() {
 
                         <div className="bg-white p-5 rounded-2xl border border-slate-200 space-y-4">
                             <h3 className="font-bold text-slate-800 text-sm flex items-center gap-2 border-b pb-2"><i className="fa-solid fa-newspaper text-indigo-600"></i> Add Dawn Vocab</h3>
-                            <div className="grid sm:grid-cols-5 gap-2 text-xs"><input type="text" value={adminVocabForm.word} onChange={(e)=>setAdminVocabForm(p=>({...p,word:e.target.value}))} placeholder="Word" className="p-2.5 border rounded-lg" /><input type="text" value={adminVocabForm.type} onChange={(e)=>setAdminVocabForm(p=>({...p,type:e.target.value}))} placeholder="Type" className="p-2.5 border rounded-lg" /><input type="text" value={adminVocabForm.urdu} onChange={(e)=>setAdminVocabForm(p=>({...p,urdu:e.target.value}))} placeholder="Urdu" className="p-2.5 border rounded-lg" /><input type="text" value={adminVocabForm.meaning} onChange={(e)=>setAdminVocabForm(p=>({...p,meaning:e.target.value}))} placeholder="Meaning" className="p-2.5 border rounded-lg" /><input type="text" value={adminVocabForm.sentence} onChange={(e)=>setAdminVocabForm(p=>({...p,sentence:e.target.value}))} placeholder="Sentence" className="p-2.5 border rounded-lg" /></div>
+                            <div className="grid sm:grid-cols-4 gap-2 text-xs"><input type="text" value={adminVocabForm.word} onChange={(e)=>setAdminVocabForm(p=>({...p,word:e.target.value}))} placeholder="Word" className="p-2.5 border rounded-lg" /><input type="text" value={adminVocabForm.type} onChange={(e)=>setAdminVocabForm(p=>({...p,type:e.target.value}))} placeholder="Parts of Speech" className="p-2.5 border rounded-lg" /><input type="text" value={adminVocabForm.urdu} onChange={(e)=>setAdminVocabForm(p=>({...p,urdu:e.target.value}))} placeholder="Urdu" className="p-2.5 border rounded-lg" /><input type="text" value={adminVocabForm.meaning} onChange={(e)=>setAdminVocabForm(p=>({...p,meaning:e.target.value}))} placeholder="Meaning" className="p-2.5 border rounded-lg" /></div>
+                            <input type="text" value={adminVocabForm.sentence} onChange={(e)=>setAdminVocabForm(p=>({...p,sentence:e.target.value}))} placeholder="Usage of Sentence" className="w-full p-2.5 border rounded-lg text-xs" />
                             <button onClick={saveVocabFromAdmin} className="bg-indigo-700 hover:bg-indigo-800 text-white font-bold px-6 py-2.5 rounded-lg text-xs"><i className="fa-solid fa-plus mr-1"></i> Save Vocab</button>
                         </div>
 
