@@ -653,6 +653,11 @@ export default function App() {
                         <button onClick={() => switchTab('libraryTab')} className={`nav-link group relative px-3 py-2 rounded-lg overflow-hidden transition-all duration-300 hover:scale-105 hover:shadow-lg ${activeTab === 'libraryTab' ? 'bg-gradient-to-r from-amber-400 to-amber-500 text-slate-950 font-bold shadow-amber-400/50 shadow-md' : 'hover:bg-gradient-to-r hover:from-slate-700 hover:to-slate-800'}`}><span className="relative z-10 flex items-center gap-1"><i className="fa-solid fa-book-open mr-1 group-hover:scale-110 transition-transform"></i> Library</span><div className="absolute inset-0 bg-gradient-to-r from-amber-400/0 via-amber-400/30 to-amber-400/0 -translate-x-full group-hover:translate-x-full transition-transform duration-700"></div></button>
                         <button onClick={() => switchTab('savedTab')} className={`nav-link group relative px-3 py-2 rounded-lg overflow-hidden transition-all duration-300 hover:scale-105 hover:shadow-lg ${activeTab === 'savedTab' ? 'bg-gradient-to-r from-amber-400 to-amber-500 text-slate-950 font-bold shadow-amber-400/50 shadow-md' : 'hover:bg-gradient-to-r hover:from-slate-700 hover:to-slate-800'}`}><span className="relative z-10 flex items-center gap-1"><i className="fa-solid fa-bookmark mr-1 group-hover:animate-pulse"></i> Favorite</span><div className="absolute inset-0 bg-gradient-to-r from-amber-400/0 via-amber-400/30 to-amber-400/0 -translate-x-full group-hover:translate-x-full transition-transform duration-700"></div></button>
                         <button onClick={() => switchTab('aiTab')} className={`nav-link group relative px-3 py-2 rounded-lg overflow-hidden transition-all duration-300 hover:scale-105 hover:shadow-lg border border-indigo-600/50 ${activeTab === 'aiTab' ? 'bg-gradient-to-r from-indigo-600 to-indigo-700 text-amber-300 font-bold shadow-indigo-500/50 shadow-md' : 'bg-gradient-to-r from-indigo-900 to-indigo-950 hover:from-indigo-800 hover:to-indigo-900'}`}><span className="relative z-10 flex items-center gap-1"><i className="fa-solid fa-robot mr-1 group-hover:animate-bounce"></i> AI Tutor</span><div className="absolute inset-0 bg-gradient-to-r from-amber-300/0 via-amber-300/20 to-amber-300/0 -translate-x-full group-hover:translate-x-full transition-transform duration-700"></div></button>
+                        {currentUser ? (
+                            <button onClick={()=>{setCurrentUser(null); setActiveTab('homeTab'); api.post('/auth/logout').catch(()=>{}); showToast('Logged out');}} className="group relative px-3 py-2 rounded-lg overflow-hidden transition-all duration-300 hover:scale-105 hover:shadow-lg bg-gradient-to-r from-emerald-600 to-emerald-700 hover:from-emerald-500 hover:to-emerald-600 text-white font-semibold"><span className="relative z-10 flex items-center gap-1"><i className="fa-solid fa-user-check mr-1"></i> {currentUser.name || currentUser.email?.split('@')[0] || 'User'}</span></button>
+                        ) : (
+                            <button onClick={()=>setAuthModalOpen(true)} className="group relative px-3 py-2 rounded-lg overflow-hidden transition-all duration-300 hover:scale-105 hover:shadow-lg bg-gradient-to-r from-amber-400 to-amber-500 text-slate-950 font-bold shadow-amber-400/30"><span className="relative z-10 flex items-center gap-1"><i className="fa-solid fa-right-to-bracket mr-1 group-hover:animate-pulse"></i> Login / Register</span><div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/40 to-white/0 -translate-x-full group-hover:translate-x-full transition-transform duration-700"></div></button>
+                        )}
                     </nav>
                 </div>
             </header>
@@ -705,11 +710,38 @@ export default function App() {
             )}
 
             {authModalOpen && (
-                <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 no-print">
-                    <div className="bg-white w-full max-w-md rounded-2xl shadow-xl border border-slate-200 p-6 space-y-4 relative">
+                <div className="fixed inset-0 bg-slate-900/70 backdrop-blur-sm z-[80] flex items-center justify-center p-4 no-print">
+                    <div className="bg-white w-full max-w-md rounded-2xl shadow-2xl border border-slate-200 p-6 space-y-4 relative max-h-[90vh] overflow-y-auto">
                         <button onClick={() => setAuthModalOpen(false)} className="absolute right-4 top-4 text-slate-400 hover:text-slate-600"><i className="fa-solid fa-xmark text-lg"></i></button>
-                        <h3 className="text-xl font-bold text-slate-900">Student Account</h3>
-                        <div className="space-y-3"><input type="email" className="w-full p-2.5 border border-slate-300 rounded-lg text-sm" placeholder="Email" /><input type="password" className="w-full p-2.5 border border-slate-300 rounded-lg text-sm" placeholder="Password" /><button onClick={() => { setAuthModalOpen(false); showToast('Login'); }} className="w-full bg-slate-900 text-white font-bold py-2.5 rounded-lg text-sm">Login / Register</button></div>
+                        <div className="text-center space-y-2">
+                            <div className="bg-indigo-100 text-indigo-900 p-3 rounded-full w-12 h-12 flex items-center justify-center mx-auto text-xl"><i className="fa-solid fa-user-graduate"></i></div>
+                            <h3 className="text-xl font-bold text-slate-900">Student Login / Register</h3>
+                            <p className="text-xs text-slate-500">Create account to save MCQs, Vocab, Articles & Books</p>
+                        </div>
+                        <div className="space-y-3">
+                            <input id="authName" type="text" className="w-full p-2.5 border border-slate-300 rounded-lg text-sm" placeholder="Full Name (for registration)" />
+                            <input id="authEmail" type="email" className="w-full p-2.5 border border-slate-300 rounded-lg text-sm" placeholder="Email Address" />
+                            <input id="authPass" type="password" className="w-full p-2.5 border border-slate-300 rounded-lg text-sm" placeholder="Password" />
+                            <button onClick={async ()=>{
+                                const name = document.getElementById('authName').value.trim();
+                                const email = document.getElementById('authEmail').value.trim().toLowerCase();
+                                const password = document.getElementById('authPass').value;
+                                if(!email || !password){ showToast('Email and password required','error'); return; }
+                                try {
+                                    const res = await api.post('/auth/login',{email,password}).catch(async()=>{
+                                        return await api.post('/auth/register',{name,email,password});
+                                    });
+                                    const user = res?.user || res?.data?.user;
+                                    if(user){ setCurrentUser(user); setAuthModalOpen(false); showToast('Login successful'); }
+                                    else { showToast('Authentication failed','error'); }
+                                } catch(e){ try {
+                                    const res2 = await api.post('/auth/register',{name,email,password});
+                                    const user2 = res2?.user || res2?.data?.user;
+                                    if(user2){ setCurrentUser(user2); setAuthModalOpen(false); showToast('Account created & logged in'); }
+                                    else showToast('Registration failed','error');
+                                } catch(e2){ showToast(e2.message||'Error','error'); } }
+                            }} className="w-full bg-slate-900 hover:bg-slate-800 text-amber-400 font-bold py-2.5 rounded-lg text-sm transition">Login / Register</button>
+                        </div>
                     </div>
                 </div>
             )}
