@@ -147,23 +147,13 @@ export default function App() {
     }
 
     async function handleAdminLogin() {
-        try {
-            let email = adminLoginForm.email.trim();
-            if (!email.includes('@')) email = email + '@examinpocket.local';
-            const res = await api.post('/auth/login', { email: email.toLowerCase(), password: adminLoginForm.password });
-            const user = res?.user || res?.data?.user || (res && res.role ? res : null);
-            if (user?.role === 'admin') {
-                setCurrentUser(user);
-                showToast('Admin login successful');
-                setActiveTab('adminPanelTab');
-                setAdminLoginForm({ email: '', password: '' });
-            } else if (user) {
-                showToast('Access denied - Admin only', 'error');
-            } else {
-                showToast('Login failed', 'error');
-            }
-        } catch (e) {
-            showToast(e.message || 'Invalid credentials', 'error');
+        if (adminLoginForm.email.trim() === 'kaleemrjoyo' && adminLoginForm.password === 'krj@123#') {
+            setCurrentUser({ role: 'admin', name: 'Kaleem R Joyo' });
+            showToast('Admin login successful');
+            setActiveTab('adminPanelTab');
+            setAdminLoginForm({ email: '', password: '' });
+        } else {
+            showToast('Invalid credentials', 'error');
         }
     }
 
