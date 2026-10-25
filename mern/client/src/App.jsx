@@ -90,6 +90,7 @@ export default function App() {
     const [editArticle, setEditArticle] = useState(null);
     const [editBook, setEditBook] = useState(null);
     const [editVocab, setEditVocab] = useState(null);
+    const [editHeadline, setEditHeadline] = useState(null);
     const [editMcqCat, setEditMcqCat] = useState('');
     const [editMcqCustom, setEditMcqCustom] = useState('');
 
@@ -305,6 +306,24 @@ export default function App() {
             setEditVocab(null);
             const v = await api.get('/vocab?limit=500').catch(()=>({items:dawnWords}));
             setDawnWords(v.items||v||[]);
+        } catch(e){ showToast(e.message||'Failed','error'); }
+    }
+    async function deleteHeadline(id) {
+        if (!(await showConfirmModal('Delete Headline', 'Are you sure?'))) return;
+        try {
+            await api.delete(`/headlines/${id}`);
+            showToast('Headline deleted');
+            setHeadlines(headlines.filter(h => String(h._id||h.id) !== String(id)));
+        } catch(e){ showToast(e.message||'Failed','error'); }
+    }
+    async function saveHeadlineEdits() {
+        if (!editHeadline) return;
+        try {
+            await api.patch(`/headlines/${editHeadline._id||editHeadline.id}`, editHeadline);
+            showToast('Headline updated');
+            setEditHeadline(null);
+            const h = await api.get('/headlines?limit=50').catch(()=>({items:headlines}));
+            setHeadlines(h.items||h||[]);
         } catch(e){ showToast(e.message||'Failed','error'); }
     }
 
@@ -592,6 +611,19 @@ export default function App() {
                             <input type="text" value={editBook.sizeLabel||editBook.size||''} onChange={(e)=>setEditBook({...editBook,sizeLabel:e.target.value})} className="w-full p-2.5 border rounded-lg" placeholder="Size" />
                             <input type="text" value={editBook.url||''} onChange={(e)=>setEditBook({...editBook,url:e.target.value})} className="w-full p-2.5 border rounded-lg" placeholder="Link" />
                             <button onClick={saveBookEdits} className="w-full bg-indigo-900 text-white font-bold py-2.5 rounded-lg">Save Changes</button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {editHeadline && (
+                <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+                    <div className="bg-white w-full max-w-lg rounded-2xl shadow-xl border border-slate-200 p-6 space-y-4 relative">
+                        <button onClick={()=>setEditHeadline(null)} className="absolute right-4 top-4 text-slate-400 hover:text-slate-600"><i className="fa-solid fa-xmark text-lg"></i></button>
+                        <h3 className="text-lg font-bold text-slate-900 border-b pb-2 flex items-center gap-2"><i className="fa-solid fa-pen-to-square text-amber-600"></i> Edit Headline</h3>
+                        <div className="space-y-3 text-xs sm:text-sm">
+                            <textarea rows="3" value={editHeadline.title||editHeadline||''} onChange={(e)=>setEditHeadline(typeof editHeadline === 'object' ? {...editHeadline,title:e.target.value} : {title:e.target.value})} className="w-full p-2.5 border rounded-lg"></textarea>
+                            <button onClick={saveHeadlineEdits} className="w-full bg-amber-600 text-white font-bold py-2.5 rounded-lg">Save Headline Updates</button>
                         </div>
                     </div>
                 </div>
@@ -921,10 +953,11 @@ export default function App() {
 
                         <div className="bg-white p-5 rounded-2xl border border-slate-200 space-y-4">
                             <h3 className="font-bold text-slate-800 text-sm flex items-center gap-2 border-b pb-2"><i className="fa-solid fa-list-check text-indigo-600"></i> Manage Content Items (Edit & Delete)</h3>
-                            <div className="flex flex-wrap gap-2"><button onClick={()=>setAdminManageTab('MCQS')} className={`px-3 py-1 rounded-lg text-xs ${adminManageTab==='MCQS'?'bg-slate-900 text-white':'bg-slate-100 text-slate-700'}`}>MCQs</button><button onClick={()=>setAdminManageTab('VOCAB')} className={`px-3 py-1 rounded-lg text-xs ${adminManageTab==='VOCAB'?'bg-slate-900 text-white':'bg-slate-100 text-slate-700'}`}>Dawn Vocab</button><button onClick={()=>setAdminManageTab('ARTICLES')} className={`px-3 py-1 rounded-lg text-xs ${adminManageTab==='ARTICLES'?'bg-slate-900 text-white':'bg-slate-100 text-slate-700'}`}>Articles</button><button onClick={()=>setAdminManageTab('BOOKS')} className={`px-3 py-1 rounded-lg text-xs ${adminManageTab==='BOOKS'?'bg-slate-900 text-white':'bg-slate-100 text-slate-700'}`}>Books</button></div>
+                            <div className="flex flex-wrap gap-2"><button onClick={()=>setAdminManageTab('MCQS')} className={`px-3 py-1 rounded-lg text-xs ${adminManageTab==='MCQS'?'bg-slate-900 text-white':'bg-slate-100 text-slate-700'}`}>MCQs</button><button onClick={()=>setAdminManageTab('VOCAB')} className={`px-3 py-1 rounded-lg text-xs ${adminManageTab==='VOCAB'?'bg-slate-900 text-white':'bg-slate-100 text-slate-700'}`}>Dawn Vocab</button><button onClick={()=>setAdminManageTab('HEADLINES')} className={`px-3 py-1 rounded-lg text-xs ${adminManageTab==='HEADLINES'?'bg-slate-900 text-white':'bg-slate-100 text-slate-700'}`}>Headlines</button><button onClick={()=>setAdminManageTab('ARTICLES')} className={`px-3 py-1 rounded-lg text-xs ${adminManageTab==='ARTICLES'?'bg-slate-900 text-white':'bg-slate-100 text-slate-700'}`}>Articles</button><button onClick={()=>setAdminManageTab('BOOKS')} className={`px-3 py-1 rounded-lg text-xs ${adminManageTab==='BOOKS'?'bg-slate-900 text-white':'bg-slate-100 text-slate-700'}`}>Books</button></div>
                             <div className="space-y-2 max-h-[500px] overflow-y-auto">
                                 {adminManageTab==='MCQS' && mcqs.map((m,i)=>(<div key={i} className="bg-slate-50 p-3 rounded-lg border border-slate-200 flex justify-between items-center gap-2"><div className="truncate text-xs"><strong className="text-indigo-900">[{m.category}]</strong> {m.question}</div><div className="flex gap-1 shrink-0"><button onClick={()=>openEditMcqModal(m)} className="bg-indigo-900 text-white px-2 py-1 rounded text-xs font-bold">Edit</button><button onClick={()=>deleteMcq(m._id||m.id)} className="bg-rose-600 text-white px-2 py-1 rounded text-xs font-bold">Delete</button></div></div>))}
                                 {adminManageTab==='VOCAB' && dawnWords.map((w,i)=>(<div key={i} className="bg-slate-50 p-3 rounded-lg border border-slate-200 flex justify-between items-center gap-2"><div className="truncate text-xs"><strong className="text-indigo-900">{w.word}</strong> ({w.type||w.partsOfSpeech}) - {w.urdu} | {w.meaning}</div><div className="flex gap-1 shrink-0"><button onClick={()=>setEditVocab({...w})} className="bg-indigo-700 text-white px-2 py-1 rounded text-xs font-bold">Edit</button><button onClick={()=>deleteVocab(w._id||w.id)} className="bg-rose-600 text-white px-2 py-1 rounded text-xs font-bold">Delete</button></div></div>))}
+                                {adminManageTab==='HEADLINES' && headlines.map((h,i)=>(<div key={i} className="bg-slate-50 p-3 rounded-lg border border-slate-200 flex justify-between items-center gap-2"><div className="truncate text-xs"><strong className="text-amber-900">Headline</strong> {h.title||h}</div><div className="flex gap-1 shrink-0"><button onClick={()=>setEditHeadline(h)} className="bg-amber-600 text-white px-2 py-1 rounded text-xs font-bold">Edit</button><button onClick={()=>deleteHeadline(h._id||h.id)} className="bg-rose-600 text-white px-2 py-1 rounded text-xs font-bold">Delete</button></div></div>))}
                                 {adminManageTab==='ARTICLES' && articles.map((a,i)=>(<div key={i} className="bg-slate-50 p-3 rounded-lg border border-slate-200 flex justify-between items-center gap-2"><div className="truncate text-xs"><strong className="text-amber-900">[{a.category}]</strong> {a.title}</div><div className="flex gap-1 shrink-0"><button onClick={()=>setEditArticle(a)} className="bg-amber-600 text-white px-2 py-1 rounded text-xs font-bold">Edit</button><button onClick={()=>deleteArticle(a._id||a.id)} className="bg-rose-600 text-white px-2 py-1 rounded text-xs font-bold">Delete</button></div></div>))}
                                 {adminManageTab==='BOOKS' && library.map((b,i)=>(<div key={i} className="bg-slate-50 p-3 rounded-lg border border-slate-200 flex justify-between items-center gap-2"><div className="truncate text-xs"><strong className="text-slate-900">{b.title}</strong> ({b.category||b.cat})</div><div className="flex gap-1 shrink-0"><button onClick={()=>setEditBook(b)} className="bg-indigo-900 text-white px-2 py-1 rounded text-xs font-bold">Edit</button><button onClick={()=>deleteBook(b._id||b.id)} className="bg-rose-600 text-white px-2 py-1 rounded text-xs font-bold">Delete</button></div></div>))}
                             </div>
