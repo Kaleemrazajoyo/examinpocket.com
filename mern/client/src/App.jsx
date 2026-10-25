@@ -87,6 +87,11 @@ export default function App() {
     const [adminVocabForm, setAdminVocabForm] = useState({ word: '', type: 'Word', meaning: '', urdu: '', sentence: '' });
     const [adminManageTab, setAdminManageTab] = useState('MCQS');
     const [tickerInput, setTickerInput] = useState(siteTicker);
+    const [editMcq, setEditMcq] = useState(null);
+    const [editArticle, setEditArticle] = useState(null);
+    const [editBook, setEditBook] = useState(null);
+    const [editMcqCat, setEditMcqCat] = useState('');
+    const [editMcqCustom, setEditMcqCustom] = useState('');
 
     useEffect(() => {
         async function load() {
@@ -257,6 +262,45 @@ export default function App() {
         } catch (e) { showToast(e.message || 'Failed', 'error'); }
     }
 
+    function openEditMcqModal(m) {
+        setEditMcq(m);
+        const cat = m.category;
+        if (catListAll().includes(cat)) { setEditMcqCat(cat); setEditMcqCustom(''); }
+        else { setEditMcqCat('__NEW_SUBJECT__'); setEditMcqCustom(cat); }
+    }
+    function catListAll() { const s=new Set(apiCategories); mcqs.forEach(x=>x.category&&s.add(x.category)); return Array.from(s); }
+    async function saveMcqEdits() {
+        if (!editMcq) return;
+        const cat = editMcqCat === '__NEW_SUBJECT__' ? editMcqCustom : editMcqCat;
+        try {
+            await api.patch(`/mcqs/${editMcq._id||editMcq.id}`, { question: editMcq.question, options: editMcq.options, answerIndex: Number(editMcq.answerIndex), explanation: editMcq.explanation, category: cat });
+            showToast('MCQ updated');
+            setEditMcq(null);
+            const m = await api.get('/mcqs?limit=500').catch(()=>({items:mcqs}));
+            setMcqs(m.items||m||[]);
+        } catch(e){ showToast(e.message||'Failed','error'); }
+    }
+    async function saveArticleEdits() {
+        if (!editArticle) return;
+        try {
+            await api.patch(`/articles/${editArticle._id||editArticle.id}`, editArticle);
+            showToast('Article updated');
+            setEditArticle(null);
+            const a = await api.get('/articles?limit=200').catch(()=>({items:articles}));
+            setArticles(a.items||a||[]);
+        } catch(e){ showToast(e.message||'Failed','error'); }
+    }
+    async function saveBookEdits() {
+        if (!editBook) return;
+        try {
+            await api.patch(`/books/${editBook._id||editBook.id}`, editBook);
+            showToast('Book updated');
+            setEditBook(null);
+            const b = await api.get('/books?limit=200').catch(()=>({items:library}));
+            setLibrary(b.items||b||[]);
+        } catch(e){ showToast(e.message||'Failed','error'); }
+    }
+
     function saveTicker() {
         setSiteTicker(tickerInput);
         showToast('Ticker updated');
@@ -419,6 +463,54 @@ export default function App() {
                     </div>
                 </div>
             </div>
+
+            {editMcq && (
+                <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+                    <div className="bg-white w-full max-w-lg rounded-2xl shadow-xl border border-slate-200 p-6 space-y-4 relative max-h-[90vh] overflow-y-auto">
+                        <button onClick={()=>setEditMcq(null)} className="absolute right-4 top-4 text-slate-400 hover:text-slate-600"><i className="fa-solid fa-xmark text-lg"></i></button>
+                        <h3 className="text-lg font-bold text-slate-900 border-b pb-2 flex items-center gap-2"><i className="fa-solid fa-pen-to-square text-amber-500"></i> Edit MCQ Question</h3>
+                        <div className="space-y-3 text-xs sm:text-sm">
+                            <div><label className="block font-bold text-slate-700 mb-1">Subject Category</label><select value={editMcqCat} onChange={(e)=>setEditMcqCat(e.target.value)} className="w-full p-2.5 border border-slate-300 rounded-lg bg-slate-50">{catListAll().map(c=><option key={c}>{c}</option>)}<option value="__NEW_SUBJECT__">➕ Add New / Custom Subject...</option></select>{editMcqCat==='__NEW_SUBJECT__' && <input type="text" value={editMcqCustom} onChange={(e)=>setEditMcqCustom(e.target.value)} className="w-full p-2.5 border border-amber-300 rounded-lg mt-2" />}</div>
+                            <div><label className="block font-bold text-slate-700 mb-1">Question Statement</label><textarea value={editMcq.question} onChange={(e)=>setEditMcq({...editMcq,question:e.target.value})} rows="2" className="w-full p-2.5 border border-slate-300 rounded-lg"></textarea></div>
+                            <div className="grid grid-cols-2 gap-2"><input type="text" value={editMcq.options?.[0]||''} onChange={(e)=>{const o=[...(editMcq.options||[])];o[0]=e.target.value;setEditMcq({...editMcq,options:o});}} className="p-2 border rounded-lg" /><input type="text" value={editMcq.options?.[1]||''} onChange={(e)=>{const o=[...(editMcq.options||[])];o[1]=e.target.value;setEditMcq({...editMcq,options:o});}} className="p-2 border rounded-lg" /><input type="text" value={editMcq.options?.[2]||''} onChange={(e)=>{const o=[...(editMcq.options||[])];o[2]=e.target.value;setEditMcq({...editMcq,options:o});}} className="p-2 border rounded-lg" /><input type="text" value={editMcq.options?.[3]||''} onChange={(e)=>{const o=[...(editMcq.options||[])];o[3]=e.target.value;setEditMcq({...editMcq,options:o});}} className="p-2 border rounded-lg" /></div>
+                            <div><label className="block font-bold text-slate-700 mb-1">Correct Answer</label><select value={editMcq.answerIndex} onChange={(e)=>setEditMcq({...editMcq,answerIndex:Number(e.target.value)})} className="w-full p-2.5 border border-slate-300 rounded-lg"><option value={0}>Option A</option><option value={1}>Option B</option><option value={2}>Option C</option><option value={3}>Option D</option></select></div>
+                            <div><label className="block font-bold text-slate-700 mb-1">Explanation</label><input type="text" value={editMcq.explanation||''} onChange={(e)=>setEditMcq({...editMcq,explanation:e.target.value})} className="w-full p-2.5 border border-slate-300 rounded-lg" /></div>
+                            <button onClick={saveMcqEdits} className="w-full bg-slate-900 text-amber-400 font-bold py-2.5 rounded-lg">Save MCQ Updates</button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {editArticle && (
+                <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+                    <div className="bg-white w-full max-w-lg rounded-2xl shadow-xl border border-slate-200 p-6 space-y-4 relative max-h-[90vh] overflow-y-auto">
+                        <button onClick={()=>setEditArticle(null)} className="absolute right-4 top-4 text-slate-400 hover:text-slate-600"><i className="fa-solid fa-xmark text-lg"></i></button>
+                        <h3 className="text-lg font-bold text-slate-900 border-b pb-2 flex items-center gap-2"><i className="fa-solid fa-file-pen text-amber-600"></i> Edit Article</h3>
+                        <div className="space-y-3 text-xs sm:text-sm">
+                            <input type="text" value={editArticle.title||''} onChange={(e)=>setEditArticle({...editArticle,title:e.target.value})} placeholder="Title" className="w-full p-2.5 border rounded-lg" />
+                            <div className="grid grid-cols-2 gap-2"><input type="text" value={editArticle.category||''} onChange={(e)=>setEditArticle({...editArticle,category:e.target.value})} placeholder="Category" className="w-full p-2.5 border rounded-lg" /><input type="text" value={editArticle.author||''} onChange={(e)=>setEditArticle({...editArticle,author:e.target.value})} placeholder="Author" className="w-full p-2.5 border rounded-lg" /></div>
+                            <textarea rows="6" value={editArticle.content||''} onChange={(e)=>setEditArticle({...editArticle,content:e.target.value})} className="w-full p-2.5 border rounded-lg font-mono text-xs"></textarea>
+                            <button onClick={saveArticleEdits} className="w-full bg-amber-500 text-slate-950 font-bold py-2.5 rounded-lg">Save Article Updates</button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {editBook && (
+                <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+                    <div className="bg-white w-full max-w-md rounded-2xl shadow-xl border border-slate-200 p-6 space-y-4 relative">
+                        <button onClick={()=>setEditBook(null)} className="absolute right-4 top-4 text-slate-400 hover:text-slate-600"><i className="fa-solid fa-xmark text-lg"></i></button>
+                        <h3 className="text-lg font-bold text-slate-900 border-b pb-2 flex items-center gap-2"><i className="fa-solid fa-pen-to-square text-indigo-600"></i> Edit Book Details</h3>
+                        <div className="space-y-3 text-xs sm:text-sm">
+                            <input type="text" value={editBook.title||''} onChange={(e)=>setEditBook({...editBook,title:e.target.value})} className="w-full p-2.5 border rounded-lg" placeholder="Title" />
+                            <input type="text" value={editBook.category||editBook.cat||''} onChange={(e)=>setEditBook({...editBook,category:e.target.value})} className="w-full p-2.5 border rounded-lg" placeholder="Category" />
+                            <input type="text" value={editBook.sizeLabel||editBook.size||''} onChange={(e)=>setEditBook({...editBook,sizeLabel:e.target.value})} className="w-full p-2.5 border rounded-lg" placeholder="Size" />
+                            <input type="text" value={editBook.url||''} onChange={(e)=>setEditBook({...editBook,url:e.target.value})} className="w-full p-2.5 border rounded-lg" placeholder="Link" />
+                            <button onClick={saveBookEdits} className="w-full bg-indigo-900 text-white font-bold py-2.5 rounded-lg">Save Changes</button>
+                        </div>
+                    </div>
+                </div>
+            )}
 
             <header className="bg-slate-900 text-white sticky top-0 z-40 border-b border-slate-800 shadow-md no-print">
                 <div className="max-w-7xl mx-auto px-4 py-3 flex flex-wrap justify-between items-center gap-2">
@@ -651,13 +743,13 @@ export default function App() {
                         </div>
 
                         <div className="bg-white p-5 rounded-2xl border border-slate-200 space-y-4">
-                            <h3 className="font-bold text-slate-800 text-sm flex items-center gap-2 border-b pb-2"><i className="fa-solid fa-database text-slate-700"></i> Manage Content Items (Edit & Delete)</h3>
-                            <div className="flex flex-wrap gap-2"><button onClick={()=>setAdminManageTab('MCQS')} className={`px-3 py-1 rounded-lg text-xs ${adminManageTab==='MCQS'?'bg-emerald-700 text-white':'bg-slate-100 text-slate-700'}`}>MCQs</button><button onClick={()=>setAdminManageTab('VOCAB')} className={`px-3 py-1 rounded-lg text-xs ${adminManageTab==='VOCAB'?'bg-emerald-700 text-white':'bg-slate-100 text-slate-700'}`}>Dawn Vocab</button><button onClick={()=>setAdminManageTab('ARTICLES')} className={`px-3 py-1 rounded-lg text-xs ${adminManageTab==='ARTICLES'?'bg-emerald-700 text-white':'bg-slate-100 text-slate-700'}`}>Articles</button><button onClick={()=>setAdminManageTab('BOOKS')} className={`px-3 py-1 rounded-lg text-xs ${adminManageTab==='BOOKS'?'bg-emerald-700 text-white':'bg-slate-100 text-slate-700'}`}>Books</button></div>
-                            <div className="space-y-2 max-h-[400px] overflow-y-auto">
-                                {adminManageTab==='MCQS' && mcqs.map((m,i)=>(<div key={i} className="flex justify-between items-center p-2.5 bg-slate-50 rounded-lg text-xs border border-slate-200"><div className="truncate max-w-[70%]"><span className="bg-indigo-100 text-indigo-900 px-1.5 py-0.5 rounded text-[10px] mr-2">{m.category}</span>{m.question}</div><div className="flex gap-2"><button onClick={()=>deleteMcq(m._id||m.id)} className="text-rose-600 font-bold">Delete</button></div></div>))}
-                                {adminManageTab==='VOCAB' && dawnWords.map((w,i)=>(<div key={i} className="flex justify-between items-center p-2.5 bg-slate-50 rounded-lg text-xs border border-slate-200"><div className="truncate max-w-[70%]"><span className="bg-indigo-100 text-indigo-900 px-1.5 py-0.5 rounded text-[10px] mr-2">{w.word}</span>{w.meaning}</div><div className="flex gap-2"><button onClick={()=>deleteVocab(w._id||w.id)} className="text-rose-600 font-bold">Delete</button></div></div>))}
-                                {adminManageTab==='ARTICLES' && articles.map((a,i)=>(<div key={i} className="flex justify-between items-center p-2.5 bg-slate-50 rounded-lg text-xs border border-slate-200"><div className="truncate max-w-[70%]"><span className="bg-amber-100 text-amber-900 px-1.5 py-0.5 rounded text-[10px] mr-2">{a.category}</span>{a.title}</div><div className="flex gap-2"><button onClick={()=>deleteArticle(a._id||a.id)} className="text-rose-600 font-bold">Delete</button></div></div>))}
-                                {adminManageTab==='BOOKS' && library.map((b,i)=>(<div key={i} className="flex justify-between items-center p-2.5 bg-slate-50 rounded-lg text-xs border border-slate-200"><div className="truncate max-w-[70%]"><span className="bg-indigo-100 text-indigo-900 px-1.5 py-0.5 rounded text-[10px] mr-2">{b.category||b.cat}</span>{b.title}</div><div className="flex gap-2"><button onClick={()=>deleteBook(b._id||b.id)} className="text-rose-600 font-bold">Delete</button></div></div>))}
+                            <h3 className="font-bold text-slate-800 text-sm flex items-center gap-2 border-b pb-2"><i className="fa-solid fa-list-check text-indigo-600"></i> Manage Content Items (Edit & Delete)</h3>
+                            <div className="flex flex-wrap gap-2"><button onClick={()=>setAdminManageTab('MCQS')} className={`px-3 py-1 rounded-lg text-xs ${adminManageTab==='MCQS'?'bg-slate-900 text-white':'bg-slate-100 text-slate-700'}`}>MCQs</button><button onClick={()=>setAdminManageTab('VOCAB')} className={`px-3 py-1 rounded-lg text-xs ${adminManageTab==='VOCAB'?'bg-slate-900 text-white':'bg-slate-100 text-slate-700'}`}>Dawn Vocab</button><button onClick={()=>setAdminManageTab('ARTICLES')} className={`px-3 py-1 rounded-lg text-xs ${adminManageTab==='ARTICLES'?'bg-slate-900 text-white':'bg-slate-100 text-slate-700'}`}>Articles</button><button onClick={()=>setAdminManageTab('BOOKS')} className={`px-3 py-1 rounded-lg text-xs ${adminManageTab==='BOOKS'?'bg-slate-900 text-white':'bg-slate-100 text-slate-700'}`}>Books</button></div>
+                            <div className="space-y-2 max-h-96 overflow-y-auto">
+                                {adminManageTab==='MCQS' && mcqs.map((m,i)=>(<div key={i} className="bg-slate-50 p-3 rounded-lg border border-slate-200 flex justify-between items-center gap-2"><div className="truncate"><strong className="text-indigo-900">[{m.category}]</strong> {m.question}</div><div className="flex gap-1 shrink-0"><button onClick={()=>openEditMcqModal(m)} className="bg-indigo-900 text-white px-2 py-1 rounded text-xs font-bold">Edit</button><button onClick={()=>deleteMcq(m._id||m.id)} className="bg-rose-600 text-white px-2 py-1 rounded text-xs font-bold">Delete</button></div></div>))}
+                                {adminManageTab==='VOCAB' && dawnWords.map((w,i)=>(<div key={i} className="bg-slate-50 p-3 rounded-lg border border-slate-200 flex justify-between items-center gap-2"><div className="truncate"><strong className="text-indigo-900">{w.word}</strong> ({w.urdu})</div><button onClick={()=>deleteVocab(w._id||w.id)} className="bg-rose-600 text-white px-2 py-1 rounded text-xs font-bold">Delete</button></div>))}
+                                {adminManageTab==='ARTICLES' && articles.map((a,i)=>(<div key={i} className="bg-slate-50 p-3 rounded-lg border border-slate-200 flex justify-between items-center gap-2"><div className="truncate"><strong className="text-amber-900">[{a.category}]</strong> {a.title}</div><div className="flex gap-1 shrink-0"><button onClick={()=>setEditArticle(a)} className="bg-amber-600 text-white px-2 py-1 rounded text-xs font-bold">Edit</button><button onClick={()=>deleteArticle(a._id||a.id)} className="bg-rose-600 text-white px-2 py-1 rounded text-xs font-bold">Delete</button></div></div>))}
+                                {adminManageTab==='BOOKS' && library.map((b,i)=>(<div key={i} className="bg-slate-50 p-3 rounded-lg border border-slate-200 flex justify-between items-center gap-2"><div className="truncate"><strong className="text-slate-900">{b.title}</strong> ({b.category||b.cat})</div><div className="flex gap-1 shrink-0"><button onClick={()=>setEditBook(b)} className="bg-indigo-900 text-white px-2 py-1 rounded text-xs font-bold">Edit</button><button onClick={()=>deleteBook(b._id||b.id)} className="bg-rose-600 text-white px-2 py-1 rounded text-xs font-bold">Delete</button></div></div>))}
                             </div>
                         </div>
 
