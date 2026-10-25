@@ -149,8 +149,11 @@ export default function App() {
 
     async function saveMcqFromAdmin() {
         try {
-            const cat = adminMcqForm.category;
-            if (!cat) { showToast('Please select category', 'error'); return; }
+            let cat = adminMcqForm.category;
+            if (cat === '__NEW__') {
+                cat = (adminMcqForm.customCategory || '').trim();
+            }
+            if (!cat) { showToast('Please select or add category', 'error'); return; }
             if (!adminMcqForm.question || !adminMcqForm.opt0 || !adminMcqForm.opt1 || !adminMcqForm.opt2 || !adminMcqForm.opt3) {
                 showToast('Please fill all required fields', 'error');
                 return;
@@ -257,11 +260,17 @@ export default function App() {
     function catListAll() { const s=new Set(apiCategories); mcqs.forEach(x=>x.category&&s.add(x.category)); return Array.from(s); }
     async function saveMcqEdits() {
         if (!editMcq) return;
-        const cat = editMcqCat || editMcq.category;
+        let cat = editMcqCat || editMcq.category;
+        if (cat === '__NEW__') {
+            cat = (editMcqCustom||'').trim();
+        }
+        if (!cat) { showToast('Category required', 'error'); return; }
         try {
             await api.patch(`/mcqs/${editMcq._id||editMcq.id}`, { question: editMcq.question, options: editMcq.options, answerIndex: Number(editMcq.answerIndex), explanation: editMcq.explanation, category: cat });
             showToast('MCQ updated');
             setEditMcq(null);
+            setEditMcqCat('');
+            setEditMcqCustom('');
             const m = await api.get('/mcqs?limit=500').catch(()=>({items:mcqs}));
             setMcqs(m.items||m||[]);
             const c = await api.get('/mcqs/categories').catch(() => ({ categories: apiCategories }));
@@ -468,7 +477,7 @@ export default function App() {
                         <button onClick={()=>setEditMcq(null)} className="absolute right-4 top-4 text-slate-400 hover:text-slate-600"><i className="fa-solid fa-xmark text-lg"></i></button>
                         <h3 className="text-lg font-bold text-slate-900 border-b pb-2 flex items-center gap-2"><i className="fa-solid fa-pen-to-square text-amber-500"></i> Edit MCQ Question</h3>
                         <div className="space-y-3 text-xs sm:text-sm">
-                            <div><label className="block font-bold text-slate-700 mb-1">Subject/Category</label><select value={editMcqCat} onChange={(e)=>setEditMcqCat(e.target.value)} className="w-full p-2.5 border border-slate-300 rounded-lg bg-slate-50">{categoryList.filter(c=>c!=='ALL').map(c=><option key={c} value={c}>{c}</option>)}</select></div>
+                            <div><label className="block font-bold text-slate-700 mb-1">Subject/Category</label><select value={editMcqCat} onChange={(e)=>setEditMcqCat(e.target.value)} className="w-full p-2.5 border border-slate-300 rounded-lg bg-slate-50">{categoryList.filter(c=>c!=='ALL').map(c=><option key={c} value={c}>{c}</option>)}<option value="__NEW__">Add New / Custom Subject</option></select>{editMcqCat === '__NEW__' && <input type="text" value={editMcqCustom||''} onChange={(e)=>setEditMcqCustom(e.target.value)} placeholder="Type new subject name" className="w-full p-2.5 border border-amber-300 rounded-lg mt-2" />}</div>
                             <div><label className="block font-bold text-slate-700 mb-1">Question Statement</label><textarea value={editMcq.question} onChange={(e)=>setEditMcq({...editMcq,question:e.target.value})} rows="2" className="w-full p-2.5 border border-slate-300 rounded-lg"></textarea></div>
                             <div className="grid grid-cols-2 gap-2"><input type="text" value={editMcq.options?.[0]||''} onChange={(e)=>{const o=[...(editMcq.options||[])];o[0]=e.target.value;setEditMcq({...editMcq,options:o});}} className="p-2 border rounded-lg" /><input type="text" value={editMcq.options?.[1]||''} onChange={(e)=>{const o=[...(editMcq.options||[])];o[1]=e.target.value;setEditMcq({...editMcq,options:o});}} className="p-2 border rounded-lg" /><input type="text" value={editMcq.options?.[2]||''} onChange={(e)=>{const o=[...(editMcq.options||[])];o[2]=e.target.value;setEditMcq({...editMcq,options:o});}} className="p-2 border rounded-lg" /><input type="text" value={editMcq.options?.[3]||''} onChange={(e)=>{const o=[...(editMcq.options||[])];o[3]=e.target.value;setEditMcq({...editMcq,options:o});}} className="p-2 border rounded-lg" /></div>
                             <div><label className="block font-bold text-slate-700 mb-1">Correct Answer</label><select value={editMcq.answerIndex} onChange={(e)=>setEditMcq({...editMcq,answerIndex:Number(e.target.value)})} className="w-full p-2.5 border border-slate-300 rounded-lg"><option value={0}>Option A</option><option value={1}>Option B</option><option value={2}>Option C</option><option value={3}>Option D</option></select></div>
@@ -740,7 +749,7 @@ export default function App() {
                         <div className="bg-white p-5 rounded-2xl border border-slate-200 space-y-4">
                             <h3 className="font-bold text-slate-800 text-sm flex items-center gap-2 border-b pb-2"><i className="fa-solid fa-plus-circle text-emerald-600"></i> 1. Add / Create MCQ Question</h3>
                             <div className="grid sm:grid-cols-2 gap-3 text-xs sm:text-sm">
-                                <div><label className="block font-bold text-slate-700 mb-1">Subject/Category</label><select value={adminMcqForm.category} onChange={(e)=>setAdminMcqForm(p=>({...p,category:e.target.value}))} className="w-full p-2.5 border border-slate-300 rounded-lg bg-slate-50"><option value="">Select Category</option>{categoryList.filter(c=>c!=='ALL').map(c=><option key={c} value={c}>{c}</option>)}</select></div>
+                                <div><label className="block font-bold text-slate-700 mb-1">Subject/Category</label><select value={adminMcqForm.category} onChange={(e)=>setAdminMcqForm(p=>({...p,category:e.target.value, customCategory: e.target.value === '__NEW__' ? p.customCategory : ''}))} className="w-full p-2.5 border border-slate-300 rounded-lg bg-slate-50"><option value="">Select Category</option>{categoryList.filter(c=>c!=='ALL').map(c=><option key={c} value={c}>{c}</option>)}<option value="__NEW__">Add New / Custom Subject</option></select>{adminMcqForm.category === '__NEW__' && <input type="text" value={adminMcqForm.customCategory||''} onChange={(e)=>setAdminMcqForm(p=>({...p,customCategory:e.target.value}))} placeholder="Type new subject name" className="w-full p-2.5 border border-amber-300 rounded-lg mt-2" />}</div>
                                 <div><label className="block font-bold text-slate-700 mb-1">Question Statement</label><input type="text" value={adminMcqForm.question} onChange={(e)=>setAdminMcqForm(p=>({...p,question:e.target.value}))} placeholder="Enter full question..." className="w-full p-2.5 border border-slate-300 rounded-lg" /></div>
                             </div>
                             <div className="grid sm:grid-cols-2 gap-2 text-xs"><input type="text" value={adminMcqForm.opt0} onChange={(e)=>setAdminMcqForm(p=>({...p,opt0:e.target.value}))} placeholder="Option A" className="p-2 border rounded-lg" /><input type="text" value={adminMcqForm.opt1} onChange={(e)=>setAdminMcqForm(p=>({...p,opt1:e.target.value}))} placeholder="Option B" className="p-2 border rounded-lg" /><input type="text" value={adminMcqForm.opt2} onChange={(e)=>setAdminMcqForm(p=>({...p,opt2:e.target.value}))} placeholder="Option C" className="p-2 border rounded-lg" /><input type="text" value={adminMcqForm.opt3} onChange={(e)=>setAdminMcqForm(p=>({...p,opt3:e.target.value}))} placeholder="Option D" className="p-2 border rounded-lg" /></div>
