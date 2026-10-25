@@ -405,13 +405,60 @@ export default function App() {
     function submitMockTest() {
         setTestRunning(false);
         let correct = 0;
+        const details = [];
+        const categoryStats = {};
+        
         testQuestions.forEach((q) => {
-            if (testAnswers[q._id || q.id] === q.answerIndex) correct++;
+            const qId = q._id || q.id;
+            const userAns = testAnswers[qId];
+            const isCorrect = userAns === q.answerIndex;
+            if (isCorrect) correct++;
+            
+            const cat = q.category || 'General';
+            if (!categoryStats[cat]) categoryStats[cat] = { total: 0, correct: 0 };
+            categoryStats[cat].total++;
+            if (isCorrect) categoryStats[cat].correct++;
+            
+            details.push({
+                question: q.question,
+                options: q.options || [],
+                userAnswer: userAns,
+                correctAnswer: q.answerIndex,
+                isCorrect,
+                explanation: q.explanation || 'No explanation available.',
+                category: cat
+            });
         });
+        
         const total = testQuestions.length;
         const wrong = total - correct;
         const percentage = Math.round((correct / Math.max(total, 1)) * 100);
-        setTestResult({ total, correct, wrong, percentage });
+        
+        const weakSubjects = [];
+        Object.keys(categoryStats).forEach(cat => {
+            const stats = categoryStats[cat];
+            const catPercentage = Math.round((stats.correct / Math.max(stats.total, 1)) * 100);
+            if (catPercentage < 70) {
+                weakSubjects.push({ category: cat, correct: stats.correct, total: stats.total, percentage: catPercentage });
+            }
+        });
+        weakSubjects.sort((a, b) => a.percentage - b.percentage);
+        
+        const quotes = [
+            "Success is the sum of small efforts, repeated day in and day out. - Robert Collier",
+            "The expert in anything was once a beginner. Keep going!",
+            "Hard work beats talent when talent doesn't work hard.",
+            "Your future is created by what you do today, not tomorrow.",
+            "Push yourself, because no one else is going to do it for you.",
+            "Great things never come from comfort zones.",
+            "Believe you can and you're halfway there. - Theodore Roosevelt",
+            "Every expert was once a disaster. Keep practicing!",
+            "Success doesn't happen overnight. It happens with consistency.",
+            "You are closer to success than you think. Never give up!"
+        ];
+        const randomQuote = quotes[Math.floor(Math.random() * quotes.length)];
+        
+        setTestResult({ total, correct, wrong, percentage, details, weakSubjects, quote: randomQuote, category: testConfig.category });
     }
 
     function resetMockTest() { setTestRunning(false); setTestResult(null); setTestQuestions([]); setTestAnswers({}); }
@@ -666,9 +713,59 @@ export default function App() {
                                 </div>
                             )}
                             {testResult && (
-                                <div className="bg-slate-50 p-6 sm:p-8 rounded-2xl border border-slate-200 space-y-6">
-                                    <div className="text-center space-y-2"><h3 className="text-2xl font-black text-slate-900">Test Completed</h3><div className="text-5xl font-black text-indigo-700">{testResult.correct} / {testResult.total}</div><p className="text-sm font-semibold text-slate-700">Score: {testResult.percentage}%</p></div>
-                                    <div className="text-center"><button onClick={resetMockTest} className="bg-indigo-900 text-white font-semibold px-8 py-3 rounded-xl text-xs sm:text-sm">Take Another Test</button></div>
+                                <div className="space-y-6">
+                                    <div className="bg-gradient-to-r from-indigo-900 to-slate-900 text-white p-6 sm:p-8 rounded-2xl border border-indigo-700 space-y-4">
+                                        <div className="text-center space-y-2"><h3 className="text-2xl sm:text-3xl font-black">🎉 Test Completed</h3><div className="text-6xl font-black text-amber-400">{testResult.correct} / {testResult.total}</div><p className="text-lg font-bold">Score: {testResult.percentage}%</p><p className="text-xs text-slate-300">Correct: {testResult.correct} | Wrong: {testResult.wrong} | Total: {testResult.total}</p></div>
+                                        <div className="bg-white/10 p-4 rounded-xl text-center italic text-sm">"{testResult.quote}"</div>
+                                    </div>
+                                    
+                                    {testResult.weakSubjects && testResult.weakSubjects.length > 0 && (
+                                        <div className="bg-rose-50 p-6 rounded-2xl border border-rose-200 space-y-4">
+                                            <h4 className="font-bold text-rose-900 flex items-center gap-2"><i className="fa-solid fa-triangle-exclamation"></i> Weak Subjects - Need More Practice</h4>
+                                            <div className="grid sm:grid-cols-2 gap-3">
+                                                {testResult.weakSubjects.map((ws, idx) => (
+                                                    <div key={idx} className="bg-white p-4 rounded-xl border border-rose-200 flex justify-between items-center">
+                                                        <div><p className="font-bold text-slate-900 text-sm">{ws.category}</p><p className="text-xs text-slate-500">{ws.correct}/{ws.total} correct</p></div>
+                                                        <div className="text-right"><p className="text-lg font-black text-rose-600">{ws.percentage}%</p></div>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                            <button onClick={() => { switchTab('aiTab'); setAiPrompt(`I scored ${testResult.percentage}% in mock test. My weak subjects are: ${testResult.weakSubjects.map(w=>w.category+' ('+w.percentage+'%)').join(', ')}. Please help me improve in these weak areas with targeted questions and explanations.`); }} className="w-full bg-indigo-900 hover:bg-indigo-800 text-amber-300 font-bold py-3 rounded-xl text-sm flex items-center justify-center gap-2"><i className="fa-solid fa-robot"></i> Get Help in Your Weak Areas - Use Gemini AI Tutor</button>
+                                        </div>
+                                    )}
+                                    
+                                    <div className="bg-white p-6 rounded-2xl border border-slate-200 space-y-4">
+                                        <h4 className="font-bold text-slate-900 flex items-center gap-2"><i className="fa-solid fa-list-check"></i> Detailed Review - Question by Question</h4>
+                                        <div className="space-y-4 max-h-[500px] overflow-y-auto pr-2">
+                                            {testResult.details && testResult.details.map((d, idx) => (
+                                                <div key={idx} className={`p-4 rounded-xl border ${d.isCorrect ? 'bg-emerald-50 border-emerald-200' : 'bg-rose-50 border-rose-200'} space-y-2`}>
+                                                    <div className="flex justify-between items-start gap-2">
+                                                        <p className="font-bold text-slate-900 text-xs sm:text-sm flex-1">Q{idx+1}: {d.question}</p>
+                                                        <span className={`px-2 py-1 rounded text-xs font-bold ${d.isCorrect ? 'bg-emerald-600 text-white' : 'bg-rose-600 text-white'}`}>{d.isCorrect ? '✓ CORRECT' : '✗ WRONG'}</span>
+                                                    </div>
+                                                    <p className="text-xs text-slate-600"><strong>Category:</strong> {d.category}</p>
+                                                    <div className="space-y-1">
+                                                        {(d.options||[]).map((opt, oIdx) => (
+                                                            <div key={oIdx} className={`p-2 rounded text-xs flex items-center gap-2 ${oIdx === d.correctAnswer ? 'bg-emerald-100 border border-emerald-300' : oIdx === d.userAnswer && !d.isCorrect ? 'bg-rose-100 border border-rose-300' : 'bg-white border border-slate-200'}`}>
+                                                                <span className="font-bold">{String.fromCharCode(65+oIdx)})</span>
+                                                                <span className="flex-1">{opt}</span>
+                                                                {oIdx === d.correctAnswer && <span className="text-emerald-700 font-bold text-xs">✓ Correct Answer</span>}
+                                                                {oIdx === d.userAnswer && !d.isCorrect && <span className="text-rose-700 font-bold text-xs">✗ Your Answer</span>}
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                    {!d.isCorrect && d.explanation && (
+                                                        <div className="bg-indigo-50 p-3 rounded-lg border border-indigo-200 text-xs"><strong className="text-indigo-900">Explanation:</strong> <span className="text-indigo-800">{d.explanation}</span></div>
+                                                    )}
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                    
+                                    <div className="flex flex-col sm:flex-row gap-3">
+                                        <button onClick={resetMockTest} className="flex-1 bg-indigo-900 hover:bg-indigo-800 text-white font-bold py-3 rounded-xl text-sm">Take Another Test</button>
+                                        <button onClick={() => switchTab('homeTab')} className="flex-1 bg-slate-900 hover:bg-slate-800 text-white font-bold py-3 rounded-xl text-sm">Back to Home</button>
+                                    </div>
                                 </div>
                             )}
                         </div>
