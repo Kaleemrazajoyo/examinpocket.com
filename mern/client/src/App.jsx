@@ -515,7 +515,7 @@ export default function App() {
 
             <header className="bg-slate-900 text-white sticky top-0 z-40 border-b border-slate-800 shadow-md no-print">
                 <div className="max-w-7xl mx-auto px-4 py-3 flex flex-wrap justify-between items-center gap-2">
-                    <div onClick={handleLogoClick} className="flex items-center gap-3 cursor-pointer select-none" title="ExamInPocket Portal (Click 5 times for Admin Portal)">
+                    <div className="flex items-center gap-3">
                         <div className="bg-amber-400 text-slate-950 font-extrabold text-xl px-3 py-1.5 rounded-xl">EiP</div>
                         <div>
                             <h1 className="text-xl font-bold tracking-tight text-white">ExamInPocket<span className="text-amber-400">.com</span></h1>
@@ -530,7 +530,6 @@ export default function App() {
                         <button onClick={() => switchTab('libraryTab')} className={`nav-link px-3 py-2 rounded-lg hover:bg-slate-800 transition ${activeTab === 'libraryTab' ? 'active-link' : ''}`}><i className="fa-solid fa-book-open mr-1"></i> Library</button>
                         <button onClick={() => switchTab('savedTab')} className={`nav-link px-3 py-2 rounded-lg hover:bg-slate-800 transition ${activeTab === 'savedTab' ? 'active-link' : ''}`}><i className="fa-solid fa-bookmark mr-1"></i> Favorite</button>
                         <button onClick={() => switchTab('aiTab')} className={`nav-link px-3 py-2 rounded-lg bg-indigo-900 text-amber-300 hover:bg-indigo-800 transition border border-indigo-700 ${activeTab === 'aiTab' ? 'active-link' : ''}`}><i className="fa-solid fa-robot mr-1"></i> AI Tutor</button>
-                        <button onClick={() => setAuthModalOpen(true)} className="bg-amber-400 text-slate-950 font-semibold px-3 py-2 rounded-lg hover:bg-amber-300 transition ml-1"><i className="fa-solid fa-user mr-1"></i> Login</button>
                     </nav>
                 </div>
             </header>
