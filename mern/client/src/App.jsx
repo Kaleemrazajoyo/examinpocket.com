@@ -67,7 +67,7 @@ export default function App() {
     const [authModalOpen, setAuthModalOpen] = useState(false);
     const [readerOpen, setReaderOpen] = useState(false);
     const [readerData, setReaderData] = useState({ title: '', cat: '', type: 'pdf', content: '', url: '' });
-    const [siteTicker, setSiteTicker] = useState('📢 <span class="font-bold">Updates:</span> All content loaded from database.');
+    const [siteTicker, setSiteTicker] = useState(localStorage.getItem('eip_ticker') || '📢 <span class="font-bold">Latest Exam Update:</span> CSS MPT &amp; SPSC CCE Solved Past Paper MCQs Added • Daily Dawn Vocabulary Active • Live Gemini AI Tutor Active!');
     const [currentUser, setCurrentUser] = useState(null);
 
     const [mcqs, setMcqs] = useState([]);
@@ -85,7 +85,7 @@ export default function App() {
     const [adminBookForm, setAdminBookForm] = useState({ title: '', category: '', sizeLabel: '', url: '' });
     const [adminVocabForm, setAdminVocabForm] = useState({ word: '', type: 'Word', meaning: '', urdu: '', sentence: '' });
     const [adminManageTab, setAdminManageTab] = useState('MCQS');
-    const [tickerInput, setTickerInput] = useState(siteTicker);
+    const [tickerInput, setTickerInput] = useState(localStorage.getItem('eip_ticker') || '📢 <span class="font-bold">Latest Exam Update:</span> CSS MPT &amp; SPSC CCE Solved Past Paper MCQs Added • Daily Dawn Vocabulary Active • Live Gemini AI Tutor Active!');
     const [editMcq, setEditMcq] = useState(null);
     const [editArticle, setEditArticle] = useState(null);
     const [editBook, setEditBook] = useState(null);
@@ -114,6 +114,8 @@ export default function App() {
             } catch (e) {}
         }
         load();
+        const savedTicker = localStorage.getItem('eip_ticker');
+        if (savedTicker) { setSiteTicker(savedTicker); setTickerInput(savedTicker); }
         api.get('/auth/me').then((res) => {
             if (res?.user) setCurrentUser(res.user);
         }).catch(() => {});
@@ -329,6 +331,7 @@ export default function App() {
 
     function saveTicker() {
         setSiteTicker(tickerInput);
+        localStorage.setItem('eip_ticker', tickerInput);
         showToast('Ticker updated');
     }
 
