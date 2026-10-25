@@ -69,7 +69,6 @@ export default function App() {
     const [readerData, setReaderData] = useState({ title: '', cat: '', type: 'pdf', content: '', url: '' });
     const [siteTicker, setSiteTicker] = useState('📢 <span class="font-bold">Updates:</span> All content loaded from database.');
     const [currentUser, setCurrentUser] = useState(null);
-    const [adminLoginForm, setAdminLoginForm] = useState({ email: '', password: '' });
 
     const [mcqs, setMcqs] = useState([]);
     const [dawnWords, setDawnWords] = useState([]);
@@ -138,23 +137,13 @@ export default function App() {
             logoTimer.current = setTimeout(() => setLogoClicks(0), 2500);
             if (nc >= 5) {
                 setLogoClicks(0);
-                switchTab('adminTab');
-                showToast('🔒 Protected Admin Portal');
+                setCurrentUser({ role: 'admin', name: 'Kaleem R Joyo' });
+                switchTab('adminPanelTab');
+                showToast('🔒 Admin Control Panel Unlocked');
                 return 0;
             }
             return nc;
         });
-    }
-
-    async function handleAdminLogin() {
-        if (adminLoginForm.email.trim() === 'kaleemrjoyo' && adminLoginForm.password === 'krj@123#') {
-            setCurrentUser({ role: 'admin', name: 'Kaleem R Joyo' });
-            showToast('Admin login successful');
-            setActiveTab('adminPanelTab');
-            setAdminLoginForm({ email: '', password: '' });
-        } else {
-            showToast('Invalid credentials', 'error');
-        }
     }
 
     async function saveMcqFromAdmin() {
@@ -668,28 +657,7 @@ export default function App() {
                     </section>
                 )}
 
-                {activeTab === 'adminTab' && (
-                    <section className="space-y-6">
-                        <div className="bg-white p-6 sm:p-8 rounded-2xl shadow-sm border border-slate-200 max-w-md mx-auto space-y-4">
-                            <div className="text-center space-y-2">
-                                <div className="bg-indigo-100 text-indigo-900 p-3 rounded-full w-12 h-12 flex items-center justify-center mx-auto text-xl"><i className="fa-solid fa-user-lock"></i></div>
-                                <h3 className="text-xl font-bold text-slate-900">Protected Admin Portal</h3>
-                                <p className="text-xs text-slate-500">Please enter credentials to access content management tools.</p>
-                            </div>
-                            <div className="space-y-3 text-xs sm:text-sm">
-                                <div>
-                                    <label className="block font-bold text-slate-700 mb-1">Admin Username</label>
-                                    <input type="text" placeholder="Enter Username" value={adminLoginForm.email} onChange={(e)=>setAdminLoginForm(p=>({...p,email:e.target.value}))} className="w-full p-2.5 border border-slate-300 rounded-lg" />
-                                </div>
-                                <div>
-                                    <label className="block font-bold text-slate-700 mb-1">Admin Password</label>
-                                    <input type="password" placeholder="••••••••" value={adminLoginForm.password} onChange={(e)=>setAdminLoginForm(p=>({...p,password:e.target.value}))} className="w-full p-2.5 border border-slate-300 rounded-lg" />
-                                </div>
-                                <button onClick={handleAdminLogin} className="w-full bg-slate-900 hover:bg-slate-800 text-amber-400 font-bold py-2.5 rounded-lg transition">Unlock Admin Control Panel</button>
-                            </div>
-                        </div>
-                    </section>
-                )}
+                {activeTab === 'adminTab' && null}
 
                 {activeTab === 'adminPanelTab' && currentUser?.role === 'admin' && (
                     <section className="space-y-6">
