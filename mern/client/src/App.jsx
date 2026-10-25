@@ -1,0 +1,470 @@
+import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { api } from './lib/api.js';
+
+function showToast(msg, type = 'success') {
+    const container = document.getElementById('toastContainer');
+    if (!container) return;
+    const toast = document.createElement('div');
+    toast.className = `px-4 py-2 rounded-xl shadow-lg text-xs font-semibold pointer-events-auto ${type === 'error' ? 'bg-rose-600 text-white' : 'bg-emerald-600 text-white'}`;
+    toast.innerText = msg;
+    container.appendChild(toast);
+    setTimeout(() => { toast.remove(); }, 2500);
+}
+
+function closeConfirmModal(result) {
+    const modal = document.getElementById('confirmModal');
+    if (!modal) return;
+    modal.classList.add('hidden');
+    if (window._confirmResolve) {
+        window._confirmResolve(result);
+        window._confirmResolve = null;
+    }
+}
+
+function showConfirmModal(title, text) {
+    return new Promise((resolve) => {
+        const modal = document.getElementById('confirmModal');
+        document.getElementById('confirmModalTitle').innerText = title;
+        document.getElementById('confirmModalText').innerText = text;
+        window._confirmResolve = resolve;
+        modal.classList.remove('hidden');
+    });
+}
+
+function formatGoogleDriveUrl(url) {
+    if (!url || typeof url !== 'string') return '';
+    let trimmed = url.trim();
+    if (trimmed.includes('drive.google.com')) {
+        let match = trimmed.match(/\/d\/([a-zA-Z0-9_-]+)/) || trimmed.match(/[?&]id=([a-zA-Z0-9_-]+)/);
+        if (match && match[1]) {
+            return `https://drive.google.com/file/d/${match[1]}/preview`;
+        }
+    }
+    if (trimmed.includes('docs.google.com')) {
+        let match = trimmed.match(/\/d\/([a-zA-Z0-9_-]+)/);
+        if (match && match[1]) {
+            return `https://drive.google.com/file/d/${match[1]}/preview`;
+        }
+    }
+    return trimmed;
+}
+
+export default function App() {
+    const [activeTab, setActiveTab] = useState('homeTab');
+    const [searchInput, setSearchInput] = useState('');
+    const [activeCategory, setActiveCategory] = useState('ALL');
+    const [savedSubFilter, setSavedSubFilter] = useState('ALL');
+    const [aiMessages, setAiMessages] = useState([{ role: 'ai', text: 'Assalam-o-Alaikum Student! 🎓\nMain aap ka ExamInPocket Gemini AI Tutor Chatbot hoon.' }]);
+    const [aiPrompt, setAiPrompt] = useState('');
+    const [logoClicks, setLogoClicks] = useState(0);
+    const logoTimer = useRef(null);
+    const [testConfig, setTestConfig] = useState({ category: 'ALL', count: 10 });
+    const [testRunning, setTestRunning] = useState(false);
+    const [testQuestions, setTestQuestions] = useState([]);
+    const [testAnswers, setTestAnswers] = useState({});
+    const [testResult, setTestResult] = useState(null);
+    const [testSeconds, setTestSeconds] = useState(300);
+    const [authModalOpen, setAuthModalOpen] = useState(false);
+    const [readerOpen, setReaderOpen] = useState(false);
+    const [readerData, setReaderData] = useState({ title: '', cat: '', type: 'pdf', content: '', url: '' });
+    const [siteTicker, setSiteTicker] = useState('📢 <span class="font-bold">Updates:</span> All content loaded from database.');
+
+    const [mcqs, setMcqs] = useState([]);
+    const [dawnWords, setDawnWords] = useState([]);
+    const [headlines, setHeadlines] = useState([]);
+    const [articles, setArticles] = useState([]);
+    const [library, setLibrary] = useState([]);
+    const [savedMcqs, setSavedMcqs] = useState([]);
+    const [savedVocab, setSavedVocab] = useState([]);
+    const [savedArticles, setSavedArticles] = useState([]);
+    const [savedBooks, setSavedBooks] = useState([]);
+    const [apiCategories, setApiCategories] = useState([]);
+
+    useEffect(() => {
+        async function load() {
+            try {
+                const [m, v, h, a, b, c] = await Promise.all([
+                    api.get('/mcqs?limit=500').catch(() => ({ items: [] })),
+                    api.get('/vocab?limit=500').catch(() => ({ items: [] })),
+                    api.get('/headlines?limit=50').catch(() => ({ items: [] })),
+                    api.get('/articles?limit=200').catch(() => ({ items: [] })),
+                    api.get('/books?limit=200').catch(() => ({ items: [] })),
+                    api.get('/mcqs/categories').catch(() => ({ categories: [] }))
+                ]);
+                setMcqs(m.items || m || []);
+                setDawnWords(v.items || v || []);
+                setHeadlines(h.items || h || []);
+                setArticles(a.items || a || []);
+                setLibrary(b.items || b || []);
+                setApiCategories(c.categories || []);
+            } catch (e) {}
+        }
+        load();
+    }, []);
+
+    useEffect(() => {
+        if (!testRunning) return;
+        const t = setInterval(() => {
+            setTestSeconds((s) => {
+                if (s <= 1) { clearInterval(t); submitMockTest(); return 0; }
+                return s - 1;
+            });
+        }, 1000);
+        return () => clearInterval(t);
+    }, [testRunning]);
+
+    function switchTab(id) { setActiveTab(id); window.scrollTo({ top: 0, behavior: 'smooth' }); }
+
+    function handleLogoClick() {
+        setLogoClicks((c) => {
+            const nc = c + 1;
+            if (logoTimer.current) clearTimeout(logoTimer.current);
+            logoTimer.current = setTimeout(() => setLogoClicks(0), 2500);
+            if (nc >= 5) {
+                setLogoClicks(0);
+                switchTab('adminTab');
+                showToast('🔒 Secret Admin Portal Unlocked!');
+                return 0;
+            }
+            return nc;
+        });
+    }
+
+    function toggleBookmarkMcq(id) {
+        const numId = String(id);
+        setSavedMcqs(prev => {
+            const exists = prev.includes(numId);
+            showToast(exists ? 'MCQ removed from saved.' : 'MCQ saved to favorites!');
+            return exists ? prev.filter(i => i !== numId) : [...prev, numId];
+        });
+    }
+    function toggleBookmarkVocab(id) {
+        const numId = String(id);
+        setSavedVocab(prev => {
+            const exists = prev.includes(numId);
+            showToast(exists ? 'Vocab removed from saved.' : 'Vocab saved!');
+            return exists ? prev.filter(i => i !== numId) : [...prev, numId];
+        });
+    }
+    function toggleBookmarkArticle(id) {
+        const numId = String(id);
+        setSavedArticles(prev => {
+            const exists = prev.includes(numId);
+            showToast(exists ? 'Article removed from saved.' : 'Article saved to bookmarks!');
+            return exists ? prev.filter(i => i !== numId) : [...prev, numId];
+        });
+    }
+    function toggleBookmarkBook(id) {
+        const numId = String(id);
+        setSavedBooks(prev => {
+            const exists = prev.includes(numId);
+            showToast(exists ? 'Book removed from saved.' : 'Book saved to library favorites!');
+            return exists ? prev.filter(i => i !== numId) : [...prev, numId];
+        });
+    }
+
+    const categoryList = useMemo(() => {
+        const set = new Set(apiCategories);
+        mcqs.forEach((m) => m.category && set.add(m.category));
+        return ['ALL', ...Array.from(set)];
+    }, [mcqs, apiCategories]);
+
+    const filteredMcqs = useMemo(() => {
+        return mcqs.filter((m) => {
+            const q = searchInput.toLowerCase();
+            const matchesQ = !q || (m.question||'').toLowerCase().includes(q);
+            const matchesC = activeCategory === 'ALL' || m.category === activeCategory;
+            return matchesQ && matchesC;
+        });
+    }, [mcqs, searchInput, activeCategory]);
+
+    const totalSaved = savedMcqs.length + savedVocab.length + savedArticles.length + savedBooks.length;
+
+    function checkAnswer(mcqId, selectedOptIndex, cardId) {
+        const mcq = mcqs.find((m) => String(m._id || m.id) === String(mcqId));
+        if (!mcq) return;
+        const card = document.getElementById(cardId);
+        if (!card) return;
+        const btns = card.querySelectorAll(`.opt-btn-${mcqId}`);
+        btns.forEach((btn, idx) => {
+            btn.disabled = true;
+            if (idx === mcq.answerIndex) {
+                btn.classList.add('opt-correct');
+            } else if (idx === selectedOptIndex) {
+                btn.classList.add('opt-wrong');
+            }
+        });
+        const exp = document.getElementById(`explanation-${mcqId}`);
+        if (exp) exp.classList.remove('hidden');
+    }
+
+    function startMockTest() {
+        let eligible = testConfig.category === 'ALL' ? mcqs : mcqs.filter((m) => m.category === testConfig.category);
+        if (eligible.length === 0) eligible = mcqs;
+        let shuffled = [...eligible].sort(() => 0.5 - Math.random());
+        const questions = shuffled.slice(0, testConfig.count);
+        setTestQuestions(questions);
+        setTestAnswers({});
+        setTestResult(null);
+        setTestSeconds(testConfig.count * 60);
+        setTestRunning(true);
+        switchTab('testTab');
+    }
+
+    function selectTestOption(mcqId, optIdx, btn) {
+        setTestAnswers((p) => ({ ...p, [mcqId]: optIdx }));
+        const card = btn.closest('.test-q');
+        if (!card) return;
+        card.querySelectorAll(`.test-opt-${mcqId}`).forEach((b) => b.classList.remove('bg-indigo-900', 'text-white'));
+        btn.classList.add('bg-indigo-900', 'text-white');
+    }
+
+    function submitMockTest() {
+        setTestRunning(false);
+        let correct = 0;
+        testQuestions.forEach((q) => {
+            if (testAnswers[q._id || q.id] === q.answerIndex) correct++;
+        });
+        const total = testQuestions.length;
+        const wrong = total - correct;
+        const percentage = Math.round((correct / Math.max(total, 1)) * 100);
+        setTestResult({ total, correct, wrong, percentage });
+    }
+
+    function resetMockTest() { setTestRunning(false); setTestResult(null); setTestQuestions([]); setTestAnswers({}); }
+
+    async function sendAiChatMessage(prefill = null) {
+        const msg = prefill || aiPrompt;
+        if (!msg.trim()) return;
+        setAiMessages((p) => [...p, { role: 'user', text: msg }]);
+        setAiPrompt('');
+        setTimeout(() => {
+            setAiMessages((p) => [...p, { role: 'ai', text: 'AI Tutor response is available with Gemini API key configured in Admin.' }]);
+        }, 400);
+    }
+
+    function clearAiChat() { setAiMessages([{ role: 'ai', text: 'Assalam-o-Alaikum Student! 🎓\nMain aap ka ExamInPocket Gemini AI Tutor Chatbot hoon.' }]); }
+
+    function openArticleReader(artId) {
+        const art = articles.find((a) => String(a._id || a.id) === String(artId));
+        if (!art) return;
+        setReaderData({ title: art.title, cat: `Editorial Essay • ${art.category}`, type: 'text', content: art.content });
+        setReaderOpen(true);
+    }
+
+    function openReaderModal(bookId) {
+        const item = library.find((b) => String(b._id || b.id) === String(bookId));
+        if (!item) return;
+        const targetUrl = item.url || item.downloadUrl || '';
+        if (!targetUrl) { showToast('No link available', 'error'); return; }
+        const embedUrl = formatGoogleDriveUrl(targetUrl);
+        setReaderData({ title: item.title, cat: `ExamInPocket Library • ${item.category || item.cat}`, type: 'pdf', content: embedUrl || targetUrl, url: targetUrl });
+        setReaderOpen(true);
+    }
+
+    function downloadBook(bookId) {
+        const item = library.find((b) => String(b._id || b.id) === String(bookId));
+        const url = item?.url || item?.downloadUrl || '';
+        if (url) window.open(url, '_blank');
+        else showToast('No download link', 'error');
+    }
+
+    const savedM = mcqs.filter((m) => savedMcqs.includes(String(m._id || m.id)));
+    const savedV = dawnWords.filter((w) => savedVocab.includes(String(w._id || w.id)));
+    const savedA = articles.filter((a) => savedArticles.includes(String(a._id || a.id)));
+    const savedB = library.filter((b) => savedBooks.includes(String(b._id || b.id)));
+
+    return (
+        <div className="min-h-screen flex flex-col justify-between bg-slate-50 text-slate-900 relative">
+            <div id="toastContainer" className="fixed bottom-5 right-5 z-50 flex flex-col gap-2 no-print pointer-events-none"></div>
+            <div id="confirmModal" className="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 no-print">
+                <div className="bg-white w-full max-w-sm rounded-2xl shadow-xl border border-slate-200 p-6 space-y-4 text-center">
+                    <h3 id="confirmModalTitle" className="text-base font-bold text-slate-900">Are you sure?</h3>
+                    <p id="confirmModalText" className="text-xs text-slate-500">This action cannot be undone.</p>
+                    <div className="flex gap-2 pt-2">
+                        <button onClick={() => closeConfirmModal(false)} className="w-1/2 bg-slate-100 text-slate-700 font-bold py-2 rounded-lg text-xs">Cancel</button>
+                        <button onClick={() => closeConfirmModal(true)} className="w-1/2 bg-rose-600 text-white font-bold py-2 rounded-lg text-xs">Confirm</button>
+                    </div>
+                </div>
+            </div>
+
+            <header className="bg-slate-900 text-white sticky top-0 z-40 border-b border-slate-800 shadow-md no-print">
+                <div className="max-w-7xl mx-auto px-4 py-3 flex flex-wrap justify-between items-center gap-2">
+                    <div onClick={handleLogoClick} className="flex items-center gap-3 cursor-pointer select-none" title="ExamInPocket Portal (Click 5 times for Admin Portal)">
+                        <div className="bg-amber-400 text-slate-950 font-extrabold text-xl px-3 py-1.5 rounded-xl">EiP</div>
+                        <div>
+                            <h1 className="text-xl font-bold tracking-tight text-white">ExamInPocket<span className="text-amber-400">.com</span></h1>
+                            <p className="text-xs text-slate-400">FPSC • PPSC • SPSC • CSS • PMS • CCE</p>
+                        </div>
+                    </div>
+                    <nav className="flex flex-wrap items-center gap-1 text-xs sm:text-sm font-medium">
+                        <button onClick={() => switchTab('homeTab')} className={`nav-link px-3 py-2 rounded-lg hover:bg-slate-800 transition ${activeTab === 'homeTab' ? 'active-link' : ''}`}><i className="fa-solid fa-house mr-1"></i> Home</button>
+                        <button onClick={() => switchTab('testTab')} className={`nav-link px-3 py-2 rounded-lg hover:bg-slate-800 transition ${activeTab === 'testTab' ? 'active-link' : ''}`}><i className="fa-solid fa-stopwatch mr-1"></i> Mock Test</button>
+                        <button onClick={() => switchTab('dawnTab')} className={`nav-link px-3 py-2 rounded-lg hover:bg-slate-800 transition ${activeTab === 'dawnTab' ? 'active-link' : ''}`}><i className="fa-solid fa-newspaper mr-1"></i> Dawn Vocab</button>
+                        <button onClick={() => switchTab('articlesTab')} className={`nav-link px-3 py-2 rounded-lg hover:bg-slate-800 transition ${activeTab === 'articlesTab' ? 'active-link' : ''}`}><i className="fa-solid fa-file-lines mr-1"></i> Articles</button>
+                        <button onClick={() => switchTab('libraryTab')} className={`nav-link px-3 py-2 rounded-lg hover:bg-slate-800 transition ${activeTab === 'libraryTab' ? 'active-link' : ''}`}><i className="fa-solid fa-book-open mr-1"></i> Library</button>
+                        <button onClick={() => switchTab('savedTab')} className={`nav-link px-3 py-2 rounded-lg hover:bg-slate-800 transition ${activeTab === 'savedTab' ? 'active-link' : ''}`}><i className="fa-solid fa-bookmark mr-1"></i> Favorite</button>
+                        <button onClick={() => switchTab('aiTab')} className={`nav-link px-3 py-2 rounded-lg bg-indigo-900 text-amber-300 hover:bg-indigo-800 transition border border-indigo-700 ${activeTab === 'aiTab' ? 'active-link' : ''}`}><i className="fa-solid fa-robot mr-1"></i> AI Tutor</button>
+                        <button onClick={() => setAuthModalOpen(true)} className="bg-amber-400 text-slate-950 font-semibold px-3 py-2 rounded-lg hover:bg-amber-300 transition ml-1"><i className="fa-solid fa-user mr-1"></i> Login</button>
+                    </nav>
+                </div>
+            </header>
+
+            <div className="bg-gradient-to-r from-amber-50 via-amber-100 to-amber-50 border-b border-amber-300 text-amber-950 py-2.5 px-4 text-xs font-semibold overflow-hidden no-print shadow-inner flex items-center gap-3">
+                <div className="flex items-center gap-1.5 bg-amber-400 text-slate-950 px-2.5 py-0.5 rounded-full font-extrabold shrink-0 text-[11px]">UPDATES</div>
+                <div className="w-full overflow-hidden relative flex items-center"><div className="ticker-marquee-content" dangerouslySetInnerHTML={{ __html: siteTicker }}></div></div>
+            </div>
+
+            {readerOpen && (
+                <div className="fixed inset-0 bg-slate-900/80 backdrop-blur-md z-50 flex items-center justify-center p-2 sm:p-6 no-print">
+                    <div className="bg-white w-full max-w-5xl h-[92vh] rounded-2xl shadow-2xl border border-slate-200 flex flex-col overflow-hidden relative">
+                        <div className="bg-slate-900 text-white p-3 sm:p-4 flex justify-between items-center border-b border-slate-800 gap-2">
+                            <div className="flex items-center gap-3 overflow-hidden">
+                                <div className="bg-amber-400 text-slate-950 p-2 rounded-xl"><i className="fa-solid fa-book-reader"></i></div>
+                                <div className="truncate"><h3 className="font-bold text-xs sm:text-base truncate">{readerData.title}</h3><p className="text-[10px] sm:text-xs text-amber-400">{readerData.cat}</p></div>
+                            </div>
+                            <button onClick={() => setReaderOpen(false)} className="text-slate-400 hover:text-white"><i className="fa-solid fa-xmark text-lg"></i></button>
+                        </div>
+                        <div className="flex-grow bg-slate-100 p-2 sm:p-4">
+                            {readerData.type === 'pdf' && readerData.content ? <iframe src={formatGoogleDriveUrl(readerData.content) || readerData.content} className="w-full h-full rounded-xl border border-slate-300 bg-white" allow="autoplay"></iframe> : <div className="w-full max-w-4xl h-full bg-white p-6 sm:p-10 rounded-xl border border-slate-200 shadow-sm overflow-y-auto"><div className="whitespace-pre-line text-slate-800 leading-relaxed text-xs sm:text-sm">{readerData.content}</div></div>}
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {authModalOpen && (
+                <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 no-print">
+                    <div className="bg-white w-full max-w-md rounded-2xl shadow-xl border border-slate-200 p-6 space-y-4 relative">
+                        <button onClick={() => setAuthModalOpen(false)} className="absolute right-4 top-4 text-slate-400 hover:text-slate-600"><i className="fa-solid fa-xmark text-lg"></i></button>
+                        <h3 className="text-xl font-bold text-slate-900">Student Account</h3>
+                        <div className="space-y-3"><input type="email" className="w-full p-2.5 border border-slate-300 rounded-lg text-sm" placeholder="Email" /><input type="password" className="w-full p-2.5 border border-slate-300 rounded-lg text-sm" placeholder="Password" /><button onClick={() => { setAuthModalOpen(false); showToast('Login'); }} className="w-full bg-slate-900 text-white font-bold py-2.5 rounded-lg text-sm">Login / Register</button></div>
+                    </div>
+                </div>
+            )}
+
+            <main className="max-w-7xl mx-auto px-4 py-6 flex-grow w-full space-y-6">
+                {activeTab === 'homeTab' && (
+                    <section className="space-y-6">
+                        <div className="bg-slate-900 text-white p-6 sm:p-8 rounded-2xl shadow-md border border-slate-800 space-y-4">
+                            <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight">Prepare for <span className="text-amber-400">CSS, PMS, PCS, CCE</span> & All Competitive Exams</h2>
+                            <p className="text-xs sm:text-sm text-slate-300 max-w-2xl">Access thousands of verified MCQs, solved past papers, Dawn vocabulary, editorial articles, and AI-powered study guides.</p>
+                            <div className="relative w-full max-w-3xl"><i className="fa-solid fa-magnifying-glass absolute left-4 top-3.5 text-slate-400"></i><input value={searchInput} onChange={(e) => setSearchInput(e.target.value)} placeholder="Search questions, subjects, amendments, rivers, foreign words..." className="w-full pl-11 pr-4 py-3 rounded-xl border-0 text-slate-900 text-sm focus:ring-2 focus:ring-amber-400 outline-none shadow-inner" /></div>
+                            <div className="flex flex-wrap gap-2 pt-2">{categoryList.map((cat) => (<button key={cat} onClick={() => setActiveCategory(cat)} className={`px-3 py-1.5 rounded-lg text-xs sm:text-sm transition ${activeCategory === cat ? 'bg-amber-400 text-slate-950 font-bold' : 'bg-slate-800 hover:bg-slate-700 text-slate-200'}`}>{cat}</button>))}</div>
+                        </div>
+                        <div className="space-y-4">{filteredMcqs.map((mcq) => {
+                            const mcqId = mcq._id || mcq.id;
+                            const cardId = `mcq-card-${mcqId}`;
+                            const isSaved = savedMcqs.includes(String(mcqId));
+                            return (
+                                <div key={mcqId} id={cardId} className={`bg-white p-5 rounded-2xl shadow-sm border border-slate-200 space-y-4 ${mcq.isNew ? 'new-card-glow' : ''}`}>
+                                    <div className="flex justify-between items-center"><span className="bg-indigo-100 text-indigo-900 text-[11px] font-bold px-2.5 py-1 rounded-lg">{mcq.category}</span><button onClick={() => toggleBookmarkMcq(mcqId)} className="text-slate-400 hover:text-amber-500 transition"><i className={`${isSaved ? 'fa-solid text-amber-500' : 'fa-regular'} fa-bookmark text-base`}></i></button></div>
+                                    <h3 className="text-sm sm:text-base font-semibold text-slate-900 leading-snug">{mcq.question}</h3>
+                                    <div className="grid sm:grid-cols-2 gap-2.5">{(mcq.options||[]).map((opt, optIdx) => (<button key={optIdx} onClick={() => checkAnswer(mcqId, optIdx, cardId)} className={`opt-btn-${mcqId} w-full text-left p-3 rounded-xl border border-slate-200 hover:bg-slate-50 hover:border-indigo-300 transition text-xs sm:text-sm flex items-center justify-between`}><span>{String.fromCharCode(65 + optIdx)}) {opt}</span><i className="fa-regular fa-circle text-slate-300 opt-icon"></i></button>))}</div>
+                                    <div id={`explanation-${mcqId}`} className="hidden bg-indigo-50 p-3.5 rounded-xl text-xs text-indigo-950 border border-indigo-100 space-y-1"><p><strong>Explanation:</strong> {mcq.explanation}</p></div>
+                                </div>
+                            );
+                        })}</div>
+                    </section>
+                )}
+
+                {activeTab === 'testTab' && (
+                    <section className="tab-content active space-y-6">
+                        <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+                            {!testRunning && !testResult && (
+                                <>
+                                    <div className="border-b pb-4 mb-6"><h2 className="text-xl font-bold text-slate-900 flex items-center gap-2"><i className="fa-solid fa-stopwatch text-indigo-600"></i> Online Timed Mock Test Engine</h2><p className="text-xs text-slate-500 mt-1">Practice under real examination conditions.</p></div>
+                                    <div className="grid md:grid-cols-3 gap-4 mb-6">
+                                        <div><label className="block text-xs font-bold text-slate-700 mb-1">Select Subject / Field</label><select value={testConfig.category} onChange={(e) => setTestConfig((p) => ({ ...p, category: e.target.value }))} className="w-full p-2.5 rounded-lg border border-slate-300 text-sm"><option value="ALL">All Combined Subjects Mix</option>{categoryList.filter((c) => c !== 'ALL').map((cat) => <option key={cat} value={cat}>{cat}</option>)}</select></div>
+                                        <div><label className="block text-xs font-bold text-slate-700 mb-1">Question Count</label><select value={testConfig.count} onChange={(e) => setTestConfig((p) => ({ ...p, count: Number(e.target.value) }))} className="w-full p-2.5 rounded-lg border border-slate-300 text-sm"><option value={5}>5 Questions</option><option value={10}>10 Questions</option><option value={20}>20 Questions</option><option value={30}>30 Questions</option></select></div>
+                                        <div className="flex items-end"><button onClick={startMockTest} className="w-full bg-indigo-900 hover:bg-indigo-800 text-white font-bold py-2.5 px-4 rounded-lg transition text-sm flex items-center justify-center gap-2"><i className="fa-solid fa-play"></i> Start Timed Test</button></div>
+                                    </div>
+                                </>
+                            )}
+                            {testRunning && (
+                                <div className="space-y-6">
+                                    <div className="bg-indigo-50 p-4 rounded-xl border border-indigo-200 flex justify-between items-center"><div><span className="text-xs font-bold text-indigo-700">Exam Mode Active</span><h3 className="text-sm font-bold text-indigo-950">Questions: {testQuestions.length}</h3></div><div className="bg-slate-900 text-amber-400 px-4 py-2 rounded-xl font-mono font-bold text-lg">{String(Math.floor(testSeconds / 60)).padStart(2, '0')}:{String(testSeconds % 60).padStart(2, '0')}</div></div>
+                                    <div className="space-y-6">{testQuestions.map((q, qIdx) => (<div key={q._id || q.id} className="bg-white p-5 rounded-2xl border border-slate-200 space-y-3 test-q"><h4 className="font-bold text-slate-900 text-xs sm:text-sm">Q{qIdx + 1}: {q.question}</h4><div className="grid sm:grid-cols-2 gap-2">{(q.options||[]).map((opt, oIdx) => (<button key={oIdx} onClick={(e) => selectTestOption(q._id || q.id, oIdx, e.currentTarget)} className={`test-opt-${q._id || q.id} text-left p-2.5 rounded-lg border border-slate-200 hover:bg-indigo-50 text-xs transition`}>{String.fromCharCode(65 + oIdx)}) {opt}</button>))}</div></div>))}</div>
+                                    <button onClick={submitMockTest} className="w-full bg-emerald-700 hover:bg-emerald-800 text-white font-bold py-3 px-6 rounded-xl text-sm shadow-md transition">Submit Test</button>
+                                </div>
+                            )}
+                            {testResult && (
+                                <div className="bg-slate-50 p-6 sm:p-8 rounded-2xl border border-slate-200 space-y-6">
+                                    <div className="text-center space-y-2"><h3 className="text-2xl font-black text-slate-900">Test Completed</h3><div className="text-5xl font-black text-indigo-700">{testResult.correct} / {testResult.total}</div><p className="text-sm font-semibold text-slate-700">Score: {testResult.percentage}%</p></div>
+                                    <div className="text-center"><button onClick={resetMockTest} className="bg-indigo-900 text-white font-semibold px-8 py-3 rounded-xl text-xs sm:text-sm">Take Another Test</button></div>
+                                </div>
+                            )}
+                        </div>
+                    </section>
+                )}
+
+                {activeTab === 'dawnTab' && (
+                    <section className="space-y-6">
+                        <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+                            <h2 className="text-xl font-bold text-slate-900 mb-4 flex items-center gap-2"><i className="fa-solid fa-newspaper text-indigo-600"></i> Daily Dawn Editorial Vocabulary & Headlines</h2>
+                            <div className="grid md:grid-cols-2 gap-6">
+                                <div className="space-y-3">{dawnWords.map((w, i) => { const id = w._id || w.id || i; const isSaved = savedVocab.includes(String(id)); return (<div key={id} className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm space-y-2"><div className="flex justify-between items-start"><p className="font-bold text-indigo-950">{w.word} <span className="text-slate-400">({w.type})</span></p><button onClick={() => toggleBookmarkVocab(id)} className="text-slate-400 hover:text-amber-500"><i className={`${isSaved ? 'fa-solid text-amber-500' : 'fa-regular'} fa-bookmark`}></i></button></div><p className="text-slate-700"><strong>Urdu:</strong> {w.urdu}</p><p className="text-slate-600"><strong>Meaning:</strong> {w.meaning}</p><p className="text-slate-500 italic">"{w.sentence}"</p></div>); })}</div>
+                                <div><h3 className="font-bold text-slate-800 text-sm mb-3 flex items-center gap-2"><i className="fa-solid fa-bullhorn text-amber-500"></i> Top National Headlines</h3><div className="bg-slate-50 p-4 rounded-xl border border-slate-200"><ul className="list-disc pl-5 text-xs sm:text-sm text-slate-700 space-y-2">{headlines.map((h, i) => <li key={i}>{h.title || h}</li>)}</ul></div></div>
+                            </div>
+                        </div>
+                    </section>
+                )}
+
+                {activeTab === 'articlesTab' && (
+                    <section className="space-y-6">
+                        <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+                            <h2 className="text-xl font-bold text-slate-900 mb-4 flex items-center gap-2"><i className="fa-solid fa-file-pen text-amber-600"></i> Editorial Articles</h2>
+                            <div className="grid md:grid-cols-2 gap-4">{articles.map((art, i) => { const id = art._id || art.id || i; const isSaved = savedArticles.includes(String(id)); return (<div key={id} className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm space-y-3"><div className="flex justify-between items-center"><span className="bg-amber-100 text-amber-900 text-[10px] font-bold px-2 py-0.5 rounded">{art.category}</span><button onClick={() => toggleBookmarkArticle(id)} className="text-slate-400 hover:text-amber-500"><i className={`${isSaved ? 'fa-solid text-amber-500' : 'fa-regular'} fa-bookmark`}></i></button></div><h3 className="font-bold text-slate-900 text-sm">{art.title}</h3><p className="text-[11px] text-slate-500">By {art.author}</p><button onClick={() => { setReaderData({ title: art.title, cat: `Editorial Essay • ${art.category}`, type: 'text', content: art.content }); setReaderOpen(true); }} className="bg-slate-900 text-amber-400 hover:bg-slate-800 text-xs font-bold px-3 py-1.5 rounded-lg transition"><i className="fa-solid fa-eye mr-1"></i> Read Full Essay / Article</button></div>); })}</div>
+                        </div>
+                    </section>
+                )}
+
+                {activeTab === 'libraryTab' && (
+                    <section className="space-y-6">
+                        <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+                            <h2 className="text-xl font-bold text-slate-900 mb-4 flex items-center gap-2"><i className="fa-solid fa-book-open text-indigo-600"></i> PDF Notes & Books Library</h2>
+                            <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-4">{library.map((item, i) => { const id = item._id || item.id || i; const isSaved = savedBooks.includes(String(id)); return (<div key={id} className="bg-slate-50 p-4 rounded-xl border border-slate-200 flex flex-col justify-between space-y-3"><div><div className="flex justify-between items-start"><span className="text-[10px] font-bold bg-indigo-100 text-indigo-900 px-2 py-0.5 rounded">{item.category || item.cat}</span><button onClick={() => toggleBookmarkBook(id)} className="text-slate-400 hover:text-amber-500"><i className={`${isSaved ? 'fa-solid text-amber-500' : 'fa-regular'} fa-bookmark`}></i></button></div><h4 className="font-bold text-slate-900 mt-2">{item.title}</h4><p className="text-slate-400 text-xs">{item.sizeLabel || item.size}</p></div><div className="grid grid-cols-2 gap-2"><button onClick={() => openReaderModal(id)} className="bg-amber-400 hover:bg-amber-300 text-slate-950 font-bold py-2 rounded-lg text-xs">Read Online</button><button onClick={() => downloadBook(id)} className="bg-indigo-900 hover:bg-indigo-800 text-white font-semibold py-2 rounded-lg text-xs">Download</button></div></div>); })}</div>
+                        </div>
+                    </section>
+                )}
+
+                {activeTab === 'savedTab' && (
+                    <section className="space-y-6">
+                        <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+                            <div className="border-b pb-4 mb-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4"><div><h2 className="text-xl font-bold text-slate-900 flex items-center gap-2"><i className="fa-solid fa-bookmark mr-1"></i> Favorite</h2></div><div className="flex gap-2"><button onClick={() => setSavedSubFilter('ALL')} className={`px-3 py-1 rounded-lg text-xs ${savedSubFilter === 'ALL' ? 'bg-amber-400 text-slate-950 font-bold' : 'bg-slate-100 text-slate-700'}`}>All</button><button onClick={() => setSavedSubFilter('MCQS')} className={`px-3 py-1 rounded-lg text-xs ${savedSubFilter === 'MCQS' ? 'bg-amber-400 text-slate-950 font-bold' : 'bg-slate-100 text-slate-700'}`}>MCQs</button><button onClick={() => setSavedSubFilter('VOCAB')} className={`px-3 py-1 rounded-lg text-xs ${savedSubFilter === 'VOCAB' ? 'bg-amber-400 text-slate-950 font-bold' : 'bg-slate-100 text-slate-700'}`}>Vocab</button><button onClick={() => setSavedSubFilter('ARTICLES')} className={`px-3 py-1 rounded-lg text-xs ${savedSubFilter === 'ARTICLES' ? 'bg-amber-400 text-slate-950 font-bold' : 'bg-slate-100 text-slate-700'}`}>Articles</button><button onClick={() => setSavedSubFilter('BOOKS')} className={`px-3 py-1 rounded-lg text-xs ${savedSubFilter === 'BOOKS' ? 'bg-amber-400 text-slate-950 font-bold' : 'bg-slate-100 text-slate-700'}`}>Books</button></div></div>
+                            <div className="space-y-6">
+                                {(savedSubFilter === 'ALL' || savedSubFilter === 'MCQS') && savedM.length > 0 && <div className="space-y-3"><h3 className="font-bold text-slate-800 text-sm">Saved MCQs ({savedM.length})</h3>{savedM.map((m) => { const id = m._id || m.id; return (<div key={id} className="bg-slate-50 p-4 rounded-xl border border-slate-200"><div className="flex justify-between items-center mb-2"><span className="bg-indigo-100 text-indigo-900 text-[10px] font-bold px-2 py-0.5 rounded">{m.category}</span><button onClick={() => toggleBookmarkMcq(id)} className="text-rose-600 text-xs font-bold">Remove</button></div><p className="font-bold text-slate-900 text-xs">{m.question}</p></div>); })}</div>}
+                                {(savedSubFilter === 'ALL' || savedSubFilter === 'VOCAB') && savedV.length > 0 && <div className="space-y-3"><h3 className="font-bold text-slate-800 text-sm">Saved Vocab ({savedV.length})</h3>{savedV.map((w, i) => { const id = w._id || w.id || i; return (<div key={id} className="bg-slate-50 p-4 rounded-xl border border-slate-200 flex justify-between items-center text-xs"><div><strong className="text-indigo-950">{w.word}</strong> - {w.urdu}</div><button onClick={() => toggleBookmarkVocab(id)} className="text-rose-600 font-bold">Remove</button></div>); })}</div>}
+                                {(savedSubFilter === 'ALL' || savedSubFilter === 'ARTICLES') && savedA.length > 0 && <div className="space-y-3"><h3 className="font-bold text-slate-800 text-sm">Saved Articles ({savedA.length})</h3>{savedA.map((a, i) => { const id = a._id || a.id || i; return (<div key={id} className="bg-slate-50 p-4 rounded-xl border border-slate-200 flex justify-between items-center text-xs"><div><strong className="text-slate-900">{a.title}</strong></div><button onClick={() => toggleBookmarkArticle(id)} className="text-rose-600 font-bold">Remove</button></div>); })}</div>}
+                                {(savedSubFilter === 'ALL' || savedSubFilter === 'BOOKS') && savedB.length > 0 && <div className="space-y-3"><h3 className="font-bold text-slate-800 text-sm">Saved Books ({savedB.length})</h3>{savedB.map((b, i) => { const id = b._id || b.id || i; return (<div key={id} className="bg-slate-50 p-4 rounded-xl border border-slate-200 flex justify-between items-center text-xs"><div><strong className="text-slate-900">{b.title}</strong></div><button onClick={() => toggleBookmarkBook(id)} className="text-rose-600 font-bold">Remove</button></div>); })}</div>}
+                                {savedM.length === 0 && savedV.length === 0 && savedA.length === 0 && savedB.length === 0 && <div className="bg-slate-50 p-8 text-center text-slate-500 rounded-2xl border border-slate-200 text-xs">No saved items yet.</div>}
+                            </div>
+                        </div>
+                    </section>
+                )}
+
+                {activeTab === 'aiTab' && (
+                    <section className="space-y-6">
+                        <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+                            <div className="border-b pb-4 mb-4 flex justify-between items-center"><div><h2 className="text-xl font-bold text-slate-900">Gemini AI Exam Tutor Chatbot</h2></div><button onClick={clearAiChat} className="text-xs text-slate-500">Clear Chat</button></div>
+                            <div className="bg-slate-50 p-4 rounded-2xl border border-slate-200 min-h-[380px] max-h-[500px] overflow-y-auto space-y-4 shadow-inner">{aiMessages.map((m,i)=>(<div key={i} className={`flex gap-3 ${m.role==='user'?'justify-end':''}`}>{m.role==='ai' && <div className="bg-indigo-900 text-amber-400 p-2 rounded-xl"><i className="fa-solid fa-robot"></i></div>}<div className={`${m.role==='user'?'bg-indigo-900 text-white':'bg-white'} p-4 rounded-2xl text-xs sm:text-sm whitespace-pre-line max-w-2xl`}>{m.text}</div></div>))}</div>
+                            <div className="mt-4 flex gap-2"><textarea value={aiPrompt} onChange={(e)=>setAiPrompt(e.target.value)} rows="2" placeholder="Type your question..." className="flex-grow p-3 border border-slate-300 rounded-xl text-xs"></textarea><button onClick={()=>sendAiChatMessage()} className="bg-indigo-900 hover:bg-indigo-800 text-amber-300 font-bold px-5 rounded-xl text-xs">Send</button></div>
+                        </div>
+                    </section>
+                )}
+
+                {activeTab === 'adminTab' && (
+                    <section className="space-y-6">
+                        <div className="bg-white p-6 sm:p-8 rounded-2xl shadow-sm border border-slate-200 max-w-md mx-auto space-y-4">
+                            <div className="text-center space-y-2"><div className="bg-indigo-100 text-indigo-900 p-3 rounded-full w-12 h-12 flex items-center justify-center mx-auto text-xl"><i className="fa-solid fa-user-lock"></i></div><h3 className="text-xl font-bold text-slate-900">Protected Admin Portal</h3><p className="text-xs text-slate-500">Access admin panel</p></div>
+                            <div className="space-y-3 text-xs sm:text-sm"><input type="text" placeholder="Username" className="w-full p-2.5 border border-slate-300 rounded-lg" /><input type="password" placeholder="Password" className="w-full p-2.5 border border-slate-300 rounded-lg" /><button onClick={()=>showToast('Admin access via backend')} className="w-full bg-slate-900 hover:bg-slate-800 text-amber-400 font-bold py-2.5 rounded-lg">Unlock</button></div>
+                        </div>
+                    </section>
+                )}
+            </main>
+
+            <footer className="mt-12 bg-slate-900 text-slate-400 py-8 border-t border-slate-800 text-xs text-center space-y-4 no-print">
+                <p className="text-slate-500">© {new Date().getFullYear()} ExamInPocket.com — All Rights Reserved.</p>
+            </footer>
+        </div>
+    );
+}

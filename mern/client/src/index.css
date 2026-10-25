@@ -1,0 +1,100 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    background-color: #f8fafc;
+    color: #0f172a;
+}
+
+.tab-content {
+    display: none;
+}
+
+.tab-content.active {
+    display: block;
+}
+
+.opt-correct {
+    background-color: #059669 !important;
+    color: #ffffff !important;
+    border-color: #047857 !important;
+}
+
+.opt-wrong {
+    background-color: #dc2626 !important;
+    color: #ffffff !important;
+    border-color: #b91c1c !important;
+}
+
+.nav-link.active-link {
+    background-color: #1e1b4b;
+    color: #fbbf24;
+}
+
+/* Clean Print Formatting */
+@media print {
+
+    header,
+    footer,
+    nav,
+    .no-print,
+    #noticeTicker,
+    #toastContainer {
+        display: none !important;
+    }
+
+    body {
+        background-color: #ffffff !important;
+        color: #000000 !important;
+    }
+
+    .printable-area {
+        box-shadow: none !important;
+        border: none !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        width: 100% !important;
+    }
+}
+
+/* Ticker Marquee Animation */
+@keyframes tickerMarquee {
+    0% {
+        transform: translateX(100%);
+    }
+
+    100% {
+        transform: translateX(-100%);
+    }
+}
+
+.ticker-marquee-content {
+    display: inline-block;
+    white-space: nowrap;
+    animation: tickerMarquee 22s linear infinite;
+}
+
+.ticker-marquee-content:hover {
+    animation-play-state: paused;
+}
+
+/* Glowing Animation for New Material */
+@keyframes newMaterialGlow {
+
+    0%,
+    100% {
+        border-color: #fbbf24;
+        box-shadow: 0 0 10px rgba(251, 191, 36, 0.4);
+    }
+
+    50% {
+        border-color: #6366f1;
+        box-shadow: 0 0 14px rgba(99, 102, 241, 0.45);
+    }
+}
+
+.new-card-glow {
+    animation: newMaterialGlow 3s infinite ease-in-out;
+}
