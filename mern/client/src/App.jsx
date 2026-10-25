@@ -148,7 +148,8 @@ export default function App() {
 
     async function saveMcqFromAdmin() {
         try {
-            const cat = adminMcqForm.category || (categoryList.find(c=>c!=='ALL') || 'General Knowledge');
+            const cat = adminMcqForm.category;
+            if (!cat) { showToast('Please select category', 'error'); return; }
             if (!adminMcqForm.question || !adminMcqForm.opt0 || !adminMcqForm.opt1 || !adminMcqForm.opt2 || !adminMcqForm.opt3) {
                 showToast('Please fill all required fields', 'error');
                 return;
@@ -164,6 +165,8 @@ export default function App() {
             setAdminMcqForm({ category: '', customCategory: '', question: '', opt0: '', opt1: '', opt2: '', opt3: '', answerIndex: 0, explanation: '' });
             const m = await api.get('/mcqs?limit=500').catch(() => ({ items: mcqs }));
             setMcqs(m.items || m || []);
+            const c = await api.get('/mcqs/categories').catch(() => ({ categories: apiCategories }));
+            setApiCategories(c.categories || []);
         } catch (e) {
             showToast(e.message || 'Failed to save MCQ', 'error');
         }
@@ -612,7 +615,7 @@ export default function App() {
                             <div className="grid md:grid-cols-2 gap-6">
                                 <div className="space-y-4">
                                     <h3 className="font-bold text-slate-800 text-sm border-b pb-2 flex items-center gap-2"><i className="fa-solid fa-book text-amber-500"></i> Today's Editorial Vocab</h3>
-                                    <div className="space-y-3">{dawnWords.map((w, i) => { const id = w._id || w.id || i; const isSaved = savedVocab.includes(String(id)); return (<div key={id} className="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-1 text-xs sm:text-sm"><div className="flex justify-between items-center"><h4 className="font-bold text-indigo-900 text-sm">{w.word} <span className="text-[11px] text-slate-500 font-normal">({w.type || w.partsOfSpeech || 'Word'})</span></h4><button onClick={() => toggleBookmarkVocab(id)} className="text-slate-400 hover:text-amber-500 transition"><i className={`${isSaved ? 'fa-solid text-amber-500' : 'fa-regular'} fa-bookmark`}></i></button></div><p className="text-slate-700"><strong>Urdu:</strong> <span className="font-bold text-emerald-800">{w.urdu}</span></p><p className="text-slate-600"><strong>Meaning:</strong> {w.meaning}</p><p className="text-slate-500 italic">"{w.sentence || w.usage || ''}"</p></div>); })}</div>
+                                    <div className="space-y-3">{dawnWords.map((w, i) => { const id = w._id || w.id || i; const isSaved = savedVocab.includes(String(id)); return (<div key={id} className="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-1 text-xs sm:text-sm"><div className="flex justify-between items-start"><p className="font-bold text-indigo-900">{w.word} <span className="text-[11px] text-slate-500 font-normal">({w.type || w.partsOfSpeech || 'Noun'})</span></p><button onClick={() => toggleBookmarkVocab(id)} className="text-slate-400 hover:text-amber-500 transition"><i className={`${isSaved ? 'fa-solid text-amber-500' : 'fa-regular'} fa-bookmark`}></i></button></div><p className="text-slate-700"><strong>Urdu:</strong> {w.urdu}</p><p className="text-slate-700"><strong>Meaning:</strong> {w.meaning}</p><p className="text-slate-700"><strong>Usage of Sentence:</strong> {w.sentence || w.usage || ''}</p></div>); })}</div>
                                 </div>
                                 <div className="space-y-4">
                                     <h3 className="font-bold text-slate-800 text-sm border-b pb-2 flex items-center gap-2"><i className="fa-solid fa-bullhorn text-amber-500"></i> Top National Headlines</h3>
@@ -693,7 +696,7 @@ export default function App() {
                         <div className="bg-white p-5 rounded-2xl border border-slate-200 space-y-4">
                             <h3 className="font-bold text-slate-800 text-sm flex items-center gap-2 border-b pb-2"><i className="fa-solid fa-plus-circle text-emerald-600"></i> 1. Add / Create MCQ Question</h3>
                             <div className="grid sm:grid-cols-2 gap-3 text-xs sm:text-sm">
-                                <div><label className="block font-bold text-slate-700 mb-1">Subject Field / Category</label><select value={adminMcqForm.category} onChange={(e)=>setAdminMcqForm(p=>({...p,category:e.target.value}))} className="w-full p-2.5 border border-slate-300 rounded-lg bg-slate-50">{categoryList.filter(c=>c!=='ALL').map(c=><option key={c}>{c}</option>)}</select></div>
+                                <div><label className="block font-bold text-slate-700 mb-1">Subject/Category</label><select value={adminMcqForm.category} onChange={(e)=>setAdminMcqForm(p=>({...p,category:e.target.value}))} className="w-full p-2.5 border border-slate-300 rounded-lg bg-slate-50"><option value="">Select Category</option>{categoryList.filter(c=>c!=='ALL').map(c=><option key={c} value={c}>{c}</option>)}</select></div>
                                 <div><label className="block font-bold text-slate-700 mb-1">Question Statement</label><input type="text" value={adminMcqForm.question} onChange={(e)=>setAdminMcqForm(p=>({...p,question:e.target.value}))} placeholder="Enter full question..." className="w-full p-2.5 border border-slate-300 rounded-lg" /></div>
                             </div>
                             <div className="grid sm:grid-cols-2 gap-2 text-xs"><input type="text" value={adminMcqForm.opt0} onChange={(e)=>setAdminMcqForm(p=>({...p,opt0:e.target.value}))} placeholder="Option A" className="p-2 border rounded-lg" /><input type="text" value={adminMcqForm.opt1} onChange={(e)=>setAdminMcqForm(p=>({...p,opt1:e.target.value}))} placeholder="Option B" className="p-2 border rounded-lg" /><input type="text" value={adminMcqForm.opt2} onChange={(e)=>setAdminMcqForm(p=>({...p,opt2:e.target.value}))} placeholder="Option C" className="p-2 border rounded-lg" /><input type="text" value={adminMcqForm.opt3} onChange={(e)=>setAdminMcqForm(p=>({...p,opt3:e.target.value}))} placeholder="Option D" className="p-2 border rounded-lg" /></div>
@@ -710,8 +713,27 @@ export default function App() {
 
                         <div className="bg-white p-5 rounded-2xl border border-slate-200 space-y-4">
                             <h3 className="font-bold text-slate-800 text-sm flex items-center gap-2 border-b pb-2"><i className="fa-solid fa-newspaper text-indigo-600"></i> Add Dawn Vocab</h3>
-                            <div className="grid sm:grid-cols-4 gap-2 text-xs"><input type="text" value={adminVocabForm.word} onChange={(e)=>setAdminVocabForm(p=>({...p,word:e.target.value}))} placeholder="Word" className="p-2.5 border rounded-lg" /><input type="text" value={adminVocabForm.type} onChange={(e)=>setAdminVocabForm(p=>({...p,type:e.target.value}))} placeholder="Parts of Speech" className="p-2.5 border rounded-lg" /><input type="text" value={adminVocabForm.urdu} onChange={(e)=>setAdminVocabForm(p=>({...p,urdu:e.target.value}))} placeholder="Urdu" className="p-2.5 border rounded-lg" /><input type="text" value={adminVocabForm.meaning} onChange={(e)=>setAdminVocabForm(p=>({...p,meaning:e.target.value}))} placeholder="Meaning" className="p-2.5 border rounded-lg" /></div>
-                            <input type="text" value={adminVocabForm.sentence} onChange={(e)=>setAdminVocabForm(p=>({...p,sentence:e.target.value}))} placeholder="Usage of Sentence" className="w-full p-2.5 border rounded-lg text-xs" />
+                            <div className="grid sm:grid-cols-5 gap-2 text-xs">
+                                <input type="text" value={adminVocabForm.word} onChange={(e)=>setAdminVocabForm(p=>({...p,word:e.target.value}))} placeholder="Word" className="p-2.5 border rounded-lg" />
+                                <select value={adminVocabForm.type} onChange={(e)=>setAdminVocabForm(p=>({...p,type:e.target.value}))} className="p-2.5 border rounded-lg bg-slate-50">
+                                    <option value="Noun">Noun</option>
+                                    <option value="Verb">Verb</option>
+                                    <option value="Adjective">Adjective</option>
+                                    <option value="Adverb">Adverb</option>
+                                    <option value="Preposition">Preposition</option>
+                                    <option value="Pronoun">Pronoun</option>
+                                    <option value="Conjunction">Conjunction</option>
+                                    <option value="Interjection">Interjection</option>
+                                    <option value="Idiomatic Expression">Idiomatic Expression</option>
+                                    <option value="Verb Phrase">Verb Phrase</option>
+                                    <option value="Phrase">Phrase</option>
+                                    <option value="Phrasal Verb">Phrasal Verb</option>
+                                    <option value="Other">Other</option>
+                                </select>
+                                <input type="text" value={adminVocabForm.urdu} onChange={(e)=>setAdminVocabForm(p=>({...p,urdu:e.target.value}))} placeholder="Urdu" className="p-2.5 border rounded-lg" />
+                                <input type="text" value={adminVocabForm.meaning} onChange={(e)=>setAdminVocabForm(p=>({...p,meaning:e.target.value}))} placeholder="Meaning" className="p-2.5 border rounded-lg" />
+                                <input type="text" value={adminVocabForm.sentence} onChange={(e)=>setAdminVocabForm(p=>({...p,sentence:e.target.value}))} placeholder="Usage of Sentence" className="p-2.5 border rounded-lg" />
+                            </div>
                             <button onClick={saveVocabFromAdmin} className="bg-indigo-700 hover:bg-indigo-800 text-white font-bold px-6 py-2.5 rounded-lg text-xs"><i className="fa-solid fa-plus mr-1"></i> Save Vocab</button>
                         </div>
 
@@ -725,11 +747,11 @@ export default function App() {
                         <div className="bg-white p-5 rounded-2xl border border-slate-200 space-y-4">
                             <h3 className="font-bold text-slate-800 text-sm flex items-center gap-2 border-b pb-2"><i className="fa-solid fa-list-check text-indigo-600"></i> Manage Content Items (Edit & Delete)</h3>
                             <div className="flex flex-wrap gap-2"><button onClick={()=>setAdminManageTab('MCQS')} className={`px-3 py-1 rounded-lg text-xs ${adminManageTab==='MCQS'?'bg-slate-900 text-white':'bg-slate-100 text-slate-700'}`}>MCQs</button><button onClick={()=>setAdminManageTab('VOCAB')} className={`px-3 py-1 rounded-lg text-xs ${adminManageTab==='VOCAB'?'bg-slate-900 text-white':'bg-slate-100 text-slate-700'}`}>Dawn Vocab</button><button onClick={()=>setAdminManageTab('ARTICLES')} className={`px-3 py-1 rounded-lg text-xs ${adminManageTab==='ARTICLES'?'bg-slate-900 text-white':'bg-slate-100 text-slate-700'}`}>Articles</button><button onClick={()=>setAdminManageTab('BOOKS')} className={`px-3 py-1 rounded-lg text-xs ${adminManageTab==='BOOKS'?'bg-slate-900 text-white':'bg-slate-100 text-slate-700'}`}>Books</button></div>
-                            <div className="space-y-2 max-h-96 overflow-y-auto">
-                                {adminManageTab==='MCQS' && mcqs.map((m,i)=>(<div key={i} className="bg-slate-50 p-3 rounded-lg border border-slate-200 flex justify-between items-center gap-2"><div className="truncate"><strong className="text-indigo-900">[{m.category}]</strong> {m.question}</div><div className="flex gap-1 shrink-0"><button onClick={()=>openEditMcqModal(m)} className="bg-indigo-900 text-white px-2 py-1 rounded text-xs font-bold">Edit</button><button onClick={()=>deleteMcq(m._id||m.id)} className="bg-rose-600 text-white px-2 py-1 rounded text-xs font-bold">Delete</button></div></div>))}
-                                {adminManageTab==='VOCAB' && dawnWords.map((w,i)=>(<div key={i} className="bg-slate-50 p-3 rounded-lg border border-slate-200 flex justify-between items-center gap-2"><div className="truncate"><strong className="text-indigo-900">{w.word}</strong> ({w.urdu})</div><button onClick={()=>deleteVocab(w._id||w.id)} className="bg-rose-600 text-white px-2 py-1 rounded text-xs font-bold">Delete</button></div>))}
-                                {adminManageTab==='ARTICLES' && articles.map((a,i)=>(<div key={i} className="bg-slate-50 p-3 rounded-lg border border-slate-200 flex justify-between items-center gap-2"><div className="truncate"><strong className="text-amber-900">[{a.category}]</strong> {a.title}</div><div className="flex gap-1 shrink-0"><button onClick={()=>setEditArticle(a)} className="bg-amber-600 text-white px-2 py-1 rounded text-xs font-bold">Edit</button><button onClick={()=>deleteArticle(a._id||a.id)} className="bg-rose-600 text-white px-2 py-1 rounded text-xs font-bold">Delete</button></div></div>))}
-                                {adminManageTab==='BOOKS' && library.map((b,i)=>(<div key={i} className="bg-slate-50 p-3 rounded-lg border border-slate-200 flex justify-between items-center gap-2"><div className="truncate"><strong className="text-slate-900">{b.title}</strong> ({b.category||b.cat})</div><div className="flex gap-1 shrink-0"><button onClick={()=>setEditBook(b)} className="bg-indigo-900 text-white px-2 py-1 rounded text-xs font-bold">Edit</button><button onClick={()=>deleteBook(b._id||b.id)} className="bg-rose-600 text-white px-2 py-1 rounded text-xs font-bold">Delete</button></div></div>))}
+                            <div className="space-y-2 max-h-[500px] overflow-y-auto">
+                                {adminManageTab==='MCQS' && mcqs.map((m,i)=>(<div key={i} className="bg-slate-50 p-3 rounded-lg border border-slate-200 flex justify-between items-center gap-2"><div className="truncate text-xs"><strong className="text-indigo-900">[{m.category}]</strong> {m.question}</div><div className="flex gap-1 shrink-0"><button onClick={()=>openEditMcqModal(m)} className="bg-indigo-900 text-white px-2 py-1 rounded text-xs font-bold">Edit</button><button onClick={()=>deleteMcq(m._id||m.id)} className="bg-rose-600 text-white px-2 py-1 rounded text-xs font-bold">Delete</button></div></div>))}
+                                {adminManageTab==='VOCAB' && dawnWords.map((w,i)=>(<div key={i} className="bg-slate-50 p-3 rounded-lg border border-slate-200 flex justify-between items-center gap-2"><div className="truncate text-xs"><strong className="text-indigo-900">{w.word}</strong> ({w.type||w.partsOfSpeech}) - {w.urdu} | {w.meaning}</div><div className="flex gap-1 shrink-0"><button onClick={()=>deleteVocab(w._id||w.id)} className="bg-rose-600 text-white px-2 py-1 rounded text-xs font-bold">Delete</button></div></div>))}
+                                {adminManageTab==='ARTICLES' && articles.map((a,i)=>(<div key={i} className="bg-slate-50 p-3 rounded-lg border border-slate-200 flex justify-between items-center gap-2"><div className="truncate text-xs"><strong className="text-amber-900">[{a.category}]</strong> {a.title}</div><div className="flex gap-1 shrink-0"><button onClick={()=>setEditArticle(a)} className="bg-amber-600 text-white px-2 py-1 rounded text-xs font-bold">Edit</button><button onClick={()=>deleteArticle(a._id||a.id)} className="bg-rose-600 text-white px-2 py-1 rounded text-xs font-bold">Delete</button></div></div>))}
+                                {adminManageTab==='BOOKS' && library.map((b,i)=>(<div key={i} className="bg-slate-50 p-3 rounded-lg border border-slate-200 flex justify-between items-center gap-2"><div className="truncate text-xs"><strong className="text-slate-900">{b.title}</strong> ({b.category||b.cat})</div><div className="flex gap-1 shrink-0"><button onClick={()=>setEditBook(b)} className="bg-indigo-900 text-white px-2 py-1 rounded text-xs font-bold">Edit</button><button onClick={()=>deleteBook(b._id||b.id)} className="bg-rose-600 text-white px-2 py-1 rounded text-xs font-bold">Delete</button></div></div>))}
                             </div>
                         </div>
 
