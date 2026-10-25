@@ -149,11 +149,12 @@ export default function App() {
     async function handleAdminLogin() {
         try {
             const res = await api.post('/auth/login', { email: adminLoginForm.email, password: adminLoginForm.password });
-            const user = res?.user || res;
+            const user = res?.user || res?.data?.user || res;
             if (user?.role === 'admin') {
                 setCurrentUser(user);
                 showToast('Admin login successful');
                 setActiveTab('adminPanelTab');
+                setAdminLoginForm({ email: '', password: '' });
             } else if (user) {
                 showToast('Access denied - Admin only', 'error');
             } else {
