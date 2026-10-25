@@ -148,7 +148,9 @@ export default function App() {
 
     async function handleAdminLogin() {
         try {
-            const res = await api.post('/auth/login', { email: adminLoginForm.email.trim().toLowerCase(), password: adminLoginForm.password });
+            let email = adminLoginForm.email.trim();
+            if (!email.includes('@')) email = email + '@examinpocket.local';
+            const res = await api.post('/auth/login', { email: email.toLowerCase(), password: adminLoginForm.password });
             const user = res?.user || res?.data?.user || (res && res.role ? res : null);
             if (user?.role === 'admin') {
                 setCurrentUser(user);
