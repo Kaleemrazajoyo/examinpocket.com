@@ -333,6 +333,7 @@ export default function App() {
     }
 
     function toggleBookmarkMcq(id) {
+        if (!currentUser) { showToast('Please login or register to save MCQs', 'error'); setAuthModalOpen(true); return; }
         const numId = String(id);
         setSavedMcqs(prev => {
             const exists = prev.includes(numId);
@@ -341,6 +342,7 @@ export default function App() {
         });
     }
     function toggleBookmarkVocab(id) {
+        if (!currentUser) { showToast('Please login or register to save Vocab', 'error'); setAuthModalOpen(true); return; }
         const numId = String(id);
         setSavedVocab(prev => {
             const exists = prev.includes(numId);
@@ -349,6 +351,7 @@ export default function App() {
         });
     }
     function toggleBookmarkArticle(id) {
+        if (!currentUser) { showToast('Please login or register to save Articles', 'error'); setAuthModalOpen(true); return; }
         const numId = String(id);
         setSavedArticles(prev => {
             const exists = prev.includes(numId);
@@ -357,6 +360,7 @@ export default function App() {
         });
     }
     function toggleBookmarkBook(id) {
+        if (!currentUser) { showToast('Please login or register to save Books', 'error'); setAuthModalOpen(true); return; }
         const numId = String(id);
         setSavedBooks(prev => {
             const exists = prev.includes(numId);
@@ -869,7 +873,7 @@ export default function App() {
                 {activeTab === 'aiTab' && (
                     <section className="space-y-6">
                         <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
-                            <div className="border-b pb-4 mb-4 flex justify-between items-center"><div><h2 className="text-xl font-bold text-slate-900">Gemini AI Exam Tutor Chatbot</h2></div><button onClick={clearAiChat} className="text-xs text-slate-500">Clear Chat</button></div>
+                            <div className="border-b pb-4 mb-4 flex justify-between items-center"><div><h2 className="text-xl font-bold text-slate-900">Gemini AI Exam Tutor Chatbot</h2><p className="text-xs text-slate-600 mt-1">Assalam-o-Alaikum Student! 🎓<br/>Main aap ka ExamInPocket Gemini AI Tutor Chatbot hoon.</p></div><button onClick={clearAiChat} className="text-xs text-slate-500">Clear Chat</button></div>
                             <div className="bg-slate-50 p-4 rounded-2xl border border-slate-200 min-h-[380px] max-h-[500px] overflow-y-auto space-y-4 shadow-inner">{aiMessages.map((m,i)=>(<div key={i} className={`flex gap-3 ${m.role==='user'?'justify-end':''}`}>{m.role==='ai' && <div className="bg-indigo-900 text-amber-400 p-2 rounded-xl"><i className="fa-solid fa-robot"></i></div>}<div className={`${m.role==='user'?'bg-indigo-900 text-white':'bg-white'} p-4 rounded-2xl text-xs sm:text-sm whitespace-pre-line max-w-2xl`}>{m.text}</div></div>))}</div>
                             <div className="mt-4 flex gap-2"><textarea value={aiPrompt} onChange={(e)=>setAiPrompt(e.target.value)} rows="2" placeholder="Type your question..." className="flex-grow p-3 border border-slate-300 rounded-xl text-xs"></textarea><button onClick={()=>sendAiChatMessage()} className="bg-indigo-900 hover:bg-indigo-800 text-amber-300 font-bold px-5 rounded-xl text-xs">Send</button></div>
                         </div>
