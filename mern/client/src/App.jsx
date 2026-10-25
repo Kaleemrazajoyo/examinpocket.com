@@ -81,6 +81,12 @@ export default function App() {
     const [savedArticles, setSavedArticles] = useState([]);
     const [savedBooks, setSavedBooks] = useState([]);
     const [apiCategories, setApiCategories] = useState([]);
+    const [adminMcqForm, setAdminMcqForm] = useState({ category: '', customCategory: '', question: '', opt0: '', opt1: '', opt2: '', opt3: '', answerIndex: 0, explanation: '' });
+    const [adminArtForm, setAdminArtForm] = useState({ title: '', category: '', author: '', content: '' });
+    const [adminBookForm, setAdminBookForm] = useState({ title: '', category: '', sizeLabel: '', url: '' });
+    const [adminVocabForm, setAdminVocabForm] = useState({ word: '', type: 'Word', meaning: '', urdu: '', sentence: '' });
+    const [adminManageTab, setAdminManageTab] = useState('MCQS');
+    const [tickerInput, setTickerInput] = useState(siteTicker);
 
     useEffect(() => {
         async function load() {
@@ -151,6 +157,109 @@ export default function App() {
         } catch (e) {
             showToast(e.message || 'Invalid credentials', 'error');
         }
+    }
+
+    async function saveMcqFromAdmin() {
+        try {
+            const cat = adminMcqForm.category === '__NEW_SUBJECT__' ? adminMcqForm.customCategory : adminMcqForm.category;
+            if (!adminMcqForm.question || !adminMcqForm.opt0 || !adminMcqForm.opt1 || !adminMcqForm.opt2 || !adminMcqForm.opt3 || !cat) {
+                showToast('Please fill all required fields', 'error');
+                return;
+            }
+            await api.post('/mcqs', {
+                question: adminMcqForm.question,
+                options: [adminMcqForm.opt0, adminMcqForm.opt1, adminMcqForm.opt2, adminMcqForm.opt3],
+                answerIndex: Number(adminMcqForm.answerIndex),
+                explanation: adminMcqForm.explanation || '',
+                category: cat
+            });
+            showToast('MCQ saved successfully');
+            setAdminMcqForm({ category: '', customCategory: '', question: '', opt0: '', opt1: '', opt2: '', opt3: '', answerIndex: 0, explanation: '' });
+            const m = await api.get('/mcqs?limit=500').catch(() => ({ items: mcqs }));
+            setMcqs(m.items || m || []);
+        } catch (e) {
+            showToast(e.message || 'Failed to save MCQ', 'error');
+        }
+    }
+
+    async function saveArticleFromAdmin() {
+        try {
+            if (!adminArtForm.title || !adminArtForm.content) { showToast('Title and content required', 'error'); return; }
+            await api.post('/articles', adminArtForm);
+            showToast('Article saved successfully');
+            setAdminArtForm({ title: '', category: '', author: '', content: '' });
+            const a = await api.get('/articles?limit=200').catch(() => ({ items: articles }));
+            setArticles(a.items || a || []);
+        } catch (e) {
+            showToast(e.message || 'Failed to save article', 'error');
+        }
+    }
+
+    async function saveBookFromAdmin() {
+        try {
+            if (!adminBookForm.title || !adminBookForm.url) { showToast('Title and link required', 'error'); return; }
+            await api.post('/books', { title: adminBookForm.title, category: adminBookForm.category, sizeLabel: adminBookForm.sizeLabel, url: adminBookForm.url });
+            showToast('Book added to library');
+            setAdminBookForm({ title: '', category: '', sizeLabel: '', url: '' });
+            const b = await api.get('/books?limit=200').catch(() => ({ items: library }));
+            setLibrary(b.items || b || []);
+        } catch (e) {
+            showToast(e.message || 'Failed to save book', 'error');
+        }
+    }
+
+    async function saveVocabFromAdmin() {
+        try {
+            if (!adminVocabForm.word || !adminVocabForm.meaning) { showToast('Word and meaning required', 'error'); return; }
+            await api.post('/vocab', adminVocabForm);
+            showToast('Vocab saved successfully');
+            setAdminVocabForm({ word: '', type: 'Word', meaning: '', urdu: '', sentence: '' });
+            const v = await api.get('/vocab?limit=500').catch(() => ({ items: dawnWords }));
+            setDawnWords(v.items || v || []);
+        } catch (e) {
+            showToast(e.message || 'Failed to save vocab', 'error');
+        }
+    }
+
+    async function deleteMcq(id) {
+        if (!(await showConfirmModal('Delete MCQ', 'Are you sure?'))) return;
+        try {
+            await api.delete(`/mcqs/${id}`);
+            showToast('MCQ deleted');
+            setMcqs(mcqs.filter(m => String(m._id||m.id) !== String(id)));
+        } catch (e) { showToast(e.message || 'Failed', 'error'); }
+    }
+
+    async function deleteVocab(id) {
+        if (!(await showConfirmModal('Delete Vocab', 'Are you sure?'))) return;
+        try {
+            await api.delete(`/vocab/${id}`);
+            showToast('Vocab deleted');
+            setDawnWords(dawnWords.filter(w => String(w._id||w.id) !== String(id)));
+        } catch (e) { showToast(e.message || 'Failed', 'error'); }
+    }
+
+    async function deleteArticle(id) {
+        if (!(await showConfirmModal('Delete Article', 'Are you sure?'))) return;
+        try {
+            await api.delete(`/articles/${id}`);
+            showToast('Article deleted');
+            setArticles(articles.filter(a => String(a._id||a.id) !== String(id)));
+        } catch (e) { showToast(e.message || 'Failed', 'error'); }
+    }
+
+    async function deleteBook(id) {
+        if (!(await showConfirmModal('Delete Book', 'Are you sure?'))) return;
+        try {
+            await api.delete(`/books/${id}`);
+            showToast('Book deleted');
+            setLibrary(library.filter(b => String(b._id||b.id) !== String(id)));
+        } catch (e) { showToast(e.message || 'Failed', 'error'); }
+    }
+
+    function saveTicker() {
+        setSiteTicker(tickerInput);
+        showToast('Ticker updated');
     }
 
     function toggleBookmarkMcq(id) {
@@ -505,35 +614,51 @@ export default function App() {
                         </div>
 
                         <div className="bg-white p-5 rounded-2xl border border-slate-200 space-y-4">
+                            <h3 className="font-bold text-slate-800 text-sm flex items-center gap-2 border-b pb-2"><i className="fa-solid fa-bullhorn text-amber-600"></i> Ticker / Announcement Bar</h3>
+                            <input value={tickerInput} onChange={(e)=>setTickerInput(e.target.value)} className="w-full p-2.5 border border-slate-300 rounded-lg text-xs" />
+                            <button onClick={saveTicker} className="bg-slate-900 text-white font-bold px-4 py-2 rounded-lg text-xs">Update Ticker</button>
+                        </div>
+
+                        <div className="bg-white p-5 rounded-2xl border border-slate-200 space-y-4">
                             <h3 className="font-bold text-slate-800 text-sm flex items-center gap-2 border-b pb-2"><i className="fa-solid fa-plus-circle text-emerald-600"></i> 1. Add / Create MCQ Question</h3>
                             <div className="grid sm:grid-cols-2 gap-3 text-xs sm:text-sm">
-                                <div><label className="block font-bold text-slate-700 mb-1">Subject Field / Category</label><select className="w-full p-2.5 border border-slate-300 rounded-lg bg-slate-50">{categoryList.filter(c=>c!=='ALL').map(c=><option key={c}>{c}</option>)}<option value="__NEW_SUBJECT__">➕ Add New / Custom Subject...</option></select></div>
-                                <div><label className="block font-bold text-slate-700 mb-1">Question Statement</label><input type="text" placeholder="Enter full question..." className="w-full p-2.5 border border-slate-300 rounded-lg" /></div>
+                                <div><label className="block font-bold text-slate-700 mb-1">Subject Field / Category</label><select value={adminMcqForm.category} onChange={(e)=>setAdminMcqForm(p=>({...p,category:e.target.value}))} className="w-full p-2.5 border border-slate-300 rounded-lg bg-slate-50">{categoryList.filter(c=>c!=='ALL').map(c=><option key={c}>{c}</option>)}<option value="__NEW_SUBJECT__">➕ Add New / Custom Subject...</option></select>{adminMcqForm.category==='__NEW_SUBJECT__' && <input type="text" value={adminMcqForm.customCategory} onChange={(e)=>setAdminMcqForm(p=>({...p,customCategory:e.target.value}))} placeholder="Type new subject name" className="w-full p-2.5 border border-amber-300 rounded-lg mt-2" />}</div>
+                                <div><label className="block font-bold text-slate-700 mb-1">Question Statement</label><input type="text" value={adminMcqForm.question} onChange={(e)=>setAdminMcqForm(p=>({...p,question:e.target.value}))} placeholder="Enter full question..." className="w-full p-2.5 border border-slate-300 rounded-lg" /></div>
                             </div>
-                            <div className="grid sm:grid-cols-2 gap-2 text-xs"><input type="text" placeholder="Option A" className="p-2 border rounded-lg" /><input type="text" placeholder="Option B" className="p-2 border rounded-lg" /><input type="text" placeholder="Option C" className="p-2 border rounded-lg" /><input type="text" placeholder="Option D" className="p-2 border rounded-lg" /></div>
-                            <div className="grid sm:grid-cols-2 gap-3 text-xs"><div><label className="block font-bold text-slate-700 mb-1">Correct Answer</label><select className="w-full p-2.5 border border-slate-300 rounded-lg bg-slate-50"><option>Option A</option><option>Option B</option><option>Option C</option><option>Option D</option></select></div><div><label className="block font-bold text-slate-700 mb-1">Explanation</label><input type="text" placeholder="Explanation detail..." className="w-full p-2.5 border border-slate-300 rounded-lg" /></div></div>
-                            <button className="bg-emerald-700 hover:bg-emerald-800 text-white font-bold px-6 py-2.5 rounded-lg text-xs"><i className="fa-solid fa-save mr-1"></i> Save MCQ Question</button>
+                            <div className="grid sm:grid-cols-2 gap-2 text-xs"><input type="text" value={adminMcqForm.opt0} onChange={(e)=>setAdminMcqForm(p=>({...p,opt0:e.target.value}))} placeholder="Option A" className="p-2 border rounded-lg" /><input type="text" value={adminMcqForm.opt1} onChange={(e)=>setAdminMcqForm(p=>({...p,opt1:e.target.value}))} placeholder="Option B" className="p-2 border rounded-lg" /><input type="text" value={adminMcqForm.opt2} onChange={(e)=>setAdminMcqForm(p=>({...p,opt2:e.target.value}))} placeholder="Option C" className="p-2 border rounded-lg" /><input type="text" value={adminMcqForm.opt3} onChange={(e)=>setAdminMcqForm(p=>({...p,opt3:e.target.value}))} placeholder="Option D" className="p-2 border rounded-lg" /></div>
+                            <div className="grid sm:grid-cols-2 gap-3 text-xs"><div><label className="block font-bold text-slate-700 mb-1">Correct Answer</label><select value={adminMcqForm.answerIndex} onChange={(e)=>setAdminMcqForm(p=>({...p,answerIndex:Number(e.target.value)}))} className="w-full p-2.5 border border-slate-300 rounded-lg bg-slate-50"><option value={0}>Option A</option><option value={1}>Option B</option><option value={2}>Option C</option><option value={3}>Option D</option></select></div><div><label className="block font-bold text-slate-700 mb-1">Explanation</label><input type="text" value={adminMcqForm.explanation} onChange={(e)=>setAdminMcqForm(p=>({...p,explanation:e.target.value}))} placeholder="Explanation detail..." className="w-full p-2.5 border border-slate-300 rounded-lg" /></div></div>
+                            <button onClick={saveMcqFromAdmin} className="bg-emerald-700 hover:bg-emerald-800 text-white font-bold px-6 py-2.5 rounded-lg text-xs"><i className="fa-solid fa-save mr-1"></i> Save MCQ Question</button>
                         </div>
 
                         <div className="bg-white p-5 rounded-2xl border border-slate-200 space-y-4">
                             <h3 className="font-bold text-slate-800 text-sm flex items-center gap-2 border-b pb-2"><i className="fa-solid fa-pen-fancy text-amber-600"></i> 2. Add Editorial Article / Essay Outline</h3>
-                            <div className="grid sm:grid-cols-3 gap-3 text-xs"><input type="text" placeholder="Article Title" className="p-2.5 border rounded-lg" /><input type="text" placeholder="Subject / Category" className="p-2.5 border rounded-lg" /><input type="text" placeholder="Author Name" className="p-2.5 border rounded-lg" /></div>
-                            <textarea rows="4" placeholder="Full article content / Essay outline..." className="w-full p-3 border rounded-xl text-xs"></textarea>
-                            <button className="bg-amber-600 hover:bg-amber-700 text-white font-bold px-6 py-2.5 rounded-lg text-xs"><i className="fa-solid fa-file-circle-plus mr-1"></i> Save Article / Essay</button>
+                            <div className="grid sm:grid-cols-3 gap-3 text-xs"><input type="text" value={adminArtForm.title} onChange={(e)=>setAdminArtForm(p=>({...p,title:e.target.value}))} placeholder="Article Title" className="p-2.5 border rounded-lg" /><input type="text" value={adminArtForm.category} onChange={(e)=>setAdminArtForm(p=>({...p,category:e.target.value}))} placeholder="Subject / Category" className="p-2.5 border rounded-lg" /><input type="text" value={adminArtForm.author} onChange={(e)=>setAdminArtForm(p=>({...p,author:e.target.value}))} placeholder="Author Name" className="p-2.5 border rounded-lg" /></div>
+                            <textarea rows="4" value={adminArtForm.content} onChange={(e)=>setAdminArtForm(p=>({...p,content:e.target.value}))} placeholder="Full article content / Essay outline..." className="w-full p-3 border rounded-xl text-xs"></textarea>
+                            <button onClick={saveArticleFromAdmin} className="bg-amber-600 hover:bg-amber-700 text-white font-bold px-6 py-2.5 rounded-lg text-xs"><i className="fa-solid fa-file-circle-plus mr-1"></i> Save Article / Essay</button>
+                        </div>
+
+                        <div className="bg-white p-5 rounded-2xl border border-slate-200 space-y-4">
+                            <h3 className="font-bold text-slate-800 text-sm flex items-center gap-2 border-b pb-2"><i className="fa-solid fa-newspaper text-indigo-600"></i> Add Dawn Vocab</h3>
+                            <div className="grid sm:grid-cols-5 gap-2 text-xs"><input type="text" value={adminVocabForm.word} onChange={(e)=>setAdminVocabForm(p=>({...p,word:e.target.value}))} placeholder="Word" className="p-2.5 border rounded-lg" /><input type="text" value={adminVocabForm.type} onChange={(e)=>setAdminVocabForm(p=>({...p,type:e.target.value}))} placeholder="Type" className="p-2.5 border rounded-lg" /><input type="text" value={adminVocabForm.urdu} onChange={(e)=>setAdminVocabForm(p=>({...p,urdu:e.target.value}))} placeholder="Urdu" className="p-2.5 border rounded-lg" /><input type="text" value={adminVocabForm.meaning} onChange={(e)=>setAdminVocabForm(p=>({...p,meaning:e.target.value}))} placeholder="Meaning" className="p-2.5 border rounded-lg" /><input type="text" value={adminVocabForm.sentence} onChange={(e)=>setAdminVocabForm(p=>({...p,sentence:e.target.value}))} placeholder="Sentence" className="p-2.5 border rounded-lg" /></div>
+                            <button onClick={saveVocabFromAdmin} className="bg-indigo-700 hover:bg-indigo-800 text-white font-bold px-6 py-2.5 rounded-lg text-xs"><i className="fa-solid fa-plus mr-1"></i> Save Vocab</button>
                         </div>
 
                         <div className="bg-white p-5 rounded-2xl border border-slate-200 space-y-4">
                             <h3 className="font-bold text-slate-800 text-sm flex items-center gap-2 border-b pb-2"><i className="fa-solid fa-book-medical text-indigo-600"></i> 3. Add PDF Notes / Books to Library</h3>
-                            <div className="grid sm:grid-cols-3 gap-3 text-xs"><input type="text" placeholder="Book Title" className="p-2.5 border rounded-lg" /><input type="text" placeholder="Category" className="p-2.5 border rounded-lg" /><input type="text" placeholder="File Size (e.g. 12 MB PDF)" className="p-2.5 border rounded-lg" /></div>
-                            <div className="space-y-2"><p className="text-xs font-bold text-slate-700">Option A: Select PDF File from Laptop/Mobile</p><input type="file" className="text-xs" /></div>
-                            <div className="space-y-2"><p className="text-xs font-bold text-slate-700">— OR —</p><p className="text-xs font-bold text-slate-700">Option B: Paste Google Drive / External PDF Link</p><input type="text" placeholder="Google Drive Link (https://drive.google.com/...)" className="w-full p-2.5 border rounded-lg text-xs" /></div>
-                            <button className="bg-indigo-900 hover:bg-indigo-800 text-white font-bold px-6 py-2.5 rounded-lg text-xs"><i className="fa-solid fa-cloud-arrow-up mr-1"></i> Add Book to Library</button>
+                            <div className="grid sm:grid-cols-3 gap-3 text-xs"><input type="text" value={adminBookForm.title} onChange={(e)=>setAdminBookForm(p=>({...p,title:e.target.value}))} placeholder="Book Title" className="p-2.5 border rounded-lg" /><input type="text" value={adminBookForm.category} onChange={(e)=>setAdminBookForm(p=>({...p,category:e.target.value}))} placeholder="Category" className="p-2.5 border rounded-lg" /><input type="text" value={adminBookForm.sizeLabel} onChange={(e)=>setAdminBookForm(p=>({...p,sizeLabel:e.target.value}))} placeholder="File Size (e.g. 12 MB PDF)" className="p-2.5 border rounded-lg" /></div>
+                            <div className="space-y-2"><p className="text-xs font-bold text-slate-700">Option B: Paste Google Drive / External PDF Link</p><input type="text" value={adminBookForm.url} onChange={(e)=>setAdminBookForm(p=>({...p,url:e.target.value}))} placeholder="Google Drive Link (https://drive.google.com/...) or direct link" className="w-full p-2.5 border rounded-lg text-xs" /></div>
+                            <button onClick={saveBookFromAdmin} className="bg-indigo-900 hover:bg-indigo-800 text-white font-bold px-6 py-2.5 rounded-lg text-xs"><i className="fa-solid fa-cloud-arrow-up mr-1"></i> Add Book to Library</button>
                         </div>
 
                         <div className="bg-white p-5 rounded-2xl border border-slate-200 space-y-4">
                             <h3 className="font-bold text-slate-800 text-sm flex items-center gap-2 border-b pb-2"><i className="fa-solid fa-database text-slate-700"></i> Manage Content Items (Edit & Delete)</h3>
-                            <div className="flex flex-wrap gap-2"><button className="px-3 py-1 rounded-lg text-xs bg-emerald-700 text-white">MCQs</button><button className="px-3 py-1 rounded-lg text-xs bg-slate-100 text-slate-700">Dawn Vocab</button><button className="px-3 py-1 rounded-lg text-xs bg-slate-100 text-slate-700">Articles</button><button className="px-3 py-1 rounded-lg text-xs bg-slate-100 text-slate-700">Books</button></div>
-                            <div className="space-y-2 max-h-[400px] overflow-y-auto">{mcqs.slice(0,20).map((m,i)=>(<div key={i} className="flex justify-between items-center p-2.5 bg-slate-50 rounded-lg text-xs border border-slate-200"><div className="truncate max-w-[70%]"><span className="bg-indigo-100 text-indigo-900 px-1.5 py-0.5 rounded text-[10px] mr-2">{m.category}</span>{m.question}</div><div className="flex gap-2"><button className="text-indigo-700 font-bold">Edit</button><button className="text-rose-600 font-bold">Delete</button></div></div>))}</div>
+                            <div className="flex flex-wrap gap-2"><button onClick={()=>setAdminManageTab('MCQS')} className={`px-3 py-1 rounded-lg text-xs ${adminManageTab==='MCQS'?'bg-emerald-700 text-white':'bg-slate-100 text-slate-700'}`}>MCQs</button><button onClick={()=>setAdminManageTab('VOCAB')} className={`px-3 py-1 rounded-lg text-xs ${adminManageTab==='VOCAB'?'bg-emerald-700 text-white':'bg-slate-100 text-slate-700'}`}>Dawn Vocab</button><button onClick={()=>setAdminManageTab('ARTICLES')} className={`px-3 py-1 rounded-lg text-xs ${adminManageTab==='ARTICLES'?'bg-emerald-700 text-white':'bg-slate-100 text-slate-700'}`}>Articles</button><button onClick={()=>setAdminManageTab('BOOKS')} className={`px-3 py-1 rounded-lg text-xs ${adminManageTab==='BOOKS'?'bg-emerald-700 text-white':'bg-slate-100 text-slate-700'}`}>Books</button></div>
+                            <div className="space-y-2 max-h-[400px] overflow-y-auto">
+                                {adminManageTab==='MCQS' && mcqs.map((m,i)=>(<div key={i} className="flex justify-between items-center p-2.5 bg-slate-50 rounded-lg text-xs border border-slate-200"><div className="truncate max-w-[70%]"><span className="bg-indigo-100 text-indigo-900 px-1.5 py-0.5 rounded text-[10px] mr-2">{m.category}</span>{m.question}</div><div className="flex gap-2"><button onClick={()=>deleteMcq(m._id||m.id)} className="text-rose-600 font-bold">Delete</button></div></div>))}
+                                {adminManageTab==='VOCAB' && dawnWords.map((w,i)=>(<div key={i} className="flex justify-between items-center p-2.5 bg-slate-50 rounded-lg text-xs border border-slate-200"><div className="truncate max-w-[70%]"><span className="bg-indigo-100 text-indigo-900 px-1.5 py-0.5 rounded text-[10px] mr-2">{w.word}</span>{w.meaning}</div><div className="flex gap-2"><button onClick={()=>deleteVocab(w._id||w.id)} className="text-rose-600 font-bold">Delete</button></div></div>))}
+                                {adminManageTab==='ARTICLES' && articles.map((a,i)=>(<div key={i} className="flex justify-between items-center p-2.5 bg-slate-50 rounded-lg text-xs border border-slate-200"><div className="truncate max-w-[70%]"><span className="bg-amber-100 text-amber-900 px-1.5 py-0.5 rounded text-[10px] mr-2">{a.category}</span>{a.title}</div><div className="flex gap-2"><button onClick={()=>deleteArticle(a._id||a.id)} className="text-rose-600 font-bold">Delete</button></div></div>))}
+                                {adminManageTab==='BOOKS' && library.map((b,i)=>(<div key={i} className="flex justify-between items-center p-2.5 bg-slate-50 rounded-lg text-xs border border-slate-200"><div className="truncate max-w-[70%]"><span className="bg-indigo-100 text-indigo-900 px-1.5 py-0.5 rounded text-[10px] mr-2">{b.category||b.cat}</span>{b.title}</div><div className="flex gap-2"><button onClick={()=>deleteBook(b._id||b.id)} className="text-rose-600 font-bold">Delete</button></div></div>))}
+                            </div>
                         </div>
 
                         <div className="bg-white p-5 rounded-2xl border border-slate-200 space-y-4">
