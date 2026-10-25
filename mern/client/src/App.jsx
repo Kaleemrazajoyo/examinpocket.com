@@ -148,8 +148,8 @@ export default function App() {
 
     async function handleAdminLogin() {
         try {
-            const res = await api.post('/auth/login', { email: adminLoginForm.email, password: adminLoginForm.password });
-            const user = res?.user || res?.data?.user || res;
+            const res = await api.post('/auth/login', { email: adminLoginForm.email.trim().toLowerCase(), password: adminLoginForm.password });
+            const user = res?.user || res?.data?.user || (res && res.role ? res : null);
             if (user?.role === 'admin') {
                 setCurrentUser(user);
                 showToast('Admin login successful');
