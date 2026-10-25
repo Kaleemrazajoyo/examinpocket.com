@@ -139,7 +139,7 @@ export default function App() {
             if (nc >= 5) {
                 setLogoClicks(0);
                 switchTab('adminTab');
-                showToast('🔒 Admin Portal');
+                showToast('🔒 Protected Admin Portal');
                 return 0;
             }
             return nc;
@@ -515,7 +515,7 @@ export default function App() {
 
             <header className="bg-slate-900 text-white sticky top-0 z-40 border-b border-slate-800 shadow-md no-print">
                 <div className="max-w-7xl mx-auto px-4 py-3 flex flex-wrap justify-between items-center gap-2">
-                    <div className="flex items-center gap-3">
+                    <div onClick={handleLogoClick} className="flex items-center gap-3 cursor-pointer select-none" title="ExamInPocket Portal (Click 5 times for Admin Portal)">
                         <div className="bg-amber-400 text-slate-950 font-extrabold text-xl px-3 py-1.5 rounded-xl">EiP</div>
                         <div>
                             <h1 className="text-xl font-bold tracking-tight text-white">ExamInPocket<span className="text-amber-400">.com</span></h1>
@@ -679,11 +679,21 @@ export default function App() {
                 {activeTab === 'adminTab' && (
                     <section className="space-y-6">
                         <div className="bg-white p-6 sm:p-8 rounded-2xl shadow-sm border border-slate-200 max-w-md mx-auto space-y-4">
-                            <div className="text-center space-y-2"><div className="bg-indigo-100 text-indigo-900 p-3 rounded-full w-12 h-12 flex items-center justify-center mx-auto text-xl"><i className="fa-solid fa-user-lock"></i></div><h3 className="text-xl font-bold text-slate-900">Admin Portal</h3><p className="text-xs text-slate-500">Login with admin credentials</p></div>
+                            <div className="text-center space-y-2">
+                                <div className="bg-indigo-100 text-indigo-900 p-3 rounded-full w-12 h-12 flex items-center justify-center mx-auto text-xl"><i className="fa-solid fa-user-lock"></i></div>
+                                <h3 className="text-xl font-bold text-slate-900">Protected Admin Portal</h3>
+                                <p className="text-xs text-slate-500">Please enter credentials to access content management tools.</p>
+                            </div>
                             <div className="space-y-3 text-xs sm:text-sm">
-                                <input type="email" placeholder="Email" value={adminLoginForm.email} onChange={(e)=>setAdminLoginForm(p=>({...p,email:e.target.value}))} className="w-full p-2.5 border border-slate-300 rounded-lg" />
-                                <input type="password" placeholder="Password" value={adminLoginForm.password} onChange={(e)=>setAdminLoginForm(p=>({...p,password:e.target.value}))} className="w-full p-2.5 border border-slate-300 rounded-lg" />
-                                <button onClick={handleAdminLogin} className="w-full bg-slate-900 hover:bg-slate-800 text-amber-400 font-bold py-2.5 rounded-lg">Login</button>
+                                <div>
+                                    <label className="block font-bold text-slate-700 mb-1">Admin Username</label>
+                                    <input type="text" placeholder="Enter Username" value={adminLoginForm.email} onChange={(e)=>setAdminLoginForm(p=>({...p,email:e.target.value}))} className="w-full p-2.5 border border-slate-300 rounded-lg" />
+                                </div>
+                                <div>
+                                    <label className="block font-bold text-slate-700 mb-1">Admin Password</label>
+                                    <input type="password" placeholder="••••••••" value={adminLoginForm.password} onChange={(e)=>setAdminLoginForm(p=>({...p,password:e.target.value}))} className="w-full p-2.5 border border-slate-300 rounded-lg" />
+                                </div>
+                                <button onClick={handleAdminLogin} className="w-full bg-slate-900 hover:bg-slate-800 text-amber-400 font-bold py-2.5 rounded-lg transition">Unlock Admin Control Panel</button>
                             </div>
                         </div>
                     </section>
