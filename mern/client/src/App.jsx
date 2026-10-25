@@ -619,8 +619,16 @@ export default function App() {
             </header>
 
             <div className="bg-gradient-to-r from-amber-50 via-amber-100 to-amber-50 border-b border-amber-300 text-amber-950 py-2.5 px-4 text-xs font-semibold overflow-hidden no-print shadow-inner flex items-center gap-3">
-                <div className="flex items-center gap-1.5 bg-amber-400 text-slate-950 px-2.5 py-0.5 rounded-full font-extrabold shrink-0 text-[11px]">UPDATES</div>
-                <div className="w-full overflow-hidden relative flex items-center"><div className="ticker-marquee-content" dangerouslySetInnerHTML={{ __html: siteTicker }}></div></div>
+                <div className="flex items-center gap-1.5 bg-amber-400 text-slate-950 px-2.5 py-0.5 rounded-full font-extrabold shrink-0 text-[11px] shadow-sm">
+                    <span className="relative flex h-2 w-2">
+                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-slate-900 opacity-75"></span>
+                        <span className="relative inline-flex rounded-full h-2 w-2 bg-slate-950"></span>
+                    </span>
+                    LIVE UPDATE
+                </div>
+                <div className="w-full overflow-hidden relative flex items-center">
+                    <div className="ticker-marquee-content" dangerouslySetInnerHTML={{ __html: siteTicker || '📢 <span class="font-bold">Latest Exam Update:</span> CSS MPT &amp; SPSC CCE Solved Past Paper MCQs Added • Daily Dawn Vocabulary Active • Live Gemini AI Tutor Active!' }}></div>
+                </div>
             </div>
 
             {readerOpen && (
