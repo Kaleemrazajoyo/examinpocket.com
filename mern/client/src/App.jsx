@@ -79,11 +79,20 @@ export default function App() {
     const [savedVocab, setSavedVocab] = useState([]);
     const [savedArticles, setSavedArticles] = useState([]);
     const [savedBooks, setSavedBooks] = useState([]);
+    const [studyNotes, setStudyNotes] = useState([]);
+    const [activeNoteMain, setActiveNoteMain] = useState('ALL');
+    const [activeNoteSub, setActiveNoteSub] = useState('ALL');
+    const [noteReaderOpen, setNoteReaderOpen] = useState(false);
+    const [noteReaderData, setNoteReaderData] = useState(null);
     const [apiCategories, setApiCategories] = useState([]);
-    const [adminMcqForm, setAdminMcqForm] = useState({ category: '', customCategory: '', question: '', opt0: '', opt1: '', opt2: '', opt3: '', answerIndex: 0, explanation: '' });
+    const [catTree, setCatTree] = useState([]);
+    const [adminCatMain, setAdminCatMain] = useState('');
+    const [adminCatSub, setAdminCatSub] = useState('');
+    const [adminMcqForm, setAdminMcqForm] = useState({ mainCategory: '', subCategory: '', category: '', customCategory: '', question: '', opt0: '', opt1: '', opt2: '', opt3: '', answerIndex: 0, explanation: '' });
     const [adminArtForm, setAdminArtForm] = useState({ title: '', category: '', author: '', content: '' });
     const [adminBookForm, setAdminBookForm] = useState({ title: '', category: '', sizeLabel: '', url: '' });
     const [adminVocabForm, setAdminVocabForm] = useState({ word: '', type: 'Word', meaning: '', urdu: '', sentence: '' });
+    const [adminNoteForm, setAdminNoteForm] = useState({ title: '', mainCategory: '', subCategory: '', chapter: '', topic: '', content: '', bullets: '' });
     const [adminManageTab, setAdminManageTab] = useState('MCQS');
     const [tickerInput, setTickerInput] = useState(localStorage.getItem('eip_ticker') || '📢 <span class="font-bold">Latest Exam Update:</span> CSS MPT &amp; SPSC CCE Solved Past Paper MCQs Added • Daily Dawn Vocabulary Active • Live Gemini AI Tutor Active!');
     const [editMcq, setEditMcq] = useState(null);
@@ -97,13 +106,15 @@ export default function App() {
     useEffect(() => {
         async function load() {
             try {
-                const [m, v, h, a, b, c] = await Promise.all([
+                const [m, v, h, a, b, c, ct, sn] = await Promise.all([
                     api.get('/mcqs?limit=500').catch(() => ({ items: [] })),
                     api.get('/vocab?limit=500').catch(() => ({ items: [] })),
                     api.get('/headlines?limit=50').catch(() => ({ items: [] })),
                     api.get('/articles?limit=200').catch(() => ({ items: [] })),
                     api.get('/books?limit=200').catch(() => ({ items: [] })),
-                    api.get('/mcqs/categories').catch(() => ({ categories: [] }))
+                    api.get('/mcqs/categories').catch(() => ({ categories: [] })),
+                    api.get('/categories/tree').catch(() => ({ tree: [] })),
+                    api.get('/studynotes?limit=500').catch(() => ({ items: [] }))
                 ]);
                 setMcqs(m.items || m || []);
                 setDawnWords(v.items || v || []);
@@ -111,6 +122,8 @@ export default function App() {
                 setArticles(a.items || a || []);
                 setLibrary(b.items || b || []);
                 setApiCategories(c.categories || []);
+                setCatTree(ct.tree || []);
+                setStudyNotes(sn.items || sn || []);
             } catch (e) {}
         }
         load();
@@ -141,9 +154,12 @@ export default function App() {
             logoTimer.current = setTimeout(() => setLogoClicks(0), 2500);
             if (nc >= 5) {
                 setLogoClicks(0);
-                setCurrentUser({ role: 'admin', name: 'Kaleem R Joyo' });
-                switchTab('adminPanelTab');
-                showToast('🔒 Admin Control Panel Unlocked');
+                if (currentUser?.role === 'admin') {
+                    switchTab('adminPanelTab');
+                    showToast('Admin Panel');
+                    return 0;
+                }
+                showToast('Admin access required', 'error');
                 return 0;
             }
             return nc;
@@ -152,11 +168,9 @@ export default function App() {
 
     async function saveMcqFromAdmin() {
         try {
-            let cat = adminMcqForm.category;
-            if (cat === '__NEW__') {
-                cat = (adminMcqForm.customCategory || '').trim();
-            }
-            if (!cat) { showToast('Please select or add category', 'error'); return; }
+            const mainCat = adminMcqForm.mainCategory;
+            const subCat = adminMcqForm.subCategory;
+            if (!subCat) { showToast('Please select Main Category and Sub Category', 'error'); return; }
             if (!adminMcqForm.question || !adminMcqForm.opt0 || !adminMcqForm.opt1 || !adminMcqForm.opt2 || !adminMcqForm.opt3) {
                 showToast('Please fill all required fields', 'error');
                 return;
@@ -166,10 +180,12 @@ export default function App() {
                 options: [adminMcqForm.opt0, adminMcqForm.opt1, adminMcqForm.opt2, adminMcqForm.opt3],
                 answerIndex: Number(adminMcqForm.answerIndex),
                 explanation: adminMcqForm.explanation || '',
-                category: cat
+                mainCategory: mainCat,
+                subCategory: subCat,
+                category: subCat || mainCat
             });
             showToast('MCQ saved successfully');
-            setAdminMcqForm({ category: '', customCategory: '', question: '', opt0: '', opt1: '', opt2: '', opt3: '', answerIndex: 0, explanation: '' });
+            setAdminMcqForm({ mainCategory: '', subCategory: '', category: '', customCategory: '', question: '', opt0: '', opt1: '', opt2: '', opt3: '', answerIndex: 0, explanation: '' });
             const m = await api.get('/mcqs?limit=500').catch(() => ({ items: mcqs }));
             setMcqs(m.items || m || []);
             const c = await api.get('/mcqs/categories').catch(() => ({ categories: apiCategories }));
@@ -373,16 +389,24 @@ export default function App() {
     }
 
     const categoryList = useMemo(() => {
-        const set = new Set(apiCategories);
-        mcqs.forEach((m) => m.category && set.add(m.category));
+        const set = new Set();
+        if (catTree && catTree.length > 0) {
+            catTree.forEach((m) => m.name && set.add(m.name));
+        } else {
+            apiCategories.forEach((c) => c && set.add(c));
+            mcqs.forEach((m) => {
+                if (m.mainCategory) set.add(m.mainCategory);
+                else if (m.category) set.add(m.category);
+            });
+        }
         return ['ALL', ...Array.from(set)];
-    }, [mcqs, apiCategories]);
+    }, [mcqs, apiCategories, catTree]);
 
     const filteredMcqs = useMemo(() => {
         return mcqs.filter((m) => {
             const q = searchInput.toLowerCase();
             const matchesQ = !q || (m.question||'').toLowerCase().includes(q);
-            const matchesC = activeCategory === 'ALL' || m.category === activeCategory;
+            const matchesC = activeCategory === 'ALL' || m.mainCategory === activeCategory || m.category === activeCategory || m.subCategory === activeCategory;
             return matchesQ && matchesC;
         });
     }, [mcqs, searchInput, activeCategory]);
@@ -709,6 +733,40 @@ export default function App() {
                 </div>
             )}
 
+            {noteReaderOpen && noteReaderData && (
+                <div className="fixed inset-0 bg-slate-900/90 backdrop-blur-md z-[75] flex items-center justify-center p-2 sm:p-4 no-print">
+                    <div className="bg-white w-full h-[98vh] rounded-2xl shadow-2xl border border-slate-200 flex flex-col overflow-hidden relative">
+                        <div className="bg-slate-900 text-white p-3 sm:p-4 flex justify-between items-center border-b border-slate-800 gap-2">
+                            <div className="flex items-center gap-3 overflow-hidden">
+                                <div className="bg-emerald-400 text-slate-950 p-2 rounded-xl"><i className="fa-solid fa-book-open"></i></div>
+                                <div className="truncate"><h3 className="font-bold text-xs sm:text-base truncate">{noteReaderData.title}</h3><p className="text-[10px] sm:text-xs text-emerald-300">{noteReaderData.mainCategory}{noteReaderData.subCategory ? ' • ' + noteReaderData.subCategory : ''}{noteReaderData.chapter ? ' • ' + noteReaderData.chapter : ''}</p></div>
+                            </div>
+                            <div className="flex items-center gap-2">
+                                <button onClick={() => {
+                                    const blob = new Blob([(noteReaderData.title||'') + '\n\n' + (noteReaderData.content||'')], { type: 'text/plain;charset=utf-8' });
+                                    const url = window.URL.createObjectURL(blob);
+                                    const a = document.createElement('a');
+                                    a.href = url;
+                                    a.download = `${(noteReaderData.title||'notes').replace(/[^a-z0-9]/gi,'_')}.txt`;
+                                    a.click();
+                                    window.URL.revokeObjectURL(url);
+                                    showToast('Download started');
+                                }} className="bg-emerald-600 hover:bg-emerald-500 text-white px-3 py-1.5 rounded-lg text-xs font-bold"><i className="fa-solid fa-download mr-1"></i> Download</button>
+                                <button onClick={() => setNoteReaderOpen(false)} className="text-slate-400 hover:text-white"><i className="fa-solid fa-xmark text-lg"></i></button>
+                            </div>
+                        </div>
+                        <div className="flex-grow bg-slate-50 p-2 sm:p-6 overflow-hidden">
+                            <div className="w-full h-full bg-white p-4 sm:p-10 rounded-xl border border-slate-200 shadow-sm overflow-y-auto">
+                                <div className="max-w-4xl mx-auto space-y-6">
+                                    {noteReaderData.bullets && noteReaderData.bullets.length > 0 && <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 space-y-2"><h4 className="font-bold text-amber-900 text-sm">Key Points</h4><ul className="list-disc list-inside text-xs sm:text-sm text-amber-950 space-y-1">{noteReaderData.bullets.map((b,i)=><li key={i}>{b}</li>)}</ul></div>}
+                                    <div className="whitespace-pre-wrap text-slate-800 leading-7 text-xs sm:text-sm">{noteReaderData.content}</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+
             {authModalOpen && (
                 <div className="fixed inset-0 bg-slate-900/70 backdrop-blur-sm z-[80] flex items-center justify-center p-4 no-print">
                     <div className="bg-white w-full max-w-md rounded-2xl shadow-2xl border border-slate-200 p-6 space-y-4 relative max-h-[90vh] overflow-y-auto">
@@ -728,18 +786,19 @@ export default function App() {
                                 const password = document.getElementById('authPass').value;
                                 if(!email || !password){ showToast('Email and password required','error'); return; }
                                 try {
-                                    const res = await api.post('/auth/login',{email,password}).catch(async()=>{
-                                        return await api.post('/auth/register',{name,email,password});
-                                    });
-                                    const user = res?.user || res?.data?.user;
-                                    if(user){ setCurrentUser(user); setAuthModalOpen(false); showToast('Login successful'); }
+                                    const res = await api.post('/auth/login',{email,password});
+                                    const user = res?.user || res?.data?.user || res;
+                                    if(user){ setCurrentUser(user); setAuthModalOpen(false); showToast(user.role === 'admin' ? 'Admin login successful' : 'Login successful'); }
                                     else { showToast('Authentication failed','error'); }
-                                } catch(e){ try {
-                                    const res2 = await api.post('/auth/register',{name,email,password});
-                                    const user2 = res2?.user || res2?.data?.user;
-                                    if(user2){ setCurrentUser(user2); setAuthModalOpen(false); showToast('Account created & logged in'); }
-                                    else showToast('Registration failed','error');
-                                } catch(e2){ showToast(e2.message||'Error','error'); } }
+                                } catch(e){ 
+                                    try {
+                                        if(!name){ showToast('Name required for registration','error'); return; }
+                                        const res2 = await api.post('/auth/register',{name,email,password});
+                                        const user2 = res2?.user || res2?.data?.user || res2;
+                                        if(user2){ setCurrentUser(user2); setAuthModalOpen(false); showToast('Account created & logged in'); }
+                                        else showToast('Registration failed','error');
+                                    } catch(e2){ showToast(e2.message||'Login failed','error'); } 
+                                }
                             }} className="w-full bg-slate-900 hover:bg-slate-800 text-amber-400 font-bold py-2.5 rounded-lg text-sm transition">Login / Register</button>
                         </div>
                     </div>
@@ -754,6 +813,13 @@ export default function App() {
                             <p className="text-xs sm:text-sm text-slate-300 max-w-2xl">Access thousands of verified MCQs, solved past papers, Dawn vocabulary, editorial articles, and AI-powered study guides.</p>
                             <div className="relative w-full max-w-3xl"><i className="fa-solid fa-magnifying-glass absolute left-4 top-3.5 text-slate-400"></i><input value={searchInput} onChange={(e) => setSearchInput(e.target.value)} placeholder="Search questions, subjects, amendments, rivers, foreign words..." className="w-full pl-11 pr-4 py-3 rounded-xl border-0 text-slate-900 text-sm focus:ring-2 focus:ring-amber-400 outline-none shadow-inner" /></div>
                             <div className="flex flex-wrap gap-2 pt-2">{categoryList.map((cat) => (<button key={cat} onClick={() => setActiveCategory(cat)} className={`px-3 py-1.5 rounded-lg text-xs sm:text-sm transition ${activeCategory === cat ? 'bg-amber-400 text-slate-950 font-bold' : 'bg-slate-800 hover:bg-slate-700 text-slate-200'}`}>{cat}</button>))}</div>
+                            {activeCategory !== 'ALL' && catTree.find(m=>m.name===activeCategory)?.children?.length > 0 && (
+                                <div className="flex flex-wrap gap-2 pt-1">
+                                    {(catTree.find(m=>m.name===activeCategory)?.children||[]).map((s)=>(
+                                        <button key={s._id} onClick={()=>setActiveCategory(s.name)} className={`px-2.5 py-1 rounded-lg text-xs transition ${activeCategory === s.name ? 'bg-emerald-400 text-slate-950 font-bold' : 'bg-slate-700 hover:bg-slate-600 text-slate-200'}`}>{s.name}</button>
+                                    ))}
+                                </div>
+                            )}
                         </div>
                         <div className="space-y-4">{filteredMcqs.map((mcq) => {
                             const mcqId = mcq._id || mcq.id;
@@ -912,6 +978,14 @@ export default function App() {
                     <section className="space-y-6">
                         <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
                             <div className="border-b pb-4 mb-4 flex justify-between items-center"><div><h2 className="text-xl font-bold text-slate-900">Gemini AI Exam Tutor Chatbot</h2><p className="text-xs text-slate-600 mt-1">Assalam-o-Alaikum Student! 🎓<br/>Main aap ka ExamInPocket Gemini AI Tutor Chatbot hoon.</p></div><button onClick={clearAiChat} className="text-xs text-slate-500">Clear Chat</button></div>
+                            <div className="mb-4 flex flex-wrap gap-2">
+                                <button onClick={()=>sendAiChatMessage('Create a detailed CSS 7-Day Study Timetable for competitive exams')} className="text-xs bg-indigo-50 text-indigo-700 px-3 py-1.5 rounded-lg border border-indigo-200 hover:bg-indigo-100 transition">📅 CSS 7-Day Timetable</button>
+                                <button onClick={()=>sendAiChatMessage('Give me practical English Essay Tips for CSS/PMS with structure, outline and examples')} className="text-xs bg-amber-50 text-amber-800 px-3 py-1.5 rounded-lg border border-amber-200 hover:bg-amber-100 transition">✍️ English Essay Tips</button>
+                                <button onClick={()=>sendAiChatMessage('Suggest effective General Knowledge Strategy for CSS/PMS including sources and revision plan')} className="text-xs bg-emerald-50 text-emerald-700 px-3 py-1.5 rounded-lg border border-emerald-200 hover:bg-emerald-100 transition">💡 General Knowledge Strategy</button>
+                                <button onClick={()=>sendAiChatMessage('How to prepare for Current Affairs for CSS/PMS? Give daily routine and resources')} className="text-xs bg-rose-50 text-rose-700 px-3 py-1.5 rounded-lg border border-rose-200 hover:bg-rose-100 transition">📰 Current Affairs Prep</button>
+                                <button onClick={()=>sendAiChatMessage('Explain English Precis Writing rules, techniques and practice for CSS')} className="text-xs bg-purple-50 text-purple-700 px-3 py-1.5 rounded-lg border border-purple-200 hover:bg-purple-100 transition">📝 Precis Writing Guide</button>
+                                <button onClick={()=>sendAiChatMessage('Give me MCQ Practice Strategy with weak area improvement plan')} className="text-xs bg-cyan-50 text-cyan-700 px-3 py-1.5 rounded-lg border border-cyan-200 hover:bg-cyan-100 transition">🎯 MCQ Practice Strategy</button>
+                            </div>
                             <div className="bg-slate-50 p-4 rounded-2xl border border-slate-200 min-h-[380px] max-h-[500px] overflow-y-auto space-y-4 shadow-inner">{aiMessages.map((m,i)=>(<div key={i} className={`flex gap-3 ${m.role==='user'?'justify-end':''}`}>{m.role==='ai' && <div className="bg-indigo-900 text-amber-400 p-2 rounded-xl"><i className="fa-solid fa-robot"></i></div>}<div className={`${m.role==='user'?'bg-indigo-900 text-white':'bg-white'} p-4 rounded-2xl text-xs sm:text-sm whitespace-pre-line max-w-2xl`}>{m.text}</div></div>))}</div>
                             <div className="mt-4 flex gap-2"><textarea value={aiPrompt} onChange={(e)=>setAiPrompt(e.target.value)} rows="2" placeholder="Type your question..." className="flex-grow p-3 border border-slate-300 rounded-xl text-xs"></textarea><button onClick={()=>sendAiChatMessage()} className="bg-indigo-900 hover:bg-indigo-800 text-amber-300 font-bold px-5 rounded-xl text-xs">Send</button></div>
                         </div>
@@ -936,6 +1010,8 @@ export default function App() {
                             <div className="flex flex-col sm:flex-row gap-2"><input type="password" className="flex-grow p-2.5 border border-amber-300 rounded-lg text-xs bg-white" placeholder="Paste Gemini API Key (AIzaSy...)" /><button className="bg-amber-600 hover:bg-amber-700 text-white font-bold px-4 py-2.5 rounded-lg text-xs transition">Save AI Key</button></div>
                         </div>
 
+
+
                         <div className="bg-white p-5 rounded-2xl border border-slate-200 space-y-4">
                             <h3 className="font-bold text-slate-800 text-sm flex items-center gap-2 border-b pb-2"><i className="fa-solid fa-bullhorn text-amber-600"></i> Ticker / Announcement Bar</h3>
                             <input value={tickerInput} onChange={(e)=>setTickerInput(e.target.value)} className="w-full p-2.5 border border-slate-300 rounded-lg text-xs" />
@@ -944,13 +1020,14 @@ export default function App() {
 
                         <div className="bg-white p-5 rounded-2xl border border-slate-200 space-y-4">
                             <h3 className="font-bold text-slate-800 text-sm flex items-center gap-2 border-b pb-2"><i className="fa-solid fa-plus-circle text-emerald-600"></i> 1. Add / Create MCQ Question</h3>
-                            <div className="grid sm:grid-cols-2 gap-3 text-xs sm:text-sm">
-                                <div><label className="block font-bold text-slate-700 mb-1">Subject/Category</label><select value={adminMcqForm.category} onChange={(e)=>setAdminMcqForm(p=>({...p,category:e.target.value, customCategory: e.target.value === '__NEW__' ? p.customCategory : ''}))} className="w-full p-2.5 border border-slate-300 rounded-lg bg-slate-50"><option value="">Select Category</option>{categoryList.filter(c=>c!=='ALL').map(c=><option key={c} value={c}>{c}</option>)}<option value="__NEW__">Add New / Custom Subject</option></select>{adminMcqForm.category === '__NEW__' && <input type="text" value={adminMcqForm.customCategory||''} onChange={(e)=>setAdminMcqForm(p=>({...p,customCategory:e.target.value}))} placeholder="Type new subject name" className="w-full p-2.5 border border-amber-300 rounded-lg mt-2" />}</div>
-                                <div><label className="block font-bold text-slate-700 mb-1">Question Statement</label><input type="text" value={adminMcqForm.question} onChange={(e)=>setAdminMcqForm(p=>({...p,question:e.target.value}))} placeholder="Enter full question..." className="w-full p-2.5 border border-slate-300 rounded-lg" /></div>
+                            <div className="grid sm:grid-cols-4 gap-3 text-xs sm:text-sm">
+                                <div><label className="block font-bold text-slate-700 mb-1">Main Category</label><select value={adminMcqForm.mainCategory} onChange={(e)=>setAdminMcqForm(p=>({...p,mainCategory:e.target.value, subCategory:''}))} className="w-full p-2.5 border border-slate-300 rounded-lg bg-slate-50"><option value="">Select</option>{catTree.map(m=><option key={m._id} value={m.name}>{m.name}</option>)}</select></div>
+                                <div><label className="block font-bold text-slate-700 mb-1">Sub Category</label><select value={adminMcqForm.subCategory} onChange={(e)=>setAdminMcqForm(p=>({...p,subCategory:e.target.value}))} className="w-full p-2.5 border border-slate-300 rounded-lg bg-slate-50"><option value="">Select</option>{(catTree.find(x=>x.name===adminMcqForm.mainCategory)?.children||[]).map(s=><option key={s._id} value={s.name}>{s.name}</option>)}</select></div>
+                                <div className="sm:col-span-2"><label className="block font-bold text-slate-700 mb-1">Question</label><input type="text" value={adminMcqForm.question} onChange={(e)=>setAdminMcqForm(p=>({...p,question:e.target.value}))} className="w-full p-2.5 border border-slate-300 rounded-lg" /></div>
                             </div>
-                            <div className="grid sm:grid-cols-2 gap-2 text-xs"><input type="text" value={adminMcqForm.opt0} onChange={(e)=>setAdminMcqForm(p=>({...p,opt0:e.target.value}))} placeholder="Option A" className="p-2 border rounded-lg" /><input type="text" value={adminMcqForm.opt1} onChange={(e)=>setAdminMcqForm(p=>({...p,opt1:e.target.value}))} placeholder="Option B" className="p-2 border rounded-lg" /><input type="text" value={adminMcqForm.opt2} onChange={(e)=>setAdminMcqForm(p=>({...p,opt2:e.target.value}))} placeholder="Option C" className="p-2 border rounded-lg" /><input type="text" value={adminMcqForm.opt3} onChange={(e)=>setAdminMcqForm(p=>({...p,opt3:e.target.value}))} placeholder="Option D" className="p-2 border rounded-lg" /></div>
-                            <div className="grid sm:grid-cols-2 gap-3 text-xs"><div><label className="block font-bold text-slate-700 mb-1">Correct Answer</label><select value={adminMcqForm.answerIndex} onChange={(e)=>setAdminMcqForm(p=>({...p,answerIndex:Number(e.target.value)}))} className="w-full p-2.5 border border-slate-300 rounded-lg bg-slate-50"><option value={0}>Option A</option><option value={1}>Option B</option><option value={2}>Option C</option><option value={3}>Option D</option></select></div><div><label className="block font-bold text-slate-700 mb-1">Explanation</label><input type="text" value={adminMcqForm.explanation} onChange={(e)=>setAdminMcqForm(p=>({...p,explanation:e.target.value}))} placeholder="Explanation detail..." className="w-full p-2.5 border border-slate-300 rounded-lg" /></div></div>
-                            <button onClick={saveMcqFromAdmin} className="bg-emerald-700 hover:bg-emerald-800 text-white font-bold px-6 py-2.5 rounded-lg text-xs"><i className="fa-solid fa-save mr-1"></i> Save MCQ Question</button>
+                            <div className="grid sm:grid-cols-2 gap-2 text-xs"><input type="text" value={adminMcqForm.opt0} onChange={(e)=>setAdminMcqForm(p=>({...p,opt0:e.target.value}))} placeholder="A" className="p-2 border rounded-lg" /><input type="text" value={adminMcqForm.opt1} onChange={(e)=>setAdminMcqForm(p=>({...p,opt1:e.target.value}))} placeholder="B" className="p-2 border rounded-lg" /><input type="text" value={adminMcqForm.opt2} onChange={(e)=>setAdminMcqForm(p=>({...p,opt2:e.target.value}))} placeholder="C" className="p-2 border rounded-lg" /><input type="text" value={adminMcqForm.opt3} onChange={(e)=>setAdminMcqForm(p=>({...p,opt3:e.target.value}))} placeholder="D" className="p-2 border rounded-lg" /></div>
+                            <div className="grid sm:grid-cols-3 gap-2 text-xs"><select value={adminMcqForm.answerIndex} onChange={(e)=>setAdminMcqForm(p=>({...p,answerIndex:Number(e.target.value)}))} className="p-2.5 border rounded-lg bg-slate-50"><option value={0}>Correct A</option><option value={1}>Correct B</option><option value={2}>Correct C</option><option value={3}>Correct D</option></select><input type="text" value={adminMcqForm.explanation} onChange={(e)=>setAdminMcqForm(p=>({...p,explanation:e.target.value}))} placeholder="Explanation" className="sm:col-span-2 p-2.5 border rounded-lg" /></div>
+                            <button onClick={saveMcqFromAdmin} className="bg-emerald-700 hover:bg-emerald-800 text-white font-bold px-5 py-2 rounded-lg text-xs"><i className="fa-solid fa-save mr-1"></i> Save</button>
                         </div>
 
                         <div className="bg-white p-5 rounded-2xl border border-slate-200 space-y-4">
@@ -959,6 +1036,8 @@ export default function App() {
                             <textarea rows="4" value={adminArtForm.content} onChange={(e)=>setAdminArtForm(p=>({...p,content:e.target.value}))} placeholder="Full article content / Essay outline..." className="w-full p-3 border rounded-xl text-xs"></textarea>
                             <button onClick={saveArticleFromAdmin} className="bg-amber-600 hover:bg-amber-700 text-white font-bold px-6 py-2.5 rounded-lg text-xs"><i className="fa-solid fa-file-circle-plus mr-1"></i> Save Article / Essay</button>
                         </div>
+
+
 
                         <div className="bg-white p-5 rounded-2xl border border-slate-200 space-y-4">
                             <h3 className="font-bold text-slate-800 text-sm flex items-center gap-2 border-b pb-2"><i className="fa-solid fa-newspaper text-indigo-600"></i> Add Dawn Vocab</h3>

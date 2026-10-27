@@ -14,22 +14,23 @@ function readToken(req) {
 
 export function requireAuth(req, _res, next) {
   const token = readToken(req);
-  if (!token) return next(new ApiError(401, 'Authentication required'));
-
-  try {
-    const payload = jwt.verify(token, env.jwtSecret);
-    req.user = { id: payload.sub, role: payload.role };
-    return next();
-  } catch {
-    return next(new ApiError(401, 'Invalid or expired session'));
+  if (token) {
+    try {
+      const payload = jwt.verify(token, env.jwtSecret);
+      req.user = { id: payload.sub, role: payload.role };
+      return next();
+    } catch {
+      // ignore invalid tokens
+    }
   }
+  return next(new ApiError(401, 'Authentication required'));
 }
 
 export function requireAdmin(req, _res, next) {
-  if (req.user?.role !== 'admin') {
-    return next(new ApiError(403, 'Admin access required'));
+  if (req.user?.role === 'admin') {
+    return next();
   }
-  return next();
+  return next(new ApiError(403, 'Admin access required'));
 }
 
 /** Attaches req.user when a valid session exists, but never blocks the request. */

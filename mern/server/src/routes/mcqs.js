@@ -13,7 +13,9 @@ const mcqBody = z.object({
   options: z.array(z.string().trim().min(1).max(500)).length(4),
   answerIndex: z.number().int().min(0).max(3),
   explanation: z.string().trim().max(4000).optional().default(''),
-  category: z.string().trim().min(1).max(80),
+  category: z.string().trim().max(80).optional(),
+  mainCategory: z.string().trim().max(80).optional(),
+  subCategory: z.string().trim().max(80).optional(),
   difficulty: z.enum(['easy', 'medium', 'hard']).optional(),
 });
 
@@ -22,11 +24,17 @@ const updateBody = mcqBody.partial();
 router.get(
   '/',
   asyncHandler(async (req, res) => {
-    const { page, limit, skip } = parsePagination(req.query, { limit: 12 });
-    const { q, category } = req.query;
+    const { page, limit, skip } = parsePagination(req.query, { limit: 50 });
+    const { q, category, mainCategory, subCategory } = req.query;
 
     const filter = {};
-    if (category && category !== 'ALL') filter.category = category;
+    if (subCategory && subCategory !== 'ALL') {
+      filter.$or = [{ subCategory }, { category: subCategory }];
+    } else if (mainCategory && mainCategory !== 'ALL') {
+      filter.$or = [{ mainCategory }, { category: mainCategory }];
+    } else if (category && category !== 'ALL') {
+      filter.$or = [{ category }, { subCategory: category }, { mainCategory: category }];
+    }
     if (q) filter.question = new RegExp(escapeRegex(String(q)), 'i');
 
     const [items, total] = await Promise.all([
@@ -61,7 +69,10 @@ router.post(
   requireAdmin,
   validate(mcqBody),
   asyncHandler(async (req, res) => {
-    const mcq = await Mcq.create({ ...req.body, createdBy: req.user.id });
+    const body = { ...req.body };
+    if (body.subCategory && !body.category) body.category = body.subCategory;
+    if (body.mainCategory && !body.category && body.subCategory) body.category = body.subCategory;
+    const mcq = await Mcq.create({ ...body, createdBy: req.user.id });
     res.status(201).json({ data: { mcq } });
   })
 );
@@ -72,7 +83,9 @@ router.patch(
   requireAdmin,
   validate(updateBody),
   asyncHandler(async (req, res) => {
-    const mcq = await Mcq.findByIdAndUpdate(req.params.id, req.body, {
+    const body = { ...req.body };
+    if (body.subCategory && !body.category) body.category = body.subCategory;
+    const mcq = await Mcq.findByIdAndUpdate(req.params.id, body, {
       new: true,
       runValidators: true,
     });
