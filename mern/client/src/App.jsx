@@ -73,17 +73,14 @@ export default function App() {
     const [mcqs, setMcqs] = useState([]);
     const [dawnWords, setDawnWords] = useState([]);
     const [headlines, setHeadlines] = useState([]);
+    const [headlinesHeading, setHeadlinesHeading] = useState(localStorage.getItem('eip_headlines_heading') || 'Top National Headlines');
+    const [headlinesHeadingInput, setHeadlinesHeadingInput] = useState(localStorage.getItem('eip_headlines_heading') || 'Top National Headlines');
     const [articles, setArticles] = useState([]);
     const [library, setLibrary] = useState([]);
     const [savedMcqs, setSavedMcqs] = useState([]);
     const [savedVocab, setSavedVocab] = useState([]);
     const [savedArticles, setSavedArticles] = useState([]);
     const [savedBooks, setSavedBooks] = useState([]);
-    const [studyNotes, setStudyNotes] = useState([]);
-    const [activeNoteMain, setActiveNoteMain] = useState('ALL');
-    const [activeNoteSub, setActiveNoteSub] = useState('ALL');
-    const [noteReaderOpen, setNoteReaderOpen] = useState(false);
-    const [noteReaderData, setNoteReaderData] = useState(null);
     const [apiCategories, setApiCategories] = useState([]);
     const [catTree, setCatTree] = useState([]);
     const [adminCatMain, setAdminCatMain] = useState('');
@@ -92,8 +89,8 @@ export default function App() {
     const [adminArtForm, setAdminArtForm] = useState({ title: '', category: '', author: '', content: '' });
     const [adminBookForm, setAdminBookForm] = useState({ title: '', category: '', sizeLabel: '', url: '' });
     const [adminVocabForm, setAdminVocabForm] = useState({ word: '', type: 'Word', meaning: '', urdu: '', sentence: '' });
-    const [adminNoteForm, setAdminNoteForm] = useState({ title: '', mainCategory: '', subCategory: '', chapter: '', topic: '', content: '', bullets: '' });
     const [adminManageTab, setAdminManageTab] = useState('MCQS');
+    const [adminHeadlineForm, setAdminHeadlineForm] = useState({ title: '' });
     const [tickerInput, setTickerInput] = useState(localStorage.getItem('eip_ticker') || '📢 <span class="font-bold">Latest Exam Update:</span> CSS MPT &amp; SPSC CCE Solved Past Paper MCQs Added • Daily Dawn Vocabulary Active • Live Gemini AI Tutor Active!');
     const [editMcq, setEditMcq] = useState(null);
     const [editArticle, setEditArticle] = useState(null);
@@ -102,19 +99,20 @@ export default function App() {
     const [editHeadline, setEditHeadline] = useState(null);
     const [editMcqCat, setEditMcqCat] = useState('');
     const [editMcqCustom, setEditMcqCustom] = useState('');
+    const [editMcqMain, setEditMcqMain] = useState('');
+    const [editMcqSub, setEditMcqSub] = useState('');
 
     useEffect(() => {
         async function load() {
             try {
-                const [m, v, h, a, b, c, ct, sn] = await Promise.all([
+                const [m, v, h, a, b, c, ct] = await Promise.all([
                     api.get('/mcqs?limit=500').catch(() => ({ items: [] })),
                     api.get('/vocab?limit=500').catch(() => ({ items: [] })),
                     api.get('/headlines?limit=50').catch(() => ({ items: [] })),
                     api.get('/articles?limit=200').catch(() => ({ items: [] })),
                     api.get('/books?limit=200').catch(() => ({ items: [] })),
                     api.get('/mcqs/categories').catch(() => ({ categories: [] })),
-                    api.get('/categories/tree').catch(() => ({ tree: [] })),
-                    api.get('/studynotes?limit=500').catch(() => ({ items: [] }))
+                    api.get('/categories/tree').catch(() => ({ tree: [] }))
                 ]);
                 setMcqs(m.items || m || []);
                 setDawnWords(v.items || v || []);
@@ -123,7 +121,6 @@ export default function App() {
                 setLibrary(b.items || b || []);
                 setApiCategories(c.categories || []);
                 setCatTree(ct.tree || []);
-                setStudyNotes(sn.items || sn || []);
             } catch (e) {}
         }
         load();
@@ -234,6 +231,17 @@ export default function App() {
         }
     }
 
+    async function saveHeadlineFromAdmin() {
+        try {
+            if (!adminHeadlineForm.title.trim()) { showToast('Enter headline','error'); return; }
+            await api.post('/headlines', { title: adminHeadlineForm.title.trim() });
+            showToast('Headline added');
+            setAdminHeadlineForm({ title: '' });
+            const h = await api.get('/headlines?limit=50').catch(()=>({items:headlines}));
+            setHeadlines(h.items||h||[]);
+        } catch(e){ showToast(e.message||'Error','error'); }
+    }
+
     async function deleteMcq(id) {
         if (!(await showConfirmModal('Delete MCQ', 'Are you sure?'))) return;
         try {
@@ -275,6 +283,8 @@ export default function App() {
         const cat = m.category || '';
         setEditMcqCat(cat);
         setEditMcqCustom('');
+        setEditMcqMain(m.mainCategory || '');
+        setEditMcqSub(m.subCategory || '');
     }
     function catListAll() { const s=new Set(apiCategories); mcqs.forEach(x=>x.category&&s.add(x.category)); return Array.from(s); }
     async function saveMcqEdits() {
@@ -285,11 +295,13 @@ export default function App() {
         }
         if (!cat) { showToast('Category required', 'error'); return; }
         try {
-            await api.patch(`/mcqs/${editMcq._id||editMcq.id}`, { question: editMcq.question, options: editMcq.options, answerIndex: Number(editMcq.answerIndex), explanation: editMcq.explanation, category: cat });
+            await api.patch(`/mcqs/${editMcq._id||editMcq.id}`, { question: editMcq.question, options: editMcq.options, answerIndex: Number(editMcq.answerIndex), explanation: editMcq.explanation, category: editMcqSub || editMcqCat || cat, mainCategory: editMcqMain, subCategory: editMcqSub });
             showToast('MCQ updated');
             setEditMcq(null);
             setEditMcqCat('');
             setEditMcqCustom('');
+            setEditMcqMain('');
+            setEditMcqSub('');
             const m = await api.get('/mcqs?limit=500').catch(()=>({items:mcqs}));
             setMcqs(m.items||m||[]);
             const c = await api.get('/mcqs/categories').catch(() => ({ categories: apiCategories }));
@@ -574,7 +586,10 @@ export default function App() {
                         <button onClick={()=>setEditMcq(null)} className="absolute right-4 top-4 text-slate-400 hover:text-slate-600"><i className="fa-solid fa-xmark text-lg"></i></button>
                         <h3 className="text-lg font-bold text-slate-900 border-b pb-2 flex items-center gap-2"><i className="fa-solid fa-pen-to-square text-amber-500"></i> Edit MCQ Question</h3>
                         <div className="space-y-3 text-xs sm:text-sm">
-                            <div><label className="block font-bold text-slate-700 mb-1">Subject/Category</label><select value={editMcqCat} onChange={(e)=>setEditMcqCat(e.target.value)} className="w-full p-2.5 border border-slate-300 rounded-lg bg-slate-50">{categoryList.filter(c=>c!=='ALL').map(c=><option key={c} value={c}>{c}</option>)}<option value="__NEW__">Add New / Custom Subject</option></select>{editMcqCat === '__NEW__' && <input type="text" value={editMcqCustom||''} onChange={(e)=>setEditMcqCustom(e.target.value)} placeholder="Type new subject name" className="w-full p-2.5 border border-amber-300 rounded-lg mt-2" />}</div>
+                            <div className="grid grid-cols-2 gap-2">
+                                <div><label className="block font-bold text-slate-700 mb-1">Main Category</label><select value={editMcqMain} onChange={(e)=>{setEditMcqMain(e.target.value); setEditMcqSub(''); setEditMcq({...editMcq, mainCategory: e.target.value});}} className="w-full p-2.5 border border-slate-300 rounded-lg bg-slate-50"><option value="">Select</option>{catTree.map(m=><option key={m._id} value={m.name}>{m.name}</option>)}</select></div>
+                                <div><label className="block font-bold text-slate-700 mb-1">Sub Category</label><select value={editMcqSub} onChange={(e)=>{setEditMcqSub(e.target.value); setEditMcqCat(e.target.value); setEditMcq({...editMcq, subCategory: e.target.value, category: e.target.value});}} className="w-full p-2.5 border border-slate-300 rounded-lg bg-slate-50"><option value="">Select</option>{(catTree.find(x=>x.name===editMcqMain)?.children||[]).map(s=><option key={s._id} value={s.name}>{s.name}</option>)}</select></div>
+                            </div>
                             <div><label className="block font-bold text-slate-700 mb-1">Question Statement</label><textarea value={editMcq.question} onChange={(e)=>setEditMcq({...editMcq,question:e.target.value})} rows="2" className="w-full p-2.5 border border-slate-300 rounded-lg"></textarea></div>
                             <div className="grid grid-cols-2 gap-2"><input type="text" value={editMcq.options?.[0]||''} onChange={(e)=>{const o=[...(editMcq.options||[])];o[0]=e.target.value;setEditMcq({...editMcq,options:o});}} className="p-2 border rounded-lg" /><input type="text" value={editMcq.options?.[1]||''} onChange={(e)=>{const o=[...(editMcq.options||[])];o[1]=e.target.value;setEditMcq({...editMcq,options:o});}} className="p-2 border rounded-lg" /><input type="text" value={editMcq.options?.[2]||''} onChange={(e)=>{const o=[...(editMcq.options||[])];o[2]=e.target.value;setEditMcq({...editMcq,options:o});}} className="p-2 border rounded-lg" /><input type="text" value={editMcq.options?.[3]||''} onChange={(e)=>{const o=[...(editMcq.options||[])];o[3]=e.target.value;setEditMcq({...editMcq,options:o});}} className="p-2 border rounded-lg" /></div>
                             <div><label className="block font-bold text-slate-700 mb-1">Correct Answer</label><select value={editMcq.answerIndex} onChange={(e)=>setEditMcq({...editMcq,answerIndex:Number(e.target.value)})} className="w-full p-2.5 border border-slate-300 rounded-lg"><option value={0}>Option A</option><option value={1}>Option B</option><option value={2}>Option C</option><option value={3}>Option D</option></select></div>
@@ -733,40 +748,6 @@ export default function App() {
                 </div>
             )}
 
-            {noteReaderOpen && noteReaderData && (
-                <div className="fixed inset-0 bg-slate-900/90 backdrop-blur-md z-[75] flex items-center justify-center p-2 sm:p-4 no-print">
-                    <div className="bg-white w-full h-[98vh] rounded-2xl shadow-2xl border border-slate-200 flex flex-col overflow-hidden relative">
-                        <div className="bg-slate-900 text-white p-3 sm:p-4 flex justify-between items-center border-b border-slate-800 gap-2">
-                            <div className="flex items-center gap-3 overflow-hidden">
-                                <div className="bg-emerald-400 text-slate-950 p-2 rounded-xl"><i className="fa-solid fa-book-open"></i></div>
-                                <div className="truncate"><h3 className="font-bold text-xs sm:text-base truncate">{noteReaderData.title}</h3><p className="text-[10px] sm:text-xs text-emerald-300">{noteReaderData.mainCategory}{noteReaderData.subCategory ? ' • ' + noteReaderData.subCategory : ''}{noteReaderData.chapter ? ' • ' + noteReaderData.chapter : ''}</p></div>
-                            </div>
-                            <div className="flex items-center gap-2">
-                                <button onClick={() => {
-                                    const blob = new Blob([(noteReaderData.title||'') + '\n\n' + (noteReaderData.content||'')], { type: 'text/plain;charset=utf-8' });
-                                    const url = window.URL.createObjectURL(blob);
-                                    const a = document.createElement('a');
-                                    a.href = url;
-                                    a.download = `${(noteReaderData.title||'notes').replace(/[^a-z0-9]/gi,'_')}.txt`;
-                                    a.click();
-                                    window.URL.revokeObjectURL(url);
-                                    showToast('Download started');
-                                }} className="bg-emerald-600 hover:bg-emerald-500 text-white px-3 py-1.5 rounded-lg text-xs font-bold"><i className="fa-solid fa-download mr-1"></i> Download</button>
-                                <button onClick={() => setNoteReaderOpen(false)} className="text-slate-400 hover:text-white"><i className="fa-solid fa-xmark text-lg"></i></button>
-                            </div>
-                        </div>
-                        <div className="flex-grow bg-slate-50 p-2 sm:p-6 overflow-hidden">
-                            <div className="w-full h-full bg-white p-4 sm:p-10 rounded-xl border border-slate-200 shadow-sm overflow-y-auto">
-                                <div className="max-w-4xl mx-auto space-y-6">
-                                    {noteReaderData.bullets && noteReaderData.bullets.length > 0 && <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 space-y-2"><h4 className="font-bold text-amber-900 text-sm">Key Points</h4><ul className="list-disc list-inside text-xs sm:text-sm text-amber-950 space-y-1">{noteReaderData.bullets.map((b,i)=><li key={i}>{b}</li>)}</ul></div>}
-                                    <div className="whitespace-pre-wrap text-slate-800 leading-7 text-xs sm:text-sm">{noteReaderData.content}</div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            )}
-
             {authModalOpen && (
                 <div className="fixed inset-0 bg-slate-900/70 backdrop-blur-sm z-[80] flex items-center justify-center p-4 no-print">
                     <div className="bg-white w-full max-w-md rounded-2xl shadow-2xl border border-slate-200 p-6 space-y-4 relative max-h-[90vh] overflow-y-auto">
@@ -812,11 +793,18 @@ export default function App() {
                             <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight">Prepare for <span className="text-amber-400">CSS, PMS, PCS, CCE</span> & All Competitive Exams</h2>
                             <p className="text-xs sm:text-sm text-slate-300 max-w-2xl">Access thousands of verified MCQs, solved past papers, Dawn vocabulary, editorial articles, and AI-powered study guides.</p>
                             <div className="relative w-full max-w-3xl"><i className="fa-solid fa-magnifying-glass absolute left-4 top-3.5 text-slate-400"></i><input value={searchInput} onChange={(e) => setSearchInput(e.target.value)} placeholder="Search questions, subjects, amendments, rivers, foreign words..." className="w-full pl-11 pr-4 py-3 rounded-xl border-0 text-slate-900 text-sm focus:ring-2 focus:ring-amber-400 outline-none shadow-inner" /></div>
-                            <div className="flex flex-wrap gap-2 pt-2">{categoryList.map((cat) => (<button key={cat} onClick={() => setActiveCategory(cat)} className={`px-3 py-1.5 rounded-lg text-xs sm:text-sm transition ${activeCategory === cat ? 'bg-amber-400 text-slate-950 font-bold' : 'bg-slate-800 hover:bg-slate-700 text-slate-200'}`}>{cat}</button>))}</div>
-                            {activeCategory !== 'ALL' && catTree.find(m=>m.name===activeCategory)?.children?.length > 0 && (
-                                <div className="flex flex-wrap gap-2 pt-1">
-                                    {(catTree.find(m=>m.name===activeCategory)?.children||[]).map((s)=>(
-                                        <button key={s._id} onClick={()=>setActiveCategory(s.name)} className={`px-2.5 py-1 rounded-lg text-xs transition ${activeCategory === s.name ? 'bg-emerald-400 text-slate-950 font-bold' : 'bg-slate-700 hover:bg-slate-600 text-slate-200'}`}>{s.name}</button>
+                            <div className="flex flex-wrap gap-2 pt-2">
+                                {categoryList.map((cat) => {
+                                    const hasSub = cat !== 'ALL' && catTree.find(m => m.name === cat) && (catTree.find(m => m.name === cat)?.children || []).length > 0;
+                                    return (
+                                        <button key={cat} onClick={() => setActiveCategory(cat)} className={`px-3 py-1.5 rounded-lg text-xs sm:text-sm transition flex items-center gap-1 ${activeCategory === cat ? 'bg-amber-400 text-slate-950 font-bold' : 'bg-slate-800 hover:bg-slate-700 text-slate-200'}`}>{cat}{hasSub && <i className="fa-solid fa-chevron-down text-[9px]"></i>}</button>
+                                    );
+                                })}
+                            </div>
+                            {activeCategory !== 'ALL' && catTree.find(m => m.name === activeCategory) && (
+                                <div className="flex flex-wrap gap-2">
+                                    {(catTree.find(m => m.name === activeCategory)?.children || []).map((sub) => (
+                                        <button key={sub._id} onClick={() => setActiveCategory(sub.name)} className={`px-2.5 py-1 rounded-lg text-xs transition ${activeCategory === sub.name ? 'bg-emerald-400 text-slate-950 font-bold' : 'bg-slate-700 hover:bg-slate-600 text-slate-200'}`}>{sub.name}</button>
                                     ))}
                                 </div>
                             )}
@@ -930,7 +918,7 @@ export default function App() {
                                     <div className="space-y-3">{dawnWords.map((w, i) => { const id = w._id || w.id || i; const isSaved = savedVocab.includes(String(id)); return (<div key={id} className="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-1 text-xs sm:text-sm"><div className="flex justify-between items-start"><p className="font-bold text-indigo-900">{w.word} <span className="text-[11px] text-slate-500 font-normal">({w.type || w.partsOfSpeech || 'Noun'})</span></p><button onClick={() => toggleBookmarkVocab(id)} className="text-slate-400 hover:text-amber-500 transition"><i className={`${isSaved ? 'fa-solid text-amber-500' : 'fa-regular'} fa-bookmark`}></i></button></div><p className="text-slate-700"><strong>Urdu:</strong> {w.urdu}</p><p className="text-slate-700"><strong>Meaning:</strong> {w.meaning}</p><p className="text-slate-700"><strong>Usage of Sentence:</strong> {w.sentence || w.usage || ''}</p></div>); })}</div>
                                 </div>
                                 <div className="space-y-4">
-                                    <h3 className="font-bold text-slate-800 text-sm border-b pb-2 flex items-center gap-2"><i className="fa-solid fa-bullhorn text-amber-500"></i> Top National Headlines</h3>
+                                    <h3 className="font-bold text-slate-800 text-sm border-b pb-2 flex items-center gap-2"><i className="fa-solid fa-bullhorn text-amber-500"></i> {headlinesHeading}</h3>
                                     <div className="bg-slate-50 p-4 rounded-xl border border-slate-200"><ul className="list-disc pl-5 text-xs sm:text-sm text-slate-700 space-y-2">{headlines.map((h, i) => <li key={i} className="hover:text-indigo-700 transition">{h.title || h}</li>)}</ul></div>
                                 </div>
                             </div>
@@ -963,10 +951,10 @@ export default function App() {
                             <div className="space-y-6">
                                 {!currentUser && <div className="bg-amber-50 p-8 text-center text-amber-900 rounded-2xl border border-amber-200 text-sm"><i className="fa-solid fa-lock mr-2"></i>Please <button onClick={()=>setAuthModalOpen(true)} className="font-bold underline">login or register</button> to view and save your favorites.</div>}
                                 {currentUser && <>
-                                {(savedSubFilter === 'ALL' || savedSubFilter === 'MCQS') && savedM.length > 0 && <div className="space-y-3"><h3 className="font-bold text-slate-800 text-sm">Saved MCQs ({savedM.length})</h3>{savedM.map((m) => { const id = m._id || m.id; return (<div key={id} className="bg-slate-50 p-4 rounded-xl border border-slate-200"><div className="flex justify-between items-center mb-2"><span className="bg-indigo-100 text-indigo-900 text-[10px] font-bold px-2 py-0.5 rounded">{m.category}</span><button onClick={() => toggleBookmarkMcq(id)} className="text-rose-600 text-xs font-bold">Remove</button></div><p className="font-bold text-slate-900 text-xs">{m.question}</p></div>); })}</div>}
-                                {(savedSubFilter === 'ALL' || savedSubFilter === 'VOCAB') && savedV.length > 0 && <div className="space-y-3"><h3 className="font-bold text-slate-800 text-sm">Saved Vocab ({savedV.length})</h3>{savedV.map((w, i) => { const id = w._id || w.id || i; return (<div key={id} className="bg-slate-50 p-4 rounded-xl border border-slate-200 flex justify-between items-center text-xs"><div><strong className="text-indigo-950">{w.word}</strong> - {w.urdu}</div><button onClick={() => toggleBookmarkVocab(id)} className="text-rose-600 font-bold">Remove</button></div>); })}</div>}
-                                {(savedSubFilter === 'ALL' || savedSubFilter === 'ARTICLES') && savedA.length > 0 && <div className="space-y-3"><h3 className="font-bold text-slate-800 text-sm">Saved Articles ({savedA.length})</h3>{savedA.map((a, i) => { const id = a._id || a.id || i; return (<div key={id} className="bg-slate-50 p-4 rounded-xl border border-slate-200 flex justify-between items-center text-xs"><div><strong className="text-slate-900">{a.title}</strong></div><button onClick={() => toggleBookmarkArticle(id)} className="text-rose-600 font-bold">Remove</button></div>); })}</div>}
-                                {(savedSubFilter === 'ALL' || savedSubFilter === 'BOOKS') && savedB.length > 0 && <div className="space-y-3"><h3 className="font-bold text-slate-800 text-sm">Saved Books ({savedB.length})</h3>{savedB.map((b, i) => { const id = b._id || b.id || i; return (<div key={id} className="bg-slate-50 p-4 rounded-xl border border-slate-200 flex justify-between items-center text-xs"><div><strong className="text-slate-900">{b.title}</strong></div><button onClick={() => toggleBookmarkBook(id)} className="text-rose-600 font-bold">Remove</button></div>); })}</div>}
+                                {(savedSubFilter === 'ALL' || savedSubFilter === 'MCQS') && savedM.length > 0 && <div className="space-y-3"><h3 className="font-bold text-slate-800 text-sm">Saved MCQs ({savedM.length})</h3>{savedM.map((m) => { const id = m._id || m.id; return (<div key={id} onClick={() => { setActiveTab('homeTab'); setTimeout(() => { const el = document.getElementById(`mcq-card-${id}`); if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' }); }, 100); }} className="bg-slate-50 p-4 rounded-xl border border-slate-200 cursor-pointer hover:bg-slate-100 transition"><div className="flex justify-between items-center mb-2"><span className="bg-indigo-100 text-indigo-900 text-[10px] font-bold px-2 py-0.5 rounded">{m.category}</span><button onClick={(e) => { e.stopPropagation(); toggleBookmarkMcq(id); }} className="text-rose-600 text-xs font-bold">Remove</button></div><p className="font-bold text-slate-900 text-xs">{m.question}</p></div>); })}</div>}
+                                {(savedSubFilter === 'ALL' || savedSubFilter === 'VOCAB') && savedV.length > 0 && <div className="space-y-3"><h3 className="font-bold text-slate-800 text-sm">Saved Vocab ({savedV.length})</h3>{savedV.map((w, i) => { const id = w._id || w.id || i; return (<div key={id} onClick={() => { setActiveTab('dawnTab'); }} className="bg-slate-50 p-4 rounded-xl border border-slate-200 flex justify-between items-center text-xs cursor-pointer hover:bg-slate-100 transition"><div><strong className="text-indigo-950">{w.word}</strong> - {w.urdu}</div><button onClick={(e) => { e.stopPropagation(); toggleBookmarkVocab(id); }} className="text-rose-600 font-bold">Remove</button></div>); })}</div>}
+                                {(savedSubFilter === 'ALL' || savedSubFilter === 'ARTICLES') && savedA.length > 0 && <div className="space-y-3"><h3 className="font-bold text-slate-800 text-sm">Saved Articles ({savedA.length})</h3>{savedA.map((a, i) => { const id = a._id || a.id || i; return (<div key={id} onClick={() => { setReaderData({ title: a.title, cat: `Editorial Essay • ${a.category}`, type: 'text', content: a.content }); setReaderOpen(true); }} className="bg-slate-50 p-4 rounded-xl border border-slate-200 flex justify-between items-center text-xs cursor-pointer hover:bg-slate-100 transition"><div><strong className="text-slate-900">{a.title}</strong></div><button onClick={(e) => { e.stopPropagation(); toggleBookmarkArticle(id); }} className="text-rose-600 font-bold">Remove</button></div>); })}</div>}
+                                {(savedSubFilter === 'ALL' || savedSubFilter === 'BOOKS') && savedB.length > 0 && <div className="space-y-3"><h3 className="font-bold text-slate-800 text-sm">Saved Books ({savedB.length})</h3>{savedB.map((b, i) => { const id = b._id || b.id || i; return (<div key={id} onClick={() => { openReaderModal(id); }} className="bg-slate-50 p-4 rounded-xl border border-slate-200 flex justify-between items-center text-xs cursor-pointer hover:bg-slate-100 transition"><div><strong className="text-slate-900">{b.title}</strong></div><button onClick={(e) => { e.stopPropagation(); toggleBookmarkBook(id); }} className="text-rose-600 font-bold">Remove</button></div>); })}</div>}
                                 {savedM.length === 0 && savedV.length === 0 && savedA.length === 0 && savedB.length === 0 && <div className="bg-slate-50 p-8 text-center text-slate-500 rounded-2xl border border-slate-200 text-xs">No saved items yet.</div>}
                                 </>}
                             </div>
@@ -1021,13 +1009,13 @@ export default function App() {
                         <div className="bg-white p-5 rounded-2xl border border-slate-200 space-y-4">
                             <h3 className="font-bold text-slate-800 text-sm flex items-center gap-2 border-b pb-2"><i className="fa-solid fa-plus-circle text-emerald-600"></i> 1. Add / Create MCQ Question</h3>
                             <div className="grid sm:grid-cols-4 gap-3 text-xs sm:text-sm">
-                                <div><label className="block font-bold text-slate-700 mb-1">Main Category</label><select value={adminMcqForm.mainCategory} onChange={(e)=>setAdminMcqForm(p=>({...p,mainCategory:e.target.value, subCategory:''}))} className="w-full p-2.5 border border-slate-300 rounded-lg bg-slate-50"><option value="">Select</option>{catTree.map(m=><option key={m._id} value={m.name}>{m.name}</option>)}</select></div>
-                                <div><label className="block font-bold text-slate-700 mb-1">Sub Category</label><select value={adminMcqForm.subCategory} onChange={(e)=>setAdminMcqForm(p=>({...p,subCategory:e.target.value}))} className="w-full p-2.5 border border-slate-300 rounded-lg bg-slate-50"><option value="">Select</option>{(catTree.find(x=>x.name===adminMcqForm.mainCategory)?.children||[]).map(s=><option key={s._id} value={s.name}>{s.name}</option>)}</select></div>
-                                <div className="sm:col-span-2"><label className="block font-bold text-slate-700 mb-1">Question</label><input type="text" value={adminMcqForm.question} onChange={(e)=>setAdminMcqForm(p=>({...p,question:e.target.value}))} className="w-full p-2.5 border border-slate-300 rounded-lg" /></div>
+                                <div><label className="block font-bold text-slate-700 mb-1">Main Category</label><select value={adminMcqForm.mainCategory} onChange={(e)=>setAdminMcqForm(p=>({...p,mainCategory:e.target.value, subCategory:''}))} className="w-full p-2.5 border border-slate-300 rounded-lg bg-slate-50"><option value="">Select Main Category</option>{catTree.map(m=><option key={m._id} value={m.name}>{m.name}</option>)}</select></div>
+                                <div><label className="block font-bold text-slate-700 mb-1">Sub Category</label><select value={adminMcqForm.subCategory} onChange={(e)=>setAdminMcqForm(p=>({...p,subCategory:e.target.value}))} className="w-full p-2.5 border border-slate-300 rounded-lg bg-slate-50"><option value="">Select Sub Category</option>{(catTree.find(x=>x.name===adminMcqForm.mainCategory)?.children||[]).map(s=><option key={s._id} value={s.name}>{s.name}</option>)}</select></div>
+                                <div className="sm:col-span-2"><label className="block font-bold text-slate-700 mb-1">Question Statement</label><input type="text" value={adminMcqForm.question} onChange={(e)=>setAdminMcqForm(p=>({...p,question:e.target.value}))} placeholder="Enter full question..." className="w-full p-2.5 border border-slate-300 rounded-lg" /></div>
                             </div>
-                            <div className="grid sm:grid-cols-2 gap-2 text-xs"><input type="text" value={adminMcqForm.opt0} onChange={(e)=>setAdminMcqForm(p=>({...p,opt0:e.target.value}))} placeholder="A" className="p-2 border rounded-lg" /><input type="text" value={adminMcqForm.opt1} onChange={(e)=>setAdminMcqForm(p=>({...p,opt1:e.target.value}))} placeholder="B" className="p-2 border rounded-lg" /><input type="text" value={adminMcqForm.opt2} onChange={(e)=>setAdminMcqForm(p=>({...p,opt2:e.target.value}))} placeholder="C" className="p-2 border rounded-lg" /><input type="text" value={adminMcqForm.opt3} onChange={(e)=>setAdminMcqForm(p=>({...p,opt3:e.target.value}))} placeholder="D" className="p-2 border rounded-lg" /></div>
-                            <div className="grid sm:grid-cols-3 gap-2 text-xs"><select value={adminMcqForm.answerIndex} onChange={(e)=>setAdminMcqForm(p=>({...p,answerIndex:Number(e.target.value)}))} className="p-2.5 border rounded-lg bg-slate-50"><option value={0}>Correct A</option><option value={1}>Correct B</option><option value={2}>Correct C</option><option value={3}>Correct D</option></select><input type="text" value={adminMcqForm.explanation} onChange={(e)=>setAdminMcqForm(p=>({...p,explanation:e.target.value}))} placeholder="Explanation" className="sm:col-span-2 p-2.5 border rounded-lg" /></div>
-                            <button onClick={saveMcqFromAdmin} className="bg-emerald-700 hover:bg-emerald-800 text-white font-bold px-5 py-2 rounded-lg text-xs"><i className="fa-solid fa-save mr-1"></i> Save</button>
+                            <div className="grid sm:grid-cols-2 gap-2 text-xs"><input type="text" value={adminMcqForm.opt0} onChange={(e)=>setAdminMcqForm(p=>({...p,opt0:e.target.value}))} placeholder="Option A" className="p-2 border rounded-lg" /><input type="text" value={adminMcqForm.opt1} onChange={(e)=>setAdminMcqForm(p=>({...p,opt1:e.target.value}))} placeholder="Option B" className="p-2 border rounded-lg" /><input type="text" value={adminMcqForm.opt2} onChange={(e)=>setAdminMcqForm(p=>({...p,opt2:e.target.value}))} placeholder="Option C" className="p-2 border rounded-lg" /><input type="text" value={adminMcqForm.opt3} onChange={(e)=>setAdminMcqForm(p=>({...p,opt3:e.target.value}))} placeholder="Option D" className="p-2 border rounded-lg" /></div>
+                            <div className="grid sm:grid-cols-2 gap-3 text-xs"><div><label className="block font-bold text-slate-700 mb-1">Correct Answer</label><select value={adminMcqForm.answerIndex} onChange={(e)=>setAdminMcqForm(p=>({...p,answerIndex:Number(e.target.value)}))} className="w-full p-2.5 border border-slate-300 rounded-lg bg-slate-50"><option value={0}>Option A</option><option value={1}>Option B</option><option value={2}>Option C</option><option value={3}>Option D</option></select></div><div><label className="block font-bold text-slate-700 mb-1">Explanation</label><input type="text" value={adminMcqForm.explanation} onChange={(e)=>setAdminMcqForm(p=>({...p,explanation:e.target.value}))} placeholder="Explanation detail..." className="w-full p-2.5 border border-slate-300 rounded-lg" /></div></div>
+                            <button onClick={saveMcqFromAdmin} className="bg-emerald-700 hover:bg-emerald-800 text-white font-bold px-6 py-2.5 rounded-lg text-xs"><i className="fa-solid fa-save mr-1"></i> Save MCQ Question</button>
                         </div>
 
                         <div className="bg-white p-5 rounded-2xl border border-slate-200 space-y-4">
@@ -1036,8 +1024,6 @@ export default function App() {
                             <textarea rows="4" value={adminArtForm.content} onChange={(e)=>setAdminArtForm(p=>({...p,content:e.target.value}))} placeholder="Full article content / Essay outline..." className="w-full p-3 border rounded-xl text-xs"></textarea>
                             <button onClick={saveArticleFromAdmin} className="bg-amber-600 hover:bg-amber-700 text-white font-bold px-6 py-2.5 rounded-lg text-xs"><i className="fa-solid fa-file-circle-plus mr-1"></i> Save Article / Essay</button>
                         </div>
-
-
 
                         <div className="bg-white p-5 rounded-2xl border border-slate-200 space-y-4">
                             <h3 className="font-bold text-slate-800 text-sm flex items-center gap-2 border-b pb-2"><i className="fa-solid fa-newspaper text-indigo-600"></i> Add Dawn Vocab</h3>
@@ -1063,6 +1049,22 @@ export default function App() {
                                 <input type="text" value={adminVocabForm.sentence} onChange={(e)=>setAdminVocabForm(p=>({...p,sentence:e.target.value}))} placeholder="Usage of Sentence" className="p-2.5 border rounded-lg" />
                             </div>
                             <button onClick={saveVocabFromAdmin} className="bg-indigo-700 hover:bg-indigo-800 text-white font-bold px-6 py-2.5 rounded-lg text-xs"><i className="fa-solid fa-plus mr-1"></i> Save Vocab</button>
+                        </div>
+
+                        <div className="bg-white p-5 rounded-2xl border border-slate-200 space-y-4">
+                            <h3 className="font-bold text-slate-800 text-sm flex items-center gap-2 border-b pb-2"><i className="fa-solid fa-heading text-amber-600"></i> Edit Headlines Section Heading</h3>
+                            <div className="flex gap-2">
+                                <input type="text" value={headlinesHeadingInput} onChange={(e)=>setHeadlinesHeadingInput(e.target.value)} placeholder="Heading..." className="flex-grow p-2.5 border rounded-lg text-xs" />
+                                <button onClick={()=>{const v=headlinesHeadingInput.trim()||'Top National Headlines'; setHeadlinesHeading(v); localStorage.setItem('eip_headlines_heading',v); showToast('Heading updated');}} className="bg-amber-600 hover:bg-amber-700 text-white font-bold px-6 py-2.5 rounded-lg text-xs"><i className="fa-solid fa-save mr-1"></i> Update Heading</button>
+                            </div>
+                        </div>
+
+                        <div className="bg-white p-5 rounded-2xl border border-slate-200 space-y-4">
+                            <h3 className="font-bold text-slate-800 text-sm flex items-center gap-2 border-b pb-2"><i className="fa-solid fa-bullhorn text-amber-600"></i> Add Daily Headline</h3>
+                            <div className="flex gap-2">
+                                <input type="text" value={adminHeadlineForm.title} onChange={(e)=>setAdminHeadlineForm({title:e.target.value})} placeholder="Enter headline..." className="flex-grow p-2.5 border rounded-lg text-xs" />
+                                <button onClick={saveHeadlineFromAdmin} className="bg-amber-600 hover:bg-amber-700 text-white font-bold px-6 py-2.5 rounded-lg text-xs"><i className="fa-solid fa-plus mr-1"></i> Add Headline</button>
+                            </div>
                         </div>
 
                         <div className="bg-white p-5 rounded-2xl border border-slate-200 space-y-4">

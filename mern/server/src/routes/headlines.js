@@ -1,68 +1,45 @@
-import { Router } from 'express';
-import { z } from 'zod';
+import express from 'express';
 import { Headline } from '../models/Headline.js';
-import { validate } from '../middleware/validate.js';
 import { requireAuth, requireAdmin } from '../middleware/auth.js';
-import { asyncHandler, ApiError } from '../utils/errors.js';
-import { paged, parsePagination } from '../utils/query.js';
 
-const router = Router();
+const router = express.Router();
 
-const headlineBody = z.object({
-  title: z.string().trim().min(5).max(300),
-  source: z.string().trim().max(80).optional(),
-  url: z.string().trim().url().or(z.literal('')).optional(),
-  publishedAt: z.string().datetime().optional(),
+router.get('/', async (req, res, next) => {
+  try {
+    const { limit = 50 } = req.query;
+    const items = await Headline.find({ active: true }).sort({ createdAt: -1 }).limit(Number(limit));
+    res.json({ data: { items } });
+  } catch (e) { next(e); }
 });
-const updateBody = headlineBody.partial();
 
-router.get(
-  '/',
-  asyncHandler(async (req, res) => {
-    const { page, limit, skip } = parsePagination(req.query, { limit: 20 });
-    const [items, total] = await Promise.all([
-      Headline.find({}).sort({ publishedAt: -1, _id: -1 }).skip(skip).limit(limit),
-      Headline.countDocuments({}),
-    ]);
-    res.json({ data: paged(items, total, page, limit) });
-  })
-);
+router.get('/all', requireAuth, requireAdmin, async (req, res, next) => {
+  try {
+    const items = await Headline.find().sort({ createdAt: -1 });
+    res.json({ data: { items } });
+  } catch (e) { next(e); }
+});
 
-router.post(
-  '/',
-  requireAuth,
-  requireAdmin,
-  validate(headlineBody),
-  asyncHandler(async (req, res) => {
-    const headline = await Headline.create({ ...req.body, createdBy: req.user.id });
-    res.status(201).json({ data: { headline } });
-  })
-);
+router.post('/', requireAuth, requireAdmin, async (req, res, next) => {
+  try {
+    const { title } = req.body;
+    if (!title) return res.status(400).json({ error: { message: 'Title required' } });
+    const item = await Headline.create({ title });
+    res.status(201).json({ data: { item } });
+  } catch (e) { next(e); }
+});
 
-router.patch(
-  '/:id',
-  requireAuth,
-  requireAdmin,
-  validate(updateBody),
-  asyncHandler(async (req, res) => {
-    const headline = await Headline.findByIdAndUpdate(req.params.id, req.body, {
-      new: true,
-      runValidators: true,
-    });
-    if (!headline) throw new ApiError(404, 'Headline not found');
-    res.json({ data: { headline } });
-  })
-);
+router.patch('/:id', requireAuth, requireAdmin, async (req, res, next) => {
+  try {
+    const item = await Headline.findByIdAndUpdate(req.params.id, req.body, { new: true });
+    res.json({ data: { item } });
+  } catch (e) { next(e); }
+});
 
-router.delete(
-  '/:id',
-  requireAuth,
-  requireAdmin,
-  asyncHandler(async (req, res) => {
-    const headline = await Headline.findByIdAndDelete(req.params.id);
-    if (!headline) throw new ApiError(404, 'Headline not found');
+router.delete('/:id', requireAuth, requireAdmin, async (req, res, next) => {
+  try {
+    await Headline.findByIdAndDelete(req.params.id);
     res.json({ data: { ok: true } });
-  })
-);
+  } catch (e) { next(e); }
+});
 
 export default router;
