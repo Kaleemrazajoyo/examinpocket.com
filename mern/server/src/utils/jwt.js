@@ -10,10 +10,13 @@ export function signToken(user) {
 }
 
 export function cookieOptions() {
+  // Cross-origin deployments (e.g. frontend and backend on different Render domains)
+  // require SameSite=None; Secure for cookies to be sent with credentials.
+  const crossSite = env.isProd;
   return {
     httpOnly: true,
-    sameSite: 'lax',
-    secure: env.isProd,
+    sameSite: crossSite ? 'none' : 'lax',
+    secure: crossSite ? true : env.isProd,
     path: '/',
     maxAge: 7 * 24 * 60 * 60 * 1000,
   };

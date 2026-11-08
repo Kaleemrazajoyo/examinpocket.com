@@ -105,14 +105,15 @@ export default function App() {
     useEffect(() => {
         async function load() {
             try {
-                const [m, v, h, a, b, c, ct] = await Promise.all([
+                const [m, v, h, a, b, c, ct, s] = await Promise.all([
                     api.get('/mcqs?limit=500').catch(() => ({ items: [] })),
                     api.get('/vocab?limit=500').catch(() => ({ items: [] })),
                     api.get('/headlines?limit=50').catch(() => ({ items: [] })),
                     api.get('/articles?limit=200').catch(() => ({ items: [] })),
                     api.get('/books?limit=200').catch(() => ({ items: [] })),
                     api.get('/mcqs/categories').catch(() => ({ categories: [] })),
-                    api.get('/categories/tree').catch(() => ({ tree: [] }))
+                    api.get('/categories/tree').catch(() => ({ tree: [] })),
+                    api.get('/settings').catch(() => ({}))
                 ]);
                 setMcqs(m.items || m || []);
                 setDawnWords(v.items || v || []);
@@ -121,6 +122,17 @@ export default function App() {
                 setLibrary(b.items || b || []);
                 setApiCategories(c.categories || []);
                 setCatTree(ct.tree || []);
+                const settings = (s && s.data) ? s.data : (s || {});
+                if (settings.siteTicker) {
+                    setSiteTicker(settings.siteTicker);
+                    setTickerInput(settings.siteTicker);
+                    localStorage.setItem('eip_ticker', settings.siteTicker);
+                }
+                if (settings.headlinesHeading) {
+                    setHeadlinesHeading(settings.headlinesHeading);
+                    setHeadlinesHeadingInput(settings.headlinesHeading);
+                    localStorage.setItem('eip_headlines_heading', settings.headlinesHeading);
+                }
             } catch (e) {}
         }
         load();
@@ -357,10 +369,27 @@ export default function App() {
         } catch(e){ showToast(e.message||'Failed','error'); }
     }
 
-    function saveTicker() {
+    async function saveTicker() {
         setSiteTicker(tickerInput);
         localStorage.setItem('eip_ticker', tickerInput);
-        showToast('Ticker updated');
+        try {
+            await api.patch('/settings', { siteTicker: tickerInput });
+            showToast('Ticker updated');
+        } catch (e) {
+            showToast(e.message || 'Saved locally, but failed to sync online', 'error');
+        }
+    }
+
+    async function saveHeadlinesHeading() {
+        const v = headlinesHeadingInput.trim() || 'Top National Headlines';
+        setHeadlinesHeading(v);
+        localStorage.setItem('eip_headlines_heading', v);
+        try {
+            await api.patch('/settings', { headlinesHeading: v });
+            showToast('Heading updated');
+        } catch (e) {
+            showToast(e.message || 'Saved locally, but failed to sync online', 'error');
+        }
     }
 
     function toggleBookmarkMcq(id) {
@@ -1055,7 +1084,7 @@ export default function App() {
                             <h3 className="font-bold text-slate-800 text-sm flex items-center gap-2 border-b pb-2"><i className="fa-solid fa-heading text-amber-600"></i> Edit Headlines Section Heading</h3>
                             <div className="flex gap-2">
                                 <input type="text" value={headlinesHeadingInput} onChange={(e)=>setHeadlinesHeadingInput(e.target.value)} placeholder="Heading..." className="flex-grow p-2.5 border rounded-lg text-xs" />
-                                <button onClick={()=>{const v=headlinesHeadingInput.trim()||'Top National Headlines'; setHeadlinesHeading(v); localStorage.setItem('eip_headlines_heading',v); showToast('Heading updated');}} className="bg-amber-600 hover:bg-amber-700 text-white font-bold px-6 py-2.5 rounded-lg text-xs"><i className="fa-solid fa-save mr-1"></i> Update Heading</button>
+                                <button onClick={saveHeadlinesHeading} className="bg-amber-600 hover:bg-amber-700 text-white font-bold px-6 py-2.5 rounded-lg text-xs"><i className="fa-solid fa-save mr-1"></i> Update Heading</button>
                             </div>
                         </div>
 

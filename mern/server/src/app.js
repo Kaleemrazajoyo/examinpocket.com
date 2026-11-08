@@ -19,6 +19,7 @@ import aiRoutes from './routes/ai.js';
 import linkRoutes from './routes/links.js';
 import adminRoutes from './routes/admin.js';
 import categoriesRoutes from './routes/categories.js';
+import settingsRoutes from './routes/settings.js';
 
 export function createApp() {
   const app = express();
@@ -52,6 +53,7 @@ export function createApp() {
   app.use('/api/links', linkRoutes);
   app.use('/api/admin', adminRoutes);
   app.use('/api/categories', categoriesRoutes);
+  app.use('/api/settings', settingsRoutes);
 
   app.use(notFound);
   app.use(errorHandler);
