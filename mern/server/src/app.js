@@ -20,6 +20,8 @@ import linkRoutes from './routes/links.js';
 import adminRoutes from './routes/admin.js';
 import categoriesRoutes from './routes/categories.js';
 import settingsRoutes from './routes/settings.js';
+import commentRoutes from './routes/comments.js';
+import submissionRoutes from './routes/submissions.js';
 
 export function createApp() {
   const app = express();
@@ -61,6 +63,8 @@ export function createApp() {
   app.use('/api/admin', adminRoutes);
   app.use('/api/categories', categoriesRoutes);
   app.use('/api/settings', settingsRoutes);
+  app.use('/api/comments', commentRoutes);
+  app.use('/api/submissions', submissionRoutes);
 
   app.use(notFound);
   app.use(errorHandler);

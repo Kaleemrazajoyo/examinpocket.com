@@ -19,6 +19,8 @@ const mcqSchema = new mongoose.Schema(
     difficulty: { type: String, enum: ['easy', 'medium', 'hard'], default: 'medium' },
     legacyId: { type: Number, index: true },
     createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+    // Set only for MCQs approved from user submissions. Existing MCQs stay unchanged.
+    submittedBy: { type: String, trim: true, maxlength: 80 },
   },
   { timestamps: true }
 );

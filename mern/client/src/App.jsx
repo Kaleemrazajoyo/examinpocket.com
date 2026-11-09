@@ -70,6 +70,18 @@ export default function App() {
     const [siteTicker, setSiteTicker] = useState(localStorage.getItem('eip_ticker') || '📢 <span class="font-bold">Latest Exam Update:</span> CSS MPT &amp; SPSC CCE Solved Past Paper MCQs Added • Daily Dawn Vocabulary Active • Live Gemini AI Tutor Active!');
     const [currentUser, setCurrentUser] = useState(null);
 
+    // Comments + user MCQ submissions
+    const [commentModalMcq, setCommentModalMcq] = useState(null);
+    const [comments, setComments] = useState([]);
+    const [commentsLoading, setCommentsLoading] = useState(false);
+    const [commentForm, setCommentForm] = useState({ name: '', email: '', text: '' });
+    const [commentCounts, setCommentCounts] = useState({});
+    const [submitMcqOpen, setSubmitMcqOpen] = useState(false);
+    const [submittingMcq, setSubmittingMcq] = useState(false);
+    const [submitMcqForm, setSubmitMcqForm] = useState({ mainCategory: '', subCategory: '', question: '', opt0: '', opt1: '', opt2: '', opt3: '', answerIndex: 0, explanation: '' });
+    const [adminSubmissions, setAdminSubmissions] = useState([]);
+    const [adminComments, setAdminComments] = useState([]);
+
     const [mcqs, setMcqs] = useState([]);
     const [dawnWords, setDawnWords] = useState([]);
     const [headlines, setHeadlines] = useState([]);
@@ -105,7 +117,7 @@ export default function App() {
     useEffect(() => {
         async function load() {
             try {
-                const [m, v, h, a, b, c, ct, s] = await Promise.all([
+                const [m, v, h, a, b, c, ct, s, cc] = await Promise.all([
                     api.get('/mcqs?limit=500').catch(() => ({ items: [] })),
                     api.get('/vocab?limit=500').catch(() => ({ items: [] })),
                     api.get('/headlines?limit=50').catch(() => ({ items: [] })),
@@ -113,7 +125,8 @@ export default function App() {
                     api.get('/books?limit=200').catch(() => ({ items: [] })),
                     api.get('/mcqs/categories').catch(() => ({ categories: [] })),
                     api.get('/categories/tree').catch(() => ({ tree: [] })),
-                    api.get('/settings').catch(() => ({}))
+                    api.get('/settings').catch(() => ({})),
+                    api.get('/comments/counts').catch(() => ({ counts: {} }))
                 ]);
                 setMcqs(m.items || m || []);
                 setDawnWords(v.items || v || []);
@@ -122,6 +135,7 @@ export default function App() {
                 setLibrary(b.items || b || []);
                 setApiCategories(c.categories || []);
                 setCatTree(ct.tree || []);
+                setCommentCounts(cc.counts || {});
                 const settings = (s && s.data) ? s.data : (s || {});
                 if (settings.siteTicker) {
                     setSiteTicker(settings.siteTicker);
@@ -153,6 +167,12 @@ export default function App() {
         }, 1000);
         return () => clearInterval(t);
     }, [testRunning]);
+
+    useEffect(() => {
+        if (currentUser?.role === 'admin' && activeTab === 'adminPanelTab') {
+            loadAdminFeedback();
+        }
+    }, [currentUser, activeTab]);
 
     function switchTab(id) { setActiveTab(id); window.scrollTo({ top: 0, behavior: 'smooth' }); }
 
@@ -389,6 +409,126 @@ export default function App() {
             showToast('Heading updated');
         } catch (e) {
             showToast(e.message || 'Saved locally, but failed to sync online', 'error');
+        }
+    }
+
+    async function openComments(mcq) {
+        setCommentModalMcq(mcq);
+        setComments([]);
+        setCommentsLoading(true);
+        try {
+            const res = await api.get(`/comments?mcqId=${encodeURIComponent(mcq._id || mcq.id)}`);
+            setComments(res.comments || []);
+        } catch (e) {
+            showToast(e.message || 'Failed to load comments', 'error');
+        } finally {
+            setCommentsLoading(false);
+        }
+    }
+
+    async function postComment() {
+        if (!commentModalMcq) return;
+        const name = commentForm.name.trim();
+        const email = commentForm.email.trim();
+        const text = commentForm.text.trim();
+        if (!name || !email || !text) { showToast('Name, email and comment are required', 'error'); return; }
+        try {
+            const res = await api.post('/comments', {
+                mcqId: commentModalMcq._id || commentModalMcq.id,
+                name,
+                email,
+                text,
+            });
+            setComments((prev) => [...prev, res.comment]);
+            setCommentForm((prev) => ({ ...prev, text: '' }));
+            const id = String(commentModalMcq._id || commentModalMcq.id);
+            setCommentCounts((prev) => ({ ...prev, [id]: (prev[id] || 0) + 1 }));
+            showToast('Comment posted');
+        } catch (e) {
+            showToast(e.message || 'Failed to post comment', 'error');
+        }
+    }
+
+    function openSubmitMcq() {
+        if (!currentUser) {
+            showToast('Please login or register to submit an MCQ', 'error');
+            setAuthModalOpen(true);
+            return;
+        }
+        setSubmitMcqForm({ mainCategory: '', subCategory: '', question: '', opt0: '', opt1: '', opt2: '', opt3: '', answerIndex: 0, explanation: '' });
+        setSubmitMcqOpen(true);
+    }
+
+    async function submitMcq() {
+        const f = submitMcqForm;
+        if (!f.mainCategory) { showToast('Please select a main category', 'error'); return; }
+        if (!f.question.trim() || !f.opt0.trim() || !f.opt1.trim() || !f.opt2.trim() || !f.opt3.trim()) {
+            showToast('Please fill the question and all 4 options', 'error');
+            return;
+        }
+        setSubmittingMcq(true);
+        try {
+            await api.post('/submissions', {
+                question: f.question.trim(),
+                options: [f.opt0.trim(), f.opt1.trim(), f.opt2.trim(), f.opt3.trim()],
+                answerIndex: Number(f.answerIndex),
+                explanation: f.explanation.trim(),
+                mainCategory: f.mainCategory,
+                subCategory: f.subCategory || '',
+            });
+            setSubmitMcqOpen(false);
+            showToast('MCQ submitted for admin approval');
+        } catch (e) {
+            showToast(e.message || 'Failed to submit MCQ', 'error');
+        } finally {
+            setSubmittingMcq(false);
+        }
+    }
+
+    async function loadAdminFeedback() {
+        const [s, c] = await Promise.all([
+            api.get('/submissions').catch(() => ({ submissions: [] })),
+            api.get('/comments/admin').catch(() => ({ comments: [] })),
+        ]);
+        setAdminSubmissions(s.submissions || []);
+        setAdminComments(c.comments || []);
+    }
+
+    async function approveSubmission(id) {
+        if (!(await showConfirmModal('Approve MCQ', 'This will publish the MCQ on the website with the submitter\'s name.'))) return;
+        try {
+            await api.post(`/submissions/${id}/approve`);
+            showToast('MCQ approved and published');
+            const [s, m] = await Promise.all([
+                api.get('/submissions').catch(() => ({ submissions: [] })),
+                api.get('/mcqs?limit=500').catch(() => ({ items: mcqs })),
+            ]);
+            setAdminSubmissions(s.submissions || []);
+            setMcqs(m.items || m || []);
+        } catch (e) {
+            showToast(e.message || 'Failed to approve submission', 'error');
+        }
+    }
+
+    async function rejectSubmission(id) {
+        if (!(await showConfirmModal('Reject MCQ', 'This submission will be deleted permanently.'))) return;
+        try {
+            await api.delete(`/submissions/${id}`);
+            setAdminSubmissions((prev) => prev.filter((s) => String(s._id) !== String(id)));
+            showToast('Submission rejected');
+        } catch (e) {
+            showToast(e.message || 'Failed to reject submission', 'error');
+        }
+    }
+
+    async function deleteComment(id) {
+        if (!(await showConfirmModal('Delete Comment', 'Are you sure you want to delete this comment?'))) return;
+        try {
+            await api.delete(`/comments/${id}`);
+            setAdminComments((prev) => prev.filter((c) => String(c._id) !== String(id)));
+            showToast('Comment deleted');
+        } catch (e) {
+            showToast(e.message || 'Failed to delete comment', 'error');
         }
     }
 
@@ -777,6 +917,70 @@ export default function App() {
                 </div>
             )}
 
+            {commentModalMcq && (
+                <div className="fixed inset-0 bg-slate-900/70 backdrop-blur-sm z-[75] flex items-center justify-center p-4 no-print">
+                    <div className="bg-white w-full max-w-lg rounded-2xl shadow-2xl border border-slate-200 p-6 space-y-4 relative max-h-[90vh] overflow-y-auto">
+                        <button onClick={() => setCommentModalMcq(null)} className="absolute right-4 top-4 text-slate-400 hover:text-slate-600"><i className="fa-solid fa-xmark text-lg"></i></button>
+                        <div className="border-b pb-2 pr-8">
+                            <h3 className="text-lg font-bold text-slate-900 flex items-center gap-2"><i className="fa-regular fa-comments text-indigo-600"></i> Comments</h3>
+                            <p className="text-xs text-slate-500 mt-1 line-clamp-2">{commentModalMcq.question}</p>
+                        </div>
+                        <div className="space-y-2.5">
+                            <div className="grid sm:grid-cols-2 gap-2">
+                                <input value={commentForm.name} onChange={(e) => setCommentForm((p) => ({ ...p, name: e.target.value }))} placeholder="Your name" className="p-2.5 border border-slate-300 rounded-lg text-sm" />
+                                <input type="email" value={commentForm.email} onChange={(e) => setCommentForm((p) => ({ ...p, email: e.target.value }))} placeholder="Your email (not public)" className="p-2.5 border border-slate-300 rounded-lg text-sm" />
+                            </div>
+                            <textarea rows="3" value={commentForm.text} onChange={(e) => setCommentForm((p) => ({ ...p, text: e.target.value }))} placeholder="Write your comment..." className="w-full p-2.5 border border-slate-300 rounded-lg text-sm"></textarea>
+                            <button onClick={postComment} className="w-full bg-indigo-900 hover:bg-indigo-800 text-white font-bold py-2.5 rounded-lg text-sm"><i className="fa-solid fa-paper-plane mr-1"></i> Post Comment</button>
+                            <p className="text-[10px] text-slate-400 text-center">Your email is only visible to the admin, never publicly.</p>
+                        </div>
+                        <div className="border-t pt-3 space-y-2.5 max-h-64 overflow-y-auto">
+                            {commentsLoading ? (
+                                <p className="text-xs text-slate-400">Loading comments...</p>
+                            ) : comments.length === 0 ? (
+                                <p className="text-xs text-slate-400">No comments yet. Be the first to comment!</p>
+                            ) : comments.map((c) => (
+                                <div key={c._id} className="bg-slate-50 p-3 rounded-lg border border-slate-200">
+                                    <div className="flex justify-between items-center gap-2">
+                                        <strong className="text-xs text-slate-900">{c.name}</strong>
+                                        <span className="text-[10px] text-slate-400">{new Date(c.createdAt).toLocaleDateString()}</span>
+                                    </div>
+                                    <p className="text-xs text-slate-700 mt-1 whitespace-pre-line">{c.text}</p>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {submitMcqOpen && (
+                <div className="fixed inset-0 bg-slate-900/70 backdrop-blur-sm z-[75] flex items-center justify-center p-4 no-print">
+                    <div className="bg-white w-full max-w-lg rounded-2xl shadow-2xl border border-slate-200 p-6 space-y-4 relative max-h-[90vh] overflow-y-auto">
+                        <button onClick={() => setSubmitMcqOpen(false)} className="absolute right-4 top-4 text-slate-400 hover:text-slate-600"><i className="fa-solid fa-xmark text-lg"></i></button>
+                        <div className="border-b pb-2">
+                            <h3 className="text-lg font-bold text-slate-900 flex items-center gap-2"><i className="fa-solid fa-circle-plus text-emerald-600"></i> Submit Your MCQ</h3>
+                            <p className="text-xs text-slate-500 mt-1">Your MCQ will be reviewed by the admin before it appears on the website.</p>
+                        </div>
+                        <div className="space-y-3 text-xs sm:text-sm">
+                            <div className="grid grid-cols-2 gap-2">
+                                <div><label className="block font-bold text-slate-700 mb-1">Main Category</label><select value={submitMcqForm.mainCategory} onChange={(e) => setSubmitMcqForm((p) => ({ ...p, mainCategory: e.target.value, subCategory: '' }))} className="w-full p-2.5 border border-slate-300 rounded-lg bg-slate-50"><option value="">Select</option>{catTree.map((m) => <option key={m._id} value={m.name}>{m.name}</option>)}</select></div>
+                                <div><label className="block font-bold text-slate-700 mb-1">Sub Category</label><select value={submitMcqForm.subCategory} onChange={(e) => setSubmitMcqForm((p) => ({ ...p, subCategory: e.target.value }))} className="w-full p-2.5 border border-slate-300 rounded-lg bg-slate-50"><option value="">Select</option>{(catTree.find((x) => x.name === submitMcqForm.mainCategory)?.children || []).map((s) => <option key={s._id} value={s.name}>{s.name}</option>)}</select></div>
+                            </div>
+                            <div><label className="block font-bold text-slate-700 mb-1">Question Statement</label><textarea rows="2" value={submitMcqForm.question} onChange={(e) => setSubmitMcqForm((p) => ({ ...p, question: e.target.value }))} placeholder="Enter the full question..." className="w-full p-2.5 border border-slate-300 rounded-lg"></textarea></div>
+                            <div className="grid grid-cols-2 gap-2">
+                                <input type="text" value={submitMcqForm.opt0} onChange={(e) => setSubmitMcqForm((p) => ({ ...p, opt0: e.target.value }))} placeholder="Option A" className="p-2.5 border border-slate-300 rounded-lg" />
+                                <input type="text" value={submitMcqForm.opt1} onChange={(e) => setSubmitMcqForm((p) => ({ ...p, opt1: e.target.value }))} placeholder="Option B" className="p-2.5 border border-slate-300 rounded-lg" />
+                                <input type="text" value={submitMcqForm.opt2} onChange={(e) => setSubmitMcqForm((p) => ({ ...p, opt2: e.target.value }))} placeholder="Option C" className="p-2.5 border border-slate-300 rounded-lg" />
+                                <input type="text" value={submitMcqForm.opt3} onChange={(e) => setSubmitMcqForm((p) => ({ ...p, opt3: e.target.value }))} placeholder="Option D" className="p-2.5 border border-slate-300 rounded-lg" />
+                            </div>
+                            <div><label className="block font-bold text-slate-700 mb-1">Correct Answer</label><select value={submitMcqForm.answerIndex} onChange={(e) => setSubmitMcqForm((p) => ({ ...p, answerIndex: Number(e.target.value) }))} className="w-full p-2.5 border border-slate-300 rounded-lg bg-slate-50"><option value={0}>Option A</option><option value={1}>Option B</option><option value={2}>Option C</option><option value={3}>Option D</option></select></div>
+                            <div><label className="block font-bold text-slate-700 mb-1">Explanation (optional)</label><input type="text" value={submitMcqForm.explanation} onChange={(e) => setSubmitMcqForm((p) => ({ ...p, explanation: e.target.value }))} placeholder="Explain the answer..." className="w-full p-2.5 border border-slate-300 rounded-lg" /></div>
+                            <button onClick={submitMcq} disabled={submittingMcq} className="w-full bg-emerald-600 hover:bg-emerald-700 disabled:opacity-60 text-white font-bold py-2.5 rounded-lg">{submittingMcq ? 'Submitting...' : 'Submit MCQ for Approval'}</button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
             {authModalOpen && (
                 <div className="fixed inset-0 bg-slate-900/70 backdrop-blur-sm z-[80] flex items-center justify-center p-4 no-print">
                     <div className="bg-white w-full max-w-md rounded-2xl shadow-2xl border border-slate-200 p-6 space-y-4 relative max-h-[90vh] overflow-y-auto">
@@ -823,6 +1027,7 @@ export default function App() {
                             <p className="text-xs sm:text-sm text-slate-300 max-w-2xl">Access thousands of verified MCQs, solved past papers, Dawn vocabulary, editorial articles, and AI-powered study guides.</p>
                             <div className="relative w-full max-w-3xl"><i className="fa-solid fa-magnifying-glass absolute left-4 top-3.5 text-slate-400"></i><input value={searchInput} onChange={(e) => setSearchInput(e.target.value)} placeholder="Search questions, subjects, amendments, rivers, foreign words..." className="w-full pl-11 pr-4 py-3 rounded-xl border-0 text-slate-900 text-sm focus:ring-2 focus:ring-amber-400 outline-none shadow-inner" /></div>
                             <div className="flex flex-wrap gap-2 pt-2">
+                                <button onClick={openSubmitMcq} className="px-3 py-1.5 rounded-lg text-xs sm:text-sm bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold transition flex items-center gap-1"><i className="fa-solid fa-circle-plus"></i> Submit Your MCQ</button>
                                 {categoryList.map((cat) => {
                                     const hasSub = cat !== 'ALL' && catTree.find(m => m.name === cat) && (catTree.find(m => m.name === cat)?.children || []).length > 0;
                                     return (
@@ -848,6 +1053,11 @@ export default function App() {
                                     <h3 className="text-sm sm:text-base font-semibold text-slate-900 leading-snug">{mcq.question}</h3>
                                     <div className="grid sm:grid-cols-2 gap-2.5">{(mcq.options||[]).map((opt, optIdx) => (<button key={optIdx} onClick={() => checkAnswer(mcqId, optIdx, cardId)} className={`opt-btn-${mcqId} w-full text-left p-3 rounded-xl border border-slate-200 hover:bg-slate-50 hover:border-indigo-300 transition text-xs sm:text-sm flex items-center justify-between`}><span>{String.fromCharCode(65 + optIdx)}) {opt}</span><i className="fa-regular fa-circle text-slate-300 opt-icon"></i></button>))}</div>
                                     <div id={`explanation-${mcqId}`} className="hidden bg-indigo-50 p-3.5 rounded-xl text-xs text-indigo-950 border border-indigo-100 space-y-1"><p><strong>Explanation:</strong> {mcq.explanation}</p></div>
+                                    {mcq.submittedBy && (<p className="text-[11px] font-semibold text-emerald-700 flex items-center gap-1"><i className="fa-solid fa-user-pen"></i> Submitted by {mcq.submittedBy}</p>)}
+                                    <div className="flex items-center justify-between border-t border-slate-100 pt-2">
+                                        <button onClick={() => openComments(mcq)} className="text-slate-500 hover:text-indigo-700 text-xs font-semibold flex items-center gap-1.5"><i className="fa-regular fa-comment"></i> Comments{commentCounts[String(mcqId)] ? ` (${commentCounts[String(mcqId)]})` : ''}</button>
+                                        <span className="text-[10px] text-slate-400">Tap an option to check the answer</span>
+                                    </div>
                                 </div>
                             );
                         })}</div>
@@ -1105,13 +1315,15 @@ export default function App() {
 
                         <div className="bg-white p-5 rounded-2xl border border-slate-200 space-y-4">
                             <h3 className="font-bold text-slate-800 text-sm flex items-center gap-2 border-b pb-2"><i className="fa-solid fa-list-check text-indigo-600"></i> Manage Content Items (Edit & Delete)</h3>
-                            <div className="flex flex-wrap gap-2"><button onClick={()=>setAdminManageTab('MCQS')} className={`px-3 py-1 rounded-lg text-xs ${adminManageTab==='MCQS'?'bg-slate-900 text-white':'bg-slate-100 text-slate-700'}`}>MCQs</button><button onClick={()=>setAdminManageTab('VOCAB')} className={`px-3 py-1 rounded-lg text-xs ${adminManageTab==='VOCAB'?'bg-slate-900 text-white':'bg-slate-100 text-slate-700'}`}>Dawn Vocab</button><button onClick={()=>setAdminManageTab('HEADLINES')} className={`px-3 py-1 rounded-lg text-xs ${adminManageTab==='HEADLINES'?'bg-slate-900 text-white':'bg-slate-100 text-slate-700'}`}>Headlines</button><button onClick={()=>setAdminManageTab('ARTICLES')} className={`px-3 py-1 rounded-lg text-xs ${adminManageTab==='ARTICLES'?'bg-slate-900 text-white':'bg-slate-100 text-slate-700'}`}>Articles</button><button onClick={()=>setAdminManageTab('BOOKS')} className={`px-3 py-1 rounded-lg text-xs ${adminManageTab==='BOOKS'?'bg-slate-900 text-white':'bg-slate-100 text-slate-700'}`}>Books</button></div>
+                            <div className="flex flex-wrap gap-2"><button onClick={()=>setAdminManageTab('MCQS')} className={`px-3 py-1 rounded-lg text-xs ${adminManageTab==='MCQS'?'bg-slate-900 text-white':'bg-slate-100 text-slate-700'}`}>MCQs</button><button onClick={()=>setAdminManageTab('VOCAB')} className={`px-3 py-1 rounded-lg text-xs ${adminManageTab==='VOCAB'?'bg-slate-900 text-white':'bg-slate-100 text-slate-700'}`}>Dawn Vocab</button><button onClick={()=>setAdminManageTab('HEADLINES')} className={`px-3 py-1 rounded-lg text-xs ${adminManageTab==='HEADLINES'?'bg-slate-900 text-white':'bg-slate-100 text-slate-700'}`}>Headlines</button><button onClick={()=>setAdminManageTab('ARTICLES')} className={`px-3 py-1 rounded-lg text-xs ${adminManageTab==='ARTICLES'?'bg-slate-900 text-white':'bg-slate-100 text-slate-700'}`}>Articles</button><button onClick={()=>setAdminManageTab('BOOKS')} className={`px-3 py-1 rounded-lg text-xs ${adminManageTab==='BOOKS'?'bg-slate-900 text-white':'bg-slate-100 text-slate-700'}`}>Books</button><button onClick={()=>setAdminManageTab('SUBMISSIONS')} className={`px-3 py-1 rounded-lg text-xs ${adminManageTab==='SUBMISSIONS'?'bg-emerald-700 text-white':'bg-emerald-100 text-emerald-900'}`}>MCQ Submissions{adminSubmissions.length > 0 ? ` (${adminSubmissions.length})` : ''}</button><button onClick={()=>setAdminManageTab('COMMENTS')} className={`px-3 py-1 rounded-lg text-xs ${adminManageTab==='COMMENTS'?'bg-indigo-700 text-white':'bg-indigo-100 text-indigo-900'}`}>Comments</button></div>
                             <div className="space-y-2 max-h-[500px] overflow-y-auto">
                                 {adminManageTab==='MCQS' && mcqs.map((m,i)=>(<div key={i} className="bg-slate-50 p-3 rounded-lg border border-slate-200 flex justify-between items-center gap-2"><div className="truncate text-xs"><strong className="text-indigo-900">[{m.category}]</strong> {m.question}</div><div className="flex gap-1 shrink-0"><button onClick={()=>openEditMcqModal(m)} className="bg-indigo-900 text-white px-2 py-1 rounded text-xs font-bold">Edit</button><button onClick={()=>deleteMcq(m._id||m.id)} className="bg-rose-600 text-white px-2 py-1 rounded text-xs font-bold">Delete</button></div></div>))}
                                 {adminManageTab==='VOCAB' && dawnWords.map((w,i)=>(<div key={i} className="bg-slate-50 p-3 rounded-lg border border-slate-200 flex justify-between items-center gap-2"><div className="truncate text-xs"><strong className="text-indigo-900">{w.word}</strong> ({w.type||w.partsOfSpeech}) - {w.urdu} | {w.meaning}</div><div className="flex gap-1 shrink-0"><button onClick={()=>setEditVocab({...w})} className="bg-indigo-700 text-white px-2 py-1 rounded text-xs font-bold">Edit</button><button onClick={()=>deleteVocab(w._id||w.id)} className="bg-rose-600 text-white px-2 py-1 rounded text-xs font-bold">Delete</button></div></div>))}
                                 {adminManageTab==='HEADLINES' && headlines.map((h,i)=>(<div key={i} className="bg-slate-50 p-3 rounded-lg border border-slate-200 flex justify-between items-center gap-2"><div className="truncate text-xs"><strong className="text-amber-900">Headline</strong> {h.title||h}</div><div className="flex gap-1 shrink-0"><button onClick={()=>setEditHeadline(h)} className="bg-amber-600 text-white px-2 py-1 rounded text-xs font-bold">Edit</button><button onClick={()=>deleteHeadline(h._id||h.id)} className="bg-rose-600 text-white px-2 py-1 rounded text-xs font-bold">Delete</button></div></div>))}
                                 {adminManageTab==='ARTICLES' && articles.map((a,i)=>(<div key={i} className="bg-slate-50 p-3 rounded-lg border border-slate-200 flex justify-between items-center gap-2"><div className="truncate text-xs"><strong className="text-amber-900">[{a.category}]</strong> {a.title}</div><div className="flex gap-1 shrink-0"><button onClick={()=>setEditArticle(a)} className="bg-amber-600 text-white px-2 py-1 rounded text-xs font-bold">Edit</button><button onClick={()=>deleteArticle(a._id||a.id)} className="bg-rose-600 text-white px-2 py-1 rounded text-xs font-bold">Delete</button></div></div>))}
                                 {adminManageTab==='BOOKS' && library.map((b,i)=>(<div key={i} className="bg-slate-50 p-3 rounded-lg border border-slate-200 flex justify-between items-center gap-2"><div className="truncate text-xs"><strong className="text-slate-900">{b.title}</strong> ({b.category||b.cat})</div><div className="flex gap-1 shrink-0"><button onClick={()=>setEditBook(b)} className="bg-indigo-900 text-white px-2 py-1 rounded text-xs font-bold">Edit</button><button onClick={()=>deleteBook(b._id||b.id)} className="bg-rose-600 text-white px-2 py-1 rounded text-xs font-bold">Delete</button></div></div>))}
+                                {adminManageTab==='SUBMISSIONS' && (adminSubmissions.length === 0 ? (<p className="text-xs text-slate-400">No pending MCQ submissions.</p>) : adminSubmissions.map((s) => (<div key={s._id} className="bg-slate-50 p-3 rounded-lg border border-slate-200 space-y-2"><div className="flex flex-wrap gap-2 items-center text-[11px]"><span className="bg-amber-100 text-amber-900 px-2 py-0.5 rounded font-bold">{s.mainCategory || s.category}{s.subCategory ? ` > ${s.subCategory}` : ''}</span><span className="text-slate-500">Submitted by <strong className="text-slate-800">{s.submittedBy}</strong> ({s.submittedByEmail})</span></div><p className="text-xs font-semibold text-slate-900">{s.question}</p><p className="text-[11px] text-slate-600">{s.options.map((o, i) => `${String.fromCharCode(65 + i)}) ${o}`).join(' • ')}</p><p className="text-[11px] text-emerald-700 font-bold">Correct: {String.fromCharCode(65 + s.answerIndex)}</p>{s.explanation && <p className="text-[11px] text-slate-500">Explanation: {s.explanation}</p>}<div className="flex gap-2 pt-1"><button onClick={()=>approveSubmission(s._id)} className="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1 rounded text-xs font-bold">Approve</button><button onClick={()=>rejectSubmission(s._id)} className="bg-rose-600 hover:bg-rose-700 text-white px-3 py-1 rounded text-xs font-bold">Reject</button></div></div>)))}
+                                {adminManageTab==='COMMENTS' && (adminComments.length === 0 ? (<p className="text-xs text-slate-400">No comments yet.</p>) : adminComments.map((c) => (<div key={c._id} className="bg-slate-50 p-3 rounded-lg border border-slate-200 flex justify-between items-start gap-2"><div className="text-xs min-w-0"><div className="flex flex-wrap items-center gap-2"><strong className="text-slate-900">{c.name}</strong><span className="text-slate-500">{c.email}</span><span className="text-[10px] text-slate-400">{new Date(c.createdAt).toLocaleString()}</span></div><p className="text-slate-700 mt-1 whitespace-pre-line">{c.text}</p><p className="text-[10px] text-slate-400 mt-1 truncate">On: {c.mcqId?.question || 'Deleted MCQ'}</p></div><button onClick={()=>deleteComment(c._id)} className="bg-rose-600 text-white px-2 py-1 rounded text-xs font-bold shrink-0">Delete</button></div>)))}
                             </div>
                         </div>
 

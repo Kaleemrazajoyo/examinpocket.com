@@ -22,3 +22,13 @@ export const authLimiter = rateLimit({
   legacyHeaders: false,
   message: { error: { code: 429, message: 'Too many attempts. Try again later.' } },
 });
+
+/** Limits public writes (comments, MCQ submissions) to reduce spam. */
+export const publicWriteLimiter = rateLimit({
+  windowMs: 10 * 60 * 1000,
+  limit: env.isProd ? 20 : 200,
+  standardHeaders: 'draft-7',
+  legacyHeaders: false,
+  keyGenerator: (req) => req.user?.id || req.ip,
+  message: { error: { code: 429, message: 'Too many submissions. Please try again later.' } },
+});
