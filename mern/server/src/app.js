@@ -26,9 +26,16 @@ export function createApp() {
 
   app.disable('x-powered-by');
   app.use(helmet({ crossOriginResourcePolicy: false }));
+  const allowedOrigins = String(env.clientOrigin)
+    .split(',')
+    .map((s) => s.trim())
+    .filter(Boolean);
   app.use(
     cors({
-      origin: env.clientOrigin,
+      origin(origin, callback) {
+        if (!origin || allowedOrigins.includes(origin)) return callback(null, true);
+        return callback(null, false);
+      },
       credentials: true,
     })
   );
