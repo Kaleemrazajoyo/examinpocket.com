@@ -444,6 +444,7 @@ export default function App() {
             const id = String(commentModalMcq._id || commentModalMcq.id);
             setCommentCounts((prev) => ({ ...prev, [id]: (prev[id] || 0) + 1 }));
             showToast('Comment posted');
+            setCommentModalMcq(null);
         } catch (e) {
             showToast(e.message || 'Failed to post comment', 'error');
         }
@@ -1025,9 +1026,11 @@ export default function App() {
                         <div className="bg-slate-900 text-white p-6 sm:p-8 rounded-2xl shadow-md border border-slate-800 space-y-4">
                             <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight">Prepare for <span className="text-amber-400">CSS, PMS, PCS, CCE</span> & All Competitive Exams</h2>
                             <p className="text-xs sm:text-sm text-slate-300 max-w-2xl">Access thousands of verified MCQs, solved past papers, Dawn vocabulary, editorial articles, and AI-powered study guides.</p>
-                            <div className="relative w-full max-w-3xl"><i className="fa-solid fa-magnifying-glass absolute left-4 top-3.5 text-slate-400"></i><input value={searchInput} onChange={(e) => setSearchInput(e.target.value)} placeholder="Search questions, subjects, amendments, rivers, foreign words..." className="w-full pl-11 pr-4 py-3 rounded-xl border-0 text-slate-900 text-sm focus:ring-2 focus:ring-amber-400 outline-none shadow-inner" /></div>
+                            <div className="flex flex-col sm:flex-row gap-2 w-full max-w-4xl">
+                                <div className="relative flex-grow min-w-0"><i className="fa-solid fa-magnifying-glass absolute left-4 top-3.5 text-slate-400"></i><input value={searchInput} onChange={(e) => setSearchInput(e.target.value)} placeholder="Search questions, subjects, amendments, rivers, foreign words..." className="w-full pl-11 pr-4 py-3 rounded-xl border-0 text-slate-900 text-sm focus:ring-2 focus:ring-amber-400 outline-none shadow-inner" /></div>
+                                <button onClick={openSubmitMcq} className="shrink-0 px-4 py-3 rounded-xl text-sm bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold transition flex items-center justify-center gap-2 shadow-sm"><i className="fa-solid fa-circle-plus"></i> Submit Your MCQ</button>
+                            </div>
                             <div className="flex flex-wrap gap-2 pt-2">
-                                <button onClick={openSubmitMcq} className="px-3 py-1.5 rounded-lg text-xs sm:text-sm bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold transition flex items-center gap-1"><i className="fa-solid fa-circle-plus"></i> Submit Your MCQ</button>
                                 {categoryList.map((cat) => {
                                     const hasSub = cat !== 'ALL' && catTree.find(m => m.name === cat) && (catTree.find(m => m.name === cat)?.children || []).length > 0;
                                     return (
