@@ -20,7 +20,7 @@ export const env = {
   geminiApiKey: process.env.GEMINI_API_KEY || '',
   geminiModel: process.env.GEMINI_MODEL || 'gemini-3.8-flash',
   aiWindowMinutes: Number(process.env.AI_WINDOW_MINUTES || 10),
-  aiMaxRequests: Number(process.env.AI_MAX_REQUESTS || 20),
+  aiMaxRequests: Number(process.env.AI_MAX_REQUESTS || 50),
   adminName: process.env.ADMIN_NAME || 'ExamInPocket Admin',
   adminEmail: process.env.ADMIN_EMAIL || 'admin@examinpocket.local',
   adminPassword: process.env.ADMIN_PASSWORD || 'ChangeMe123!',
