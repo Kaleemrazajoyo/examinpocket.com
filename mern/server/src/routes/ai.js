@@ -13,6 +13,15 @@ router.use(aiLimiter);
 
 const chatBody = z.object({
   prompt: z.string().trim().min(2).max(2000),
+  history: z
+    .array(
+      z.object({
+        role: z.enum(['user', 'model', 'ai']),
+        text: z.string().trim().min(1).max(4000),
+      })
+    )
+    .max(12)
+    .optional(),
 });
 
 const explainBody = z.object({
@@ -23,7 +32,7 @@ router.post(
   '/chat',
   validate(chatBody),
   asyncHandler(async (req, res) => {
-    const result = await askTutor(req.body.prompt);
+    const result = await askTutor(req.body.prompt, req.body.history || []);
     res.json({ data: result });
   })
 );

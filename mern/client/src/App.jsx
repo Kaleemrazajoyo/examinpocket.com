@@ -31,6 +31,61 @@ function showConfirmModal(title, text) {
     });
 }
 
+function isRetryableAiError(error) {
+    const message = String(error?.message || '').toLowerCase();
+    return (
+        message.includes('failed to fetch') ||
+        message.includes('network') ||
+        message.includes('timeout') ||
+        message.includes('502') ||
+        message.includes('503') ||
+        message.includes('504')
+    );
+}
+
+function renderAiText(text = '') {
+    return String(text)
+        .split('\n')
+        .map((rawLine, lineIndex) => {
+            let line = rawLine;
+            const isBullet = /^\s*[*-]\s+/.test(line);
+            if (isBullet) line = line.replace(/^\s*[*-]\s+/, '');
+            const isHeading = /^\s*#{1,4}\s+/.test(line);
+            if (isHeading) line = line.replace(/^\s*#{1,4}\s+/, '');
+            if (!line.trim()) return <div key={`gap-${lineIndex}`} className="h-2" />;
+
+            const parts = line
+                .split(/(\*\*[^*]+\*\*|`[^`]+`)/g)
+                .filter((part) => part !== '')
+                .map((part, partIndex) => {
+                    if (part.startsWith('**') && part.endsWith('**')) {
+                        return <strong key={partIndex}>{part.slice(2, -2)}</strong>;
+                    }
+                    if (part.startsWith('`') && part.endsWith('`')) {
+                        return (
+                            <code key={partIndex} className="bg-slate-100 text-slate-800 px-1 py-0.5 rounded text-[11px]">
+                                {part.slice(1, -1)}
+                            </code>
+                        );
+                    }
+                    return part;
+                });
+
+            if (isHeading) {
+                return <p key={`h-${lineIndex}`} className="font-bold text-slate-900 mt-2">{parts}</p>;
+            }
+            if (isBullet) {
+                return (
+                    <p key={`b-${lineIndex}`} className="flex gap-2">
+                        <span className="text-amber-500 shrink-0">•</span>
+                        <span>{parts}</span>
+                    </p>
+                );
+            }
+            return <p key={`p-${lineIndex}`}>{parts}</p>;
+        });
+}
+
 function formatGoogleDriveUrl(url) {
     if (!url || typeof url !== 'string') return '';
     let trimmed = url.trim();
@@ -54,8 +109,10 @@ export default function App() {
     const [searchInput, setSearchInput] = useState('');
     const [activeCategory, setActiveCategory] = useState('ALL');
     const [savedSubFilter, setSavedSubFilter] = useState('ALL');
-    const [aiMessages, setAiMessages] = useState([{ role: 'ai', text: 'Assalam-o-Alaikum Student! 🎓\nMain aap ka ExamInPocket Gemini AI Tutor Chatbot hoon.' }]);
+    const [aiMessages, setAiMessages] = useState([{ role: 'ai', welcome: true, text: 'Assalam-o-Alaikum Student! 🎓\nMain aap ka ExamInPocket AI Tutor hoon (Powered by Gemini). CSS/PMS, general knowledge, current affairs ya kisi bhi topic par sawal poochein — main simple Roman Urdu/English mein guide karunga.' }]);
     const [aiPrompt, setAiPrompt] = useState('');
+    const [aiLoading, setAiLoading] = useState(false);
+    const aiChatRef = useRef(null);
     const [logoClicks, setLogoClicks] = useState(0);
     const logoTimer = useRef(null);
     const [testConfig, setTestConfig] = useState({ category: 'ALL', count: 10 });
@@ -173,6 +230,12 @@ export default function App() {
             loadAdminFeedback();
         }
     }, [currentUser, activeTab]);
+
+    useEffect(() => {
+        if (aiChatRef.current) {
+            aiChatRef.current.scrollTop = aiChatRef.current.scrollHeight;
+        }
+    }, [aiMessages, aiLoading]);
 
     function switchTab(id) { setActiveTab(id); window.scrollTo({ top: 0, behavior: 'smooth' }); }
 
@@ -713,16 +776,55 @@ export default function App() {
     function resetMockTest() { setTestRunning(false); setTestResult(null); setTestQuestions([]); setTestAnswers({}); }
 
     async function sendAiChatMessage(prefill = null) {
-        const msg = prefill || aiPrompt;
-        if (!msg.trim()) return;
+        if (!currentUser) {
+            showToast('Please login or register to use AI Tutor', 'error');
+            setAuthModalOpen(true);
+            return;
+        }
+
+        const msg = String(prefill ?? aiPrompt).trim();
+        if (!msg || aiLoading) return;
+
+        const history = aiMessages
+            .filter((m) => !m.welcome && (m.role === 'user' || m.role === 'ai'))
+            .slice(-8)
+            .map((m) => ({ role: m.role === 'ai' ? 'model' : 'user', text: m.text }));
+
         setAiMessages((p) => [...p, { role: 'user', text: msg }]);
         setAiPrompt('');
-        setTimeout(() => {
-            setAiMessages((p) => [...p, { role: 'ai', text: 'AI Tutor response is available with Gemini API key configured in Admin.' }]);
-        }, 400);
+        setAiLoading(true);
+
+        try {
+            const payload = { prompt: msg, history };
+            let res;
+            try {
+                res = await api.post('/ai/chat', payload);
+            } catch (error) {
+                if (!isRetryableAiError(error)) throw error;
+                await new Promise((resolve) => setTimeout(resolve, 2000));
+                res = await api.post('/ai/chat', payload);
+            }
+
+            const reply = res?.reply || 'AI Tutor ne koi jawab nahi diya. Dobara koshish karein.';
+            setAiMessages((p) => [
+                ...p,
+                { role: 'ai', text: reply, offline: Boolean(res?.offline), model: res?.model },
+            ]);
+            if (res?.offline) showToast('AI service is not available right now', 'error');
+        } catch (error) {
+            setAiMessages((p) => [
+                ...p,
+                { role: 'ai', text: error.message || 'AI Tutor se connect nahi ho saka. Dobara koshish karein.' },
+            ]);
+            showToast(error.message || 'AI request failed', 'error');
+        } finally {
+            setAiLoading(false);
+        }
     }
 
-    function clearAiChat() { setAiMessages([{ role: 'ai', text: 'Assalam-o-Alaikum Student! 🎓\nMain aap ka ExamInPocket Gemini AI Tutor Chatbot hoon.' }]); }
+    function clearAiChat() {
+        setAiMessages([{ role: 'ai', welcome: true, text: 'Assalam-o-Alaikum Student! 🎓\nMain aap ka ExamInPocket AI Tutor hoon (Powered by Gemini). CSS/PMS, general knowledge, current affairs ya kisi bhi topic par sawal poochein — main simple Roman Urdu/English mein guide karunga.' }]);
+    }
 
     function openArticleReader(artId) {
         const art = articles.find((a) => String(a._id || a.id) === String(artId));
@@ -1224,17 +1326,70 @@ export default function App() {
                 {activeTab === 'aiTab' && (
                     <section className="space-y-6">
                         <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
-                            <div className="border-b pb-4 mb-4 flex justify-between items-center"><div><h2 className="text-xl font-bold text-slate-900">Gemini AI Exam Tutor Chatbot</h2><p className="text-xs text-slate-600 mt-1">Assalam-o-Alaikum Student! 🎓<br/>Main aap ka ExamInPocket Gemini AI Tutor Chatbot hoon.</p></div><button onClick={clearAiChat} className="text-xs text-slate-500">Clear Chat</button></div>
-                            <div className="mb-4 flex flex-wrap gap-2">
-                                <button onClick={()=>sendAiChatMessage('Create a detailed CSS 7-Day Study Timetable for competitive exams')} className="text-xs bg-indigo-50 text-indigo-700 px-3 py-1.5 rounded-lg border border-indigo-200 hover:bg-indigo-100 transition">📅 CSS 7-Day Timetable</button>
-                                <button onClick={()=>sendAiChatMessage('Give me practical English Essay Tips for CSS/PMS with structure, outline and examples')} className="text-xs bg-amber-50 text-amber-800 px-3 py-1.5 rounded-lg border border-amber-200 hover:bg-amber-100 transition">✍️ English Essay Tips</button>
-                                <button onClick={()=>sendAiChatMessage('Suggest effective General Knowledge Strategy for CSS/PMS including sources and revision plan')} className="text-xs bg-emerald-50 text-emerald-700 px-3 py-1.5 rounded-lg border border-emerald-200 hover:bg-emerald-100 transition">💡 General Knowledge Strategy</button>
-                                <button onClick={()=>sendAiChatMessage('How to prepare for Current Affairs for CSS/PMS? Give daily routine and resources')} className="text-xs bg-rose-50 text-rose-700 px-3 py-1.5 rounded-lg border border-rose-200 hover:bg-rose-100 transition">📰 Current Affairs Prep</button>
-                                <button onClick={()=>sendAiChatMessage('Explain English Precis Writing rules, techniques and practice for CSS')} className="text-xs bg-purple-50 text-purple-700 px-3 py-1.5 rounded-lg border border-purple-200 hover:bg-purple-100 transition">📝 Precis Writing Guide</button>
-                                <button onClick={()=>sendAiChatMessage('Give me MCQ Practice Strategy with weak area improvement plan')} className="text-xs bg-cyan-50 text-cyan-700 px-3 py-1.5 rounded-lg border border-cyan-200 hover:bg-cyan-100 transition">🎯 MCQ Practice Strategy</button>
+                            <div className="border-b pb-4 mb-4 flex justify-between items-center">
+                                <div>
+                                    <h2 className="text-xl font-bold text-slate-900">AI Exam Tutor Chatbot</h2>
+                                    <p className="text-xs text-slate-600 mt-1">Powered by Gemini • Sirf logged-in students ke liye</p>
+                                </div>
+                                {currentUser && (
+                                    <button onClick={clearAiChat} disabled={aiLoading} className="text-xs text-slate-500 disabled:opacity-40">Clear Chat</button>
+                                )}
                             </div>
-                            <div className="bg-slate-50 p-4 rounded-2xl border border-slate-200 min-h-[380px] max-h-[500px] overflow-y-auto space-y-4 shadow-inner">{aiMessages.map((m,i)=>(<div key={i} className={`flex gap-3 ${m.role==='user'?'justify-end':''}`}>{m.role==='ai' && <div className="bg-indigo-900 text-amber-400 p-2 rounded-xl"><i className="fa-solid fa-robot"></i></div>}<div className={`${m.role==='user'?'bg-indigo-900 text-white':'bg-white'} p-4 rounded-2xl text-xs sm:text-sm whitespace-pre-line max-w-2xl`}>{m.text}</div></div>))}</div>
-                            <div className="mt-4 flex gap-2"><textarea value={aiPrompt} onChange={(e)=>setAiPrompt(e.target.value)} rows="2" placeholder="Type your question..." className="flex-grow p-3 border border-slate-300 rounded-xl text-xs"></textarea><button onClick={()=>sendAiChatMessage()} className="bg-indigo-900 hover:bg-indigo-800 text-amber-300 font-bold px-5 rounded-xl text-xs">Send</button></div>
+
+                            {!currentUser ? (
+                                <div className="bg-amber-50 p-8 text-center text-amber-900 rounded-2xl border border-amber-200 space-y-3">
+                                    <div className="bg-amber-100 text-amber-700 p-3 rounded-full w-12 h-12 flex items-center justify-center mx-auto text-xl"><i className="fa-solid fa-lock"></i></div>
+                                    <p className="text-sm font-semibold">AI Tutor use karne ke liye login ya register karein.</p>
+                                    <p className="text-xs">Sirf logged-in students hi AI se sawal pooch sakte hain.</p>
+                                    <button onClick={() => setAuthModalOpen(true)} className="bg-slate-900 hover:bg-slate-800 text-amber-400 font-bold px-5 py-2.5 rounded-xl text-sm">Login / Register</button>
+                                </div>
+                            ) : (
+                                <>
+                                    <div className="mb-4 flex flex-wrap gap-2">
+                                        <button onClick={()=>sendAiChatMessage('Create a detailed CSS 7-Day Study Timetable for competitive exams')} className="text-xs bg-indigo-50 text-indigo-700 px-3 py-1.5 rounded-lg border border-indigo-200 hover:bg-indigo-100 transition">📅 CSS 7-Day Timetable</button>
+                                        <button onClick={()=>sendAiChatMessage('Give me practical English Essay Tips for CSS/PMS with structure, outline and examples')} className="text-xs bg-amber-50 text-amber-800 px-3 py-1.5 rounded-lg border border-amber-200 hover:bg-amber-100 transition">✍️ English Essay Tips</button>
+                                        <button onClick={()=>sendAiChatMessage('Suggest effective General Knowledge Strategy for CSS/PMS including sources and revision plan')} className="text-xs bg-emerald-50 text-emerald-700 px-3 py-1.5 rounded-lg border border-emerald-200 hover:bg-emerald-100 transition">💡 General Knowledge Strategy</button>
+                                        <button onClick={()=>sendAiChatMessage('How to prepare for Current Affairs for CSS/PMS? Give daily routine and resources')} className="text-xs bg-rose-50 text-rose-700 px-3 py-1.5 rounded-lg border border-rose-200 hover:bg-rose-100 transition">📰 Current Affairs Prep</button>
+                                        <button onClick={()=>sendAiChatMessage('Explain English Precis Writing rules, techniques and practice for CSS')} className="text-xs bg-purple-50 text-purple-700 px-3 py-1.5 rounded-lg border border-purple-200 hover:bg-purple-100 transition">📝 Precis Writing Guide</button>
+                                        <button onClick={()=>sendAiChatMessage('Give me MCQ Practice Strategy with weak area improvement plan')} className="text-xs bg-cyan-50 text-cyan-700 px-3 py-1.5 rounded-lg border border-cyan-200 hover:bg-cyan-100 transition">🎯 MCQ Practice Strategy</button>
+                                    </div>
+                                    <div ref={aiChatRef} className="bg-slate-50 p-4 rounded-2xl border border-slate-200 min-h-[380px] max-h-[500px] overflow-y-auto space-y-4 shadow-inner">
+                                        {aiMessages.map((m, i) => (
+                                            <div key={i} className={`flex gap-3 ${m.role === 'user' ? 'justify-end' : ''}`}>
+                                                {m.role === 'ai' && <div className="bg-indigo-900 text-amber-400 p-2 rounded-xl h-fit"><i className="fa-solid fa-robot"></i></div>}
+                                                <div className={`${m.role === 'user' ? 'bg-indigo-900 text-white' : 'bg-white'} ${m.offline ? 'border border-amber-300' : ''} p-4 rounded-2xl text-xs sm:text-sm whitespace-pre-line max-w-2xl space-y-1`}>
+                                                    {m.role === 'user' ? m.text : renderAiText(m.text)}
+                                                    {m.role === 'ai' && m.model && !m.offline && <p className="text-[10px] text-slate-400 pt-1">Gemini • {m.model}</p>}
+                                                </div>
+                                            </div>
+                                        ))}
+                                        {aiLoading && (
+                                            <div className="flex gap-3">
+                                                <div className="bg-indigo-900 text-amber-400 p-2 rounded-xl h-fit"><i className="fa-solid fa-robot"></i></div>
+                                                <div className="bg-white p-4 rounded-2xl text-xs sm:text-sm max-w-2xl text-slate-500">
+                                                    <span className="animate-pulse">AI Tutor soch raha hai...</span>
+                                                    <p className="text-[10px] text-slate-400 mt-1">First request may take 30–60 seconds if the server was asleep.</p>
+                                                </div>
+                                            </div>
+                                        )}
+                                    </div>
+                                    <div className="mt-4 flex gap-2">
+                                        <textarea
+                                            value={aiPrompt}
+                                            onChange={(e) => setAiPrompt(e.target.value)}
+                                            onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendAiChatMessage(); } }}
+                                            rows="2"
+                                            placeholder="Type your question... (Enter to send, Shift+Enter for new line)"
+                                            disabled={aiLoading}
+                                            className="flex-grow p-3 border border-slate-300 rounded-xl text-xs disabled:bg-slate-100"
+                                        ></textarea>
+                                        <button onClick={() => sendAiChatMessage()} disabled={aiLoading || !aiPrompt.trim()} className="bg-indigo-900 hover:bg-indigo-800 disabled:opacity-50 disabled:cursor-not-allowed text-amber-300 font-bold px-5 rounded-xl text-xs">
+                                            {aiLoading ? 'Sending...' : 'Send'}
+                                        </button>
+                                    </div>
+                                    <p className="text-[10px] text-slate-500 mt-2">AI general knowledge bhi answer karta hai, lekin important facts official source se verify karein.</p>
+                                </>
+                            )}
                         </div>
                     </section>
                 )}

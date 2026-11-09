@@ -18,7 +18,7 @@ export const env = {
   jwtExpiresIn: process.env.JWT_EXPIRES_IN || '7d',
   clientOrigin: process.env.CLIENT_ORIGIN || 'http://localhost:5173',
   geminiApiKey: process.env.GEMINI_API_KEY || '',
-  geminiModel: process.env.GEMINI_MODEL || 'gemini-3-flash-preview',
+  geminiModel: process.env.GEMINI_MODEL || 'gemini-3.8-flash',
   aiWindowMinutes: Number(process.env.AI_WINDOW_MINUTES || 10),
   aiMaxRequests: Number(process.env.AI_MAX_REQUESTS || 20),
   adminName: process.env.ADMIN_NAME || 'ExamInPocket Admin',
