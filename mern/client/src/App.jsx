@@ -153,7 +153,7 @@ export default function App() {
         const savedTicker = localStorage.getItem('eip_ticker');
         if (savedTicker) { setSiteTicker(savedTicker); setTickerInput(savedTicker); }
         api.get('/auth/me').then((res) => {
-            if (res?.user) setCurrentUser(res.user);
+            if (res?.user) { setCurrentUser(res.user); loadSavedBookmarks(); }
         }).catch(() => {});
     }, []);
 
@@ -533,42 +533,59 @@ export default function App() {
         }
     }
 
-    function toggleBookmarkMcq(id) {
-        if (!currentUser) { showToast('Please login or register to save MCQs', 'error'); setAuthModalOpen(true); return; }
-        const numId = String(id);
-        setSavedMcqs(prev => {
-            const exists = prev.includes(numId);
-            showToast(exists ? 'MCQ removed from saved.' : 'MCQ saved to favorites!');
-            return exists ? prev.filter(i => i !== numId) : [...prev, numId];
+    async function loadSavedBookmarks() {
+        try {
+            const res = await api.get('/bookmarks');
+            const items = res?.items || [];
+            const ids = { mcq: [], vocab: [], article: [], book: [] };
+            items.forEach((b) => {
+                const key = b.itemType;
+                const id = b.item?._id || b.item;
+                if (ids[key] && id !== undefined && id !== null) ids[key].push(String(id));
+            });
+            setSavedMcqs(ids.mcq);
+            setSavedVocab(ids.vocab);
+            setSavedArticles(ids.article);
+            setSavedBooks(ids.book);
+        } catch (e) {
+            // Not logged in or offline: keep current list.
+        }
+    }
+
+    function handleLogout() {
+        setCurrentUser(null);
+        setActiveTab('homeTab');
+        setSavedMcqs([]);
+        setSavedVocab([]);
+        setSavedArticles([]);
+        setSavedBooks([]);
+        api.post('/auth/logout').catch(() => {});
+    }
+
+    function toggleBookmark(itemType, id, current, setter, label) {
+        if (!currentUser) { showToast(`Please login or register to save ${label}s`, 'error'); setAuthModalOpen(true); return; }
+        const itemId = String(id);
+        const shouldSave = !current.includes(itemId);
+        const apply = (save) => setter((prev) => (
+            save
+                ? (prev.includes(itemId) ? prev : [...prev, itemId])
+                : prev.filter((i) => i !== itemId)
+        ));
+        apply(shouldSave);
+        showToast(shouldSave ? `${label} saved to favorites!` : `${label} removed from saved.`);
+        const request = shouldSave
+            ? api.post('/bookmarks', { itemType, itemId })
+            : api.delete(`/bookmarks/${itemType}/${itemId}`);
+        request.catch((e) => {
+            apply(!shouldSave);
+            showToast(e.message || 'Could not update favorites', 'error');
         });
     }
-    function toggleBookmarkVocab(id) {
-        if (!currentUser) { showToast('Please login or register to save Vocab', 'error'); setAuthModalOpen(true); return; }
-        const numId = String(id);
-        setSavedVocab(prev => {
-            const exists = prev.includes(numId);
-            showToast(exists ? 'Vocab removed from saved.' : 'Vocab saved!');
-            return exists ? prev.filter(i => i !== numId) : [...prev, numId];
-        });
-    }
-    function toggleBookmarkArticle(id) {
-        if (!currentUser) { showToast('Please login or register to save Articles', 'error'); setAuthModalOpen(true); return; }
-        const numId = String(id);
-        setSavedArticles(prev => {
-            const exists = prev.includes(numId);
-            showToast(exists ? 'Article removed from saved.' : 'Article saved to bookmarks!');
-            return exists ? prev.filter(i => i !== numId) : [...prev, numId];
-        });
-    }
-    function toggleBookmarkBook(id) {
-        if (!currentUser) { showToast('Please login or register to save Books', 'error'); setAuthModalOpen(true); return; }
-        const numId = String(id);
-        setSavedBooks(prev => {
-            const exists = prev.includes(numId);
-            showToast(exists ? 'Book removed from saved.' : 'Book saved to library favorites!');
-            return exists ? prev.filter(i => i !== numId) : [...prev, numId];
-        });
-    }
+
+    function toggleBookmarkMcq(id) { toggleBookmark('mcq', id, savedMcqs, setSavedMcqs, 'MCQ'); }
+    function toggleBookmarkVocab(id) { toggleBookmark('vocab', id, savedVocab, setSavedVocab, 'Vocab'); }
+    function toggleBookmarkArticle(id) { toggleBookmark('article', id, savedArticles, setSavedArticles, 'Article'); }
+    function toggleBookmarkBook(id) { toggleBookmark('book', id, savedBooks, setSavedBooks, 'Book'); }
 
     const categoryList = useMemo(() => {
         const set = new Set();
@@ -863,7 +880,7 @@ export default function App() {
                         <button onClick={() => switchTab('savedTab')} className={`nav-link group relative px-3 py-2 rounded-lg overflow-hidden transition-all duration-300 hover:scale-105 hover:shadow-lg ${activeTab === 'savedTab' ? 'bg-gradient-to-r from-amber-400 to-amber-500 text-slate-950 font-bold shadow-amber-400/50 shadow-md' : 'hover:bg-gradient-to-r hover:from-slate-700 hover:to-slate-800'}`}><span className="relative z-10 flex items-center gap-1"><i className="fa-solid fa-bookmark mr-1 group-hover:animate-pulse"></i> Favorite</span><div className="absolute inset-0 bg-gradient-to-r from-amber-400/0 via-amber-400/30 to-amber-400/0 -translate-x-full group-hover:translate-x-full transition-transform duration-700"></div></button>
                         <button onClick={() => switchTab('aiTab')} className={`nav-link group relative px-3 py-2 rounded-lg overflow-hidden transition-all duration-300 hover:scale-105 hover:shadow-lg border border-indigo-600/50 ${activeTab === 'aiTab' ? 'bg-gradient-to-r from-indigo-600 to-indigo-700 text-amber-300 font-bold shadow-indigo-500/50 shadow-md' : 'bg-gradient-to-r from-indigo-900 to-indigo-950 hover:from-indigo-800 hover:to-indigo-900'}`}><span className="relative z-10 flex items-center gap-1"><i className="fa-solid fa-robot mr-1 group-hover:animate-bounce"></i> AI Tutor</span><div className="absolute inset-0 bg-gradient-to-r from-amber-300/0 via-amber-300/20 to-amber-300/0 -translate-x-full group-hover:translate-x-full transition-transform duration-700"></div></button>
                         {currentUser ? (
-                            <button onClick={()=>{setCurrentUser(null); setActiveTab('homeTab'); api.post('/auth/logout').catch(()=>{}); showToast('Logged out');}} className="group relative px-3 py-2 rounded-lg overflow-hidden transition-all duration-300 hover:scale-105 hover:shadow-lg bg-gradient-to-r from-emerald-600 to-emerald-700 hover:from-emerald-500 hover:to-emerald-600 text-white font-semibold"><span className="relative z-10 flex items-center gap-1"><i className="fa-solid fa-user-check mr-1"></i> {currentUser.name || currentUser.email?.split('@')[0] || 'User'}</span></button>
+                            <button onClick={()=>{handleLogout(); showToast('Logged out');}} className="group relative px-3 py-2 rounded-lg overflow-hidden transition-all duration-300 hover:scale-105 hover:shadow-lg bg-gradient-to-r from-emerald-600 to-emerald-700 hover:from-emerald-500 hover:to-emerald-600 text-white font-semibold"><span className="relative z-10 flex items-center gap-1"><i className="fa-solid fa-user-check mr-1"></i> {currentUser.name || currentUser.email?.split('@')[0] || 'User'}</span></button>
                         ) : (
                             <button onClick={()=>setAuthModalOpen(true)} className="group relative px-3 py-2 rounded-lg overflow-hidden transition-all duration-300 hover:scale-105 hover:shadow-lg bg-gradient-to-r from-amber-400 to-amber-500 text-slate-950 font-bold shadow-amber-400/30"><span className="relative z-10 flex items-center gap-1"><i className="fa-solid fa-right-to-bracket mr-1 group-hover:animate-pulse"></i> Login / Register</span><div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/40 to-white/0 -translate-x-full group-hover:translate-x-full transition-transform duration-700"></div></button>
                         )}
@@ -1003,14 +1020,14 @@ export default function App() {
                                 try {
                                     const res = await api.post('/auth/login',{email,password});
                                     const user = res?.user || res?.data?.user || res;
-                                    if(user){ setCurrentUser(user); setAuthModalOpen(false); showToast(user.role === 'admin' ? 'Admin login successful' : 'Login successful'); }
+                                    if(user){ setCurrentUser(user); loadSavedBookmarks(); setAuthModalOpen(false); showToast(user.role === 'admin' ? 'Admin login successful' : 'Login successful'); }
                                     else { showToast('Authentication failed','error'); }
                                 } catch(e){ 
                                     try {
                                         if(!name){ showToast('Name required for registration','error'); return; }
                                         const res2 = await api.post('/auth/register',{name,email,password});
                                         const user2 = res2?.user || res2?.data?.user || res2;
-                                        if(user2){ setCurrentUser(user2); setAuthModalOpen(false); showToast('Account created & logged in'); }
+                                        if(user2){ setCurrentUser(user2); loadSavedBookmarks(); setAuthModalOpen(false); showToast('Account created & logged in'); }
                                         else showToast('Registration failed','error');
                                     } catch(e2){ showToast(e2.message||'Login failed','error'); } 
                                 }
@@ -1231,7 +1248,7 @@ export default function App() {
                                 <span className="bg-emerald-500 text-white text-[10px] font-bold px-2.5 py-1 rounded-md">AUTHENTICATED ADMIN</span>
                                 <div><h3 className="font-bold text-sm sm:text-base">ExamInPocket Control Panel</h3><p className="text-xs text-slate-400">Manage MCQs, Dawn Vocab, Articles, Library Books & AI Key</p></div>
                             </div>
-                            <button onClick={()=>{setCurrentUser(null); setActiveTab('homeTab'); api.post('/auth/logout').catch(()=>{});}} className="bg-red-600 hover:bg-red-500 text-white text-xs font-bold px-3 py-1.5 rounded-lg transition"><i className="fa-solid fa-right-from-bracket"></i> Logout</button>
+                            <button onClick={handleLogout} className="bg-red-600 hover:bg-red-500 text-white text-xs font-bold px-3 py-1.5 rounded-lg transition"><i className="fa-solid fa-right-from-bracket"></i> Logout</button>
                         </div>
 
                         <div className="bg-amber-50 p-5 rounded-2xl border border-amber-200 space-y-3">
