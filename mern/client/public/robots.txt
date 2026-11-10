@@ -1,0 +1,9 @@
+# ExamInPocket.com — robots.txt
+User-agent: *
+Allow: /
+
+# Keep private/API paths out of the index
+Disallow: /api/
+Disallow: /admin
+
+Sitemap: https://examinpocket.com/sitemap.xml
