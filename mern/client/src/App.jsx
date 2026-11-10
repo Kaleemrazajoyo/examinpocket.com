@@ -1143,7 +1143,7 @@ export default function App() {
                 {activeTab === 'homeTab' && (
                     <section className="space-y-6">
                         <div className="relative overflow-hidden text-white p-6 sm:p-8 rounded-2xl shadow-xl border border-slate-800 space-y-4" style={{ backgroundImage: 'radial-gradient(120% 120% at 100% 0%, rgba(245,179,1,0.20) 0%, rgba(245,179,1,0) 45%), radial-gradient(100% 100% at 0% 100%, rgba(67,56,202,0.38) 0%, rgba(67,56,202,0) 55%), linear-gradient(135deg, #060A14 0%, #0B1220 55%, #161244 100%)' }}>
-                            <h2 className="font-display text-2xl sm:text-4xl font-bold tracking-tight leading-tight">Prepare for <span className="text-amber-400">CSS, PMS, PCS, CCE</span> & All Competitive Exams</h2>
+                            <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight">Prepare for <span className="text-amber-400">CSS, PMS, PCS, CCE</span> & All Competitive Exams</h2>
                             <p className="text-xs sm:text-sm text-slate-300 max-w-2xl">Access thousands of verified MCQs, solved past papers, Dawn vocabulary, editorial articles, and AI-powered study guides.</p>
                             <div className="flex flex-col sm:flex-row gap-2 w-full max-w-4xl">
                                 <div className="relative flex-grow min-w-0"><i className="fa-solid fa-magnifying-glass absolute left-4 top-3.5 text-slate-400"></i><input value={searchInput} onChange={(e) => setSearchInput(e.target.value)} placeholder="Search questions, subjects, amendments, rivers, foreign words..." className="w-full pl-11 pr-4 py-3 rounded-xl border-0 text-slate-900 text-sm focus:ring-2 focus:ring-amber-400 outline-none shadow-inner" /></div>
