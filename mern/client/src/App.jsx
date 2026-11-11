@@ -209,6 +209,7 @@ export default function App() {
     const aiChatRef = useRef(null);
     const [logoClicks, setLogoClicks] = useState(0);
     const logoTimer = useRef(null);
+    const [infoMenuOpen, setInfoMenuOpen] = useState(false);
     const [testConfig, setTestConfig] = useState({ category: 'ALL', count: 10 });
     const [testRunning, setTestRunning] = useState(false);
     const [testQuestions, setTestQuestions] = useState([]);
@@ -316,6 +317,7 @@ export default function App() {
     useEffect(() => {
         const raw = location.pathname || '/';
         const path = raw.length > 1 ? raw.replace(/\/+$/, '') : '/';
+        setInfoMenuOpen(false);
 
         const mcqMatch = path.match(/^\/mcq\/([A-Za-z0-9_-]+)$/);
         if (mcqMatch) {
@@ -481,8 +483,28 @@ export default function App() {
         }
     }, [aiMessages, aiLoading]);
 
+    useEffect(() => {
+        if (!infoMenuOpen) return;
+        const onPointerDown = (event) => {
+            const target = event.target;
+            if (target instanceof Element && !target.closest('#siteInfoMenu')) {
+                setInfoMenuOpen(false);
+            }
+        };
+        const onKeyDown = (event) => {
+            if (event.key === 'Escape') setInfoMenuOpen(false);
+        };
+        document.addEventListener('mousedown', onPointerDown);
+        document.addEventListener('keydown', onKeyDown);
+        return () => {
+            document.removeEventListener('mousedown', onPointerDown);
+            document.removeEventListener('keydown', onKeyDown);
+        };
+    }, [infoMenuOpen]);
+
     function switchTab(id) {
         setActiveTab(id);
+        setInfoMenuOpen(false);
         const path = TAB_PATHS[id];
         if (path && location.pathname !== path) {
             navigate(path);
@@ -1250,11 +1272,42 @@ export default function App() {
 
             <header className="bg-slate-900 text-white sticky top-0 z-40 border-b border-amber-400/25 shadow-lg no-print">
                 <div className="max-w-7xl mx-auto px-4 py-3 flex flex-wrap justify-between items-center gap-2">
-                    <div onClick={handleLogoClick} className="flex items-center gap-3 cursor-pointer select-none" title="ExamInPocket Portal (Click 5 times for Admin Portal)">
-                        <div className="bg-amber-400 text-slate-950 font-extrabold text-xl px-3 py-1.5 rounded-xl">EiP</div>
-                        <div>
-                            <h1 className="font-display text-xl font-bold tracking-tight text-white">ExamInPocket<span className="text-amber-400">.com</span></h1>
-                            <p className="text-xs text-slate-400">FPSC • PPSC • SPSC • CSS • PMS • CCE</p>
+                    <div className="flex items-center gap-2 sm:gap-3">
+                        <div onClick={handleLogoClick} className="flex items-center gap-3 cursor-pointer select-none" title="ExamInPocket Portal (Click 5 times for Admin Portal)">
+                            <div className="bg-amber-400 text-slate-950 font-extrabold text-xl px-3 py-1.5 rounded-xl">EiP</div>
+                            <div>
+                                <h1 className="font-display text-xl font-bold tracking-tight text-white">ExamInPocket<span className="text-amber-400">.com</span></h1>
+                                <p className="text-xs text-slate-400">FPSC • PPSC • SPSC • CSS • PMS • CCE</p>
+                            </div>
+                        </div>
+                        <div id="siteInfoMenu" className="relative">
+                            <button
+                                type="button"
+                                onClick={() => setInfoMenuOpen((open) => !open)}
+                                aria-label="Open site information menu"
+                                aria-expanded={infoMenuOpen}
+                                aria-controls="siteInfoMenuPanel"
+                                className="bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 p-2.5 rounded-lg transition"
+                            >
+                                <i className={`fa-solid ${infoMenuOpen ? 'fa-xmark' : 'fa-bars'} text-base`}></i>
+                            </button>
+                            {infoMenuOpen && (
+                                <div id="siteInfoMenuPanel" className="absolute left-0 top-full mt-2 w-56 bg-white text-slate-800 rounded-xl shadow-2xl border border-slate-200 py-1.5 z-50">
+                                    <p className="px-3 py-1 text-[10px] font-bold uppercase tracking-wide text-slate-400">Site information</p>
+                                    <a href="/about" onClick={(e) => { e.preventDefault(); switchTab('aboutTab'); }} className="flex items-center gap-2.5 px-3 py-2 text-xs font-semibold hover:bg-amber-50 hover:text-amber-900 transition">
+                                        <i className="fa-solid fa-circle-info text-amber-500 w-4"></i> About Us
+                                    </a>
+                                    <a href="/privacy" onClick={(e) => { e.preventDefault(); switchTab('privacyTab'); }} className="flex items-center gap-2.5 px-3 py-2 text-xs font-semibold hover:bg-amber-50 hover:text-amber-900 transition">
+                                        <i className="fa-solid fa-shield-halved text-amber-500 w-4"></i> Privacy Policy
+                                    </a>
+                                    <a href="/terms" onClick={(e) => { e.preventDefault(); switchTab('termsTab'); }} className="flex items-center gap-2.5 px-3 py-2 text-xs font-semibold hover:bg-amber-50 hover:text-amber-900 transition">
+                                        <i className="fa-solid fa-file-contract text-amber-500 w-4"></i> Terms of Use
+                                    </a>
+                                    <a href="/disclaimer" onClick={(e) => { e.preventDefault(); switchTab('disclaimerTab'); }} className="flex items-center gap-2.5 px-3 py-2 text-xs font-semibold hover:bg-amber-50 hover:text-amber-900 transition">
+                                        <i className="fa-solid fa-triangle-exclamation text-amber-500 w-4"></i> Disclaimer
+                                    </a>
+                                </div>
+                            )}
                         </div>
                     </div>
                     <nav className="flex flex-wrap items-center gap-1 text-xs sm:text-sm font-medium">
@@ -1842,12 +1895,6 @@ export default function App() {
             </main>
 
             <footer className="mt-12 bg-slate-900 text-slate-400 py-8 border-t border-slate-800 text-xs text-center space-y-4 no-print">
-                <nav aria-label="Site information" className="flex flex-wrap items-center justify-center gap-x-5 gap-y-2 text-xs font-semibold">
-                    <a href="/about" onClick={(e) => { e.preventDefault(); switchTab('aboutTab'); }} className="hover:text-amber-400 transition">About Us</a>
-                    <a href="/privacy" onClick={(e) => { e.preventDefault(); switchTab('privacyTab'); }} className="hover:text-amber-400 transition">Privacy Policy</a>
-                    <a href="/terms" onClick={(e) => { e.preventDefault(); switchTab('termsTab'); }} className="hover:text-amber-400 transition">Terms of Use</a>
-                    <a href="/disclaimer" onClick={(e) => { e.preventDefault(); switchTab('disclaimerTab'); }} className="hover:text-amber-400 transition">Disclaimer</a>
-                </nav>
                 <p className="text-slate-500">© {new Date().getFullYear()} ExamInPocket.com — All Rights Reserved.</p>
             </footer>
         </div>

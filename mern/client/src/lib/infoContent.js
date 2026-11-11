@@ -5,7 +5,7 @@
  * exact same copy. Search engines then see the same text a visitor sees.
  */
 
-const CONTACT_EMAIL = 'kaleemrjoyo@gmail.com';
+const CONTACT_EMAIL = 'examinpocket@gmail.com';
 const UPDATED = '12 November 2026';
 
 export const INFO_PAGES = {

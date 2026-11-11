@@ -180,11 +180,11 @@ function withContent(html, content) {
 function pageShell(heading, intro, body) {
     return [
         '<div style="max-width:960px;margin:0 auto;padding:28px 20px;font-family:system-ui,-apple-system,Segoe UI,sans-serif;color:#0B1220;line-height:1.6">',
+        '<nav aria-label="Site information" style="margin:0 0 16px;font-size:13px;color:#475569"><a href="/about" style="color:#4338ca;margin-right:16px">About Us</a><a href="/privacy" style="color:#4338ca;margin-right:16px">Privacy Policy</a><a href="/terms" style="color:#4338ca;margin-right:16px">Terms of Use</a><a href="/disclaimer" style="color:#4338ca">Disclaimer</a></nav>',
         `<h1 style="font-size:28px;margin:0 0 10px">${esc(heading)}</h1>`,
         intro ? `<p style="margin:0 0 20px;color:#334155">${esc(intro)}</p>` : '',
         body,
         '<p style="margin-top:28px;font-size:13px;color:#475569">ExamInPocket.com - MCQs, past papers, Dawn vocabulary, mock tests and an AI tutor for CSS, PMS, PCS, CCE, PPSC, FPSC and SPSC candidates in Pakistan.</p>',
-        '<nav style="margin-top:18px;padding-top:14px;border-top:1px solid #e2e8f0;font-size:13px;color:#475569"><a href="/about" style="color:#4338ca;margin-right:16px">About Us</a><a href="/privacy" style="color:#4338ca;margin-right:16px">Privacy Policy</a><a href="/terms" style="color:#4338ca;margin-right:16px">Terms of Use</a><a href="/disclaimer" style="color:#4338ca">Disclaimer</a></nav>',
         '</div>',
     ].join('\n');
 }
