@@ -1280,7 +1280,7 @@ export default function App() {
                                 <p className="text-xs text-slate-400">FPSC • PPSC • SPSC • CSS • PMS • CCE</p>
                             </div>
                         </div>
-                        <div id="siteInfoMenu" className="relative">
+                        <div id="siteInfoMenu" className="relative order-first">
                             <button
                                 type="button"
                                 onClick={() => setInfoMenuOpen((open) => !open)}
