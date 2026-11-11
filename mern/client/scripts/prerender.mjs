@@ -91,19 +91,23 @@ function absolute(p) {
     return `${SITE_URL}${p}`;
 }
 
-async function fetchJson(url) {
-    const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), 25000);
-    try {
-        const res = await fetch(url, { signal: controller.signal, headers: { accept: 'application/json' } });
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        return await res.json();
-    } catch (error) {
-        console.warn(`[prerender] could not load ${url}: ${error.message}`);
-        return null;
-    } finally {
-        clearTimeout(timer);
+async function fetchJson(url, attempts = 3) {
+    for (let attempt = 1; attempt <= attempts; attempt += 1) {
+        const controller = new AbortController();
+        const timer = setTimeout(() => controller.abort(), 25000);
+        try {
+            const res = await fetch(url, { signal: controller.signal, headers: { accept: 'application/json' } });
+            if (!res.ok) throw new Error(`HTTP ${res.status}`);
+            return await res.json();
+        } catch (error) {
+            console.warn(`[prerender] attempt ${attempt}/${attempts} failed for ${url}: ${error.message}`);
+            if (attempt === attempts) return null;
+            await new Promise((resolve) => setTimeout(resolve, 10000));
+        } finally {
+            clearTimeout(timer);
+        }
     }
+    return null;
 }
 
 function setAttribute(html, attr, key, value) {
@@ -217,6 +221,14 @@ async function main() {
         fetchJson(`${API_BASE}/categories/tree`),
         fetchJson(`${API_BASE}/mcqs?limit=500`),
     ]);
+
+    // Publishing without data would replace real category/MCQ pages with a
+    // near-empty site and shrink the sitemap. Better to fail the deploy and
+    // keep the previous working version live.
+    if (!treeRes || !mcqsRes) {
+        console.error('[prerender] API data unavailable - keeping the previous deploy instead of publishing a degraded site');
+        process.exit(1);
+    }
 
     const tree = Array.isArray(treeRes?.tree)
         ? treeRes.tree
@@ -399,7 +411,7 @@ async function main() {
 }
 
 main().catch((error) => {
-    // Never fail the deploy because of prerendering: the SPA still works.
-    console.error('[prerender] skipped:', error.message);
-    process.exit(0);
+    // Fail the build rather than publish a site with missing pages/sitemap.
+    console.error('[prerender] failed:', error.message);
+    process.exit(1);
 });
