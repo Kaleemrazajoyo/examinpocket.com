@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { api } from './lib/api.js';
-import { toSlug, findCategoryBySlug } from './lib/seoPaths.js';
+import { toSlug, fromSlug, findCategoryBySlug } from './lib/seoPaths.js';
 import { setPageMeta, resetPageMeta } from './lib/seoMeta.js';
 import { buildMcqShareMessage, shareOnWhatsApp, copyMcqLink } from './lib/share.js';
 
@@ -302,15 +302,29 @@ export default function App() {
 
         const categoryMatch = path.match(/^\/mcqs\/([A-Za-z0-9_-]+)$/);
         if (categoryMatch) {
+            const slug = categoryMatch[1];
             setActiveTab('homeTab');
             setSearchInput('');
-            setPendingCategorySlug(categoryMatch[1]);
+            setPendingCategorySlug(slug);
+            // Set metadata immediately so a shared link keeps its own title and
+            // canonical even before (or without) the category list loading.
+            const label = fromSlug(slug);
+            setPageMeta({
+                title: `${label} MCQs with Answers - ExamInPocket`,
+                description: `Practice ${label} MCQs with verified answers and explanations for CSS, PMS, PPSC, FPSC, SPSC and CCE exams.`,
+                path: `/mcqs/${slug}`,
+            });
             return;
         }
 
         if (path === '/mcqs') {
             setActiveTab('homeTab');
             setActiveCategory('ALL');
+            setPageMeta({
+                title: 'MCQs with Answers for CSS, PMS, PPSC and FPSC - ExamInPocket',
+                description: 'Practice subject-wise MCQs with verified answers and explanations for CSS, PMS, PPSC, FPSC, SPSC and CCE exams.',
+                path: '/mcqs',
+            });
             return;
         }
 
@@ -387,12 +401,24 @@ export default function App() {
 
     // Per-page title / description / canonical for every tab and category page.
     useEffect(() => {
-        if (deepLinkId) return;
+        const rawPath = location.pathname.replace(/\/+$/, '') || '/';
+        // Deep links and category pages set their own metadata (see URL sync).
+        if (deepLinkId || /^\/mcq\/[^/]+$/.test(rawPath) || /^\/mcqs\/[^/]+$/.test(rawPath)) return;
+        // A category URL already set its own metadata in the URL sync effect.
+        if (pendingCategorySlug) return;
         if (activeTab === 'homeTab' && activeCategory !== 'ALL') {
             setPageMeta({
                 title: `${activeCategory} MCQs with Answers - ExamInPocket`,
                 description: `Practice ${activeCategory} MCQs with verified answers and explanations for CSS, PMS, PPSC, FPSC, SPSC and CCE exams.`,
                 path: `/mcqs/${toSlug(activeCategory)}`,
+            });
+            return;
+        }
+        if (activeTab === 'homeTab' && rawPath === '/mcqs') {
+            setPageMeta({
+                title: 'MCQs with Answers for CSS, PMS, PPSC and FPSC - ExamInPocket',
+                description: 'Practice subject-wise MCQs with verified answers and explanations for CSS, PMS, PPSC, FPSC, SPSC and CCE exams.',
+                path: '/mcqs',
             });
             return;
         }
@@ -402,7 +428,7 @@ export default function App() {
         } else {
             resetPageMeta();
         }
-    }, [activeTab, activeCategory, deepLinkId]);
+    }, [activeTab, activeCategory, deepLinkId, pendingCategorySlug, location.pathname]);
 
     useEffect(() => {
         if (!testRunning) return;

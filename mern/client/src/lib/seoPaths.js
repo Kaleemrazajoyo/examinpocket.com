@@ -20,3 +20,16 @@ export function findCategoryBySlug(list, slug) {
   const target = String(slug).toLowerCase();
   return (list || []).find((name) => toSlug(name) === target) || null;
 }
+
+/**
+ * Human-readable label from a slug ("basic-computer-operations-and-it"
+ * becomes "Basic Computer Operations & IT"). Used to set page metadata
+ * before the category list has loaded from the API.
+ */
+export function fromSlug(slug) {
+  return String(slug || '')
+    .split('-')
+    .filter(Boolean)
+    .map((word) => (word === 'and' ? '&' : word.charAt(0).toUpperCase() + word.slice(1)))
+    .join(' ');
+}
