@@ -1,5 +1,9 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { api } from './lib/api.js';
+import { toSlug, findCategoryBySlug } from './lib/seoPaths.js';
+import { setPageMeta, resetPageMeta } from './lib/seoMeta.js';
+import { buildMcqShareMessage, shareOnWhatsApp, copyMcqLink } from './lib/share.js';
 
 function showToast(msg, type = 'success') {
     const container = document.getElementById('toastContainer');
@@ -104,10 +108,74 @@ function formatGoogleDriveUrl(url) {
     return trimmed;
 }
 
+/**
+ * Real URLs for every tab.
+ *
+ * Google can only index pages that exist as URLs, so each tab now has a path.
+ * `adminPanelTab` is intentionally NOT listed — the admin portal stays behind
+ * the secret 5-click logo trigger and is never linked from the public site.
+ */
+const TAB_PATHS = {
+    homeTab: '/',
+    testTab: '/mock-test',
+    dawnTab: '/dawn-vocabulary',
+    articlesTab: '/articles',
+    libraryTab: '/library',
+    savedTab: '/saved',
+    aiTab: '/ai-tutor',
+};
+
+const PATH_TO_TAB = Object.fromEntries(
+    Object.entries(TAB_PATHS).map(([tab, path]) => [path, tab])
+);
+
+const TAB_META = {
+    homeTab: {
+        title: 'ExamInPocket.com - CSS, PMS, PCS, CCE & Competitive Exam Portal',
+        description: 'Verified MCQs, solved past papers, Dawn vocabulary, editorial articles, timed mock tests and an AI tutor for CSS, PMS, PPSC, FPSC, SPSC and CCE exams.',
+        path: '/',
+    },
+    testTab: {
+        title: 'Free Timed Mock Test for CSS, PMS, PPSC, FPSC - ExamInPocket',
+        description: 'Take free timed mock tests with instant scoring, question-by-question review and a weak-area diagnostic breakdown for CSS, PMS, PPSC, FPSC and CCE.',
+        path: '/mock-test',
+    },
+    dawnTab: {
+        title: 'Daily Dawn Vocabulary with Urdu Meanings - ExamInPocket',
+        description: 'Daily Dawn editorial vocabulary with Urdu meanings, usage sentences and national headlines for CSS, PMS and competitive exam candidates.',
+        path: '/dawn-vocabulary',
+    },
+    articlesTab: {
+        title: 'CSS & PMS Editorial Articles and Essays - ExamInPocket',
+        description: 'Read exam-oriented editorial articles, essays and current affairs analysis for CSS, PMS, PCS and CCE written papers.',
+        path: '/articles',
+    },
+    libraryTab: {
+        title: 'Free PDF Notes and Books for CSS, PMS, PPSC - ExamInPocket',
+        description: 'Download free PDF notes, solved past papers and reference books for CSS, PMS, PPSC, FPSC, SPSC and CCE preparation.',
+        path: '/library',
+    },
+    savedTab: {
+        title: 'My Saved MCQs, Vocabulary and Books - ExamInPocket',
+        description: 'Your saved MCQs, Dawn vocabulary, articles and books in one place so you can revise exactly what you need.',
+        path: '/saved',
+    },
+    aiTab: {
+        title: 'AI Exam Tutor for CSS and PMS Preparation - ExamInPocket',
+        description: 'Ask the ExamInPocket AI tutor for study plans, essay tips, current affairs guidance and MCQ explanations for CSS, PMS and competitive exams.',
+        path: '/ai-tutor',
+    },
+};
+
 export default function App() {
+    const location = useLocation();
+    const navigate = useNavigate();
     const [activeTab, setActiveTab] = useState('homeTab');
     const [searchInput, setSearchInput] = useState('');
     const [activeCategory, setActiveCategory] = useState('ALL');
+    const [pendingCategorySlug, setPendingCategorySlug] = useState(null);
+    const [deepLinkId, setDeepLinkId] = useState(null);
+    const [libraryFilter, setLibraryFilter] = useState('ALL');
     const [savedSubFilter, setSavedSubFilter] = useState('ALL');
     const [aiMessages, setAiMessages] = useState([{ role: 'ai', welcome: true, text: 'Assalam-o-Alaikum Student! 🎓\nMain aap ka ExamInPocket AI Tutor hoon (Powered by Gemini). CSS/PMS, general knowledge, current affairs ya kisi bhi topic par sawal poochein — main simple Roman Urdu/English mein guide karunga.' }]);
     const [aiPrompt, setAiPrompt] = useState('');
@@ -214,6 +282,128 @@ export default function App() {
         }).catch(() => {});
     }, []);
 
+    /*
+     * URL -> state sync.
+     * Supported paths: /, /mcqs, /mcqs/:category, /mcq/:id, /mock-test,
+     * /dawn-vocabulary, /articles, /library, /saved, /ai-tutor
+     */
+    useEffect(() => {
+        const raw = location.pathname || '/';
+        const path = raw.length > 1 ? raw.replace(/\/+$/, '') : '/';
+
+        const mcqMatch = path.match(/^\/mcq\/([A-Za-z0-9_-]+)$/);
+        if (mcqMatch) {
+            setActiveTab('homeTab');
+            setActiveCategory('ALL');
+            setSearchInput('');
+            setDeepLinkId(mcqMatch[1]);
+            return;
+        }
+
+        const categoryMatch = path.match(/^\/mcqs\/([A-Za-z0-9_-]+)$/);
+        if (categoryMatch) {
+            setActiveTab('homeTab');
+            setSearchInput('');
+            setPendingCategorySlug(categoryMatch[1]);
+            return;
+        }
+
+        if (path === '/mcqs') {
+            setActiveTab('homeTab');
+            setActiveCategory('ALL');
+            return;
+        }
+
+        const tab = PATH_TO_TAB[path];
+        if (tab) {
+            setActiveTab(tab);
+            if (path === '/') setActiveCategory('ALL');
+            return;
+        }
+
+        setActiveTab('homeTab');
+    }, [location.pathname]);
+
+    // Resolve /mcqs/:slug once the category list has loaded from the API.
+    useEffect(() => {
+        if (!pendingCategorySlug) return;
+        const subCategoryNames = (catTree || []).flatMap((m) => (m.children || []).map((c) => c.name));
+        const resolved =
+            findCategoryBySlug(categoryList, pendingCategorySlug) ||
+            findCategoryBySlug(subCategoryNames, pendingCategorySlug);
+
+        if (resolved) {
+            setActiveCategory(resolved);
+            setPendingCategorySlug(null);
+        } else if (categoryList.length > 1) {
+            // Unknown slug: show everything instead of an empty feed.
+            setActiveCategory('ALL');
+            setPendingCategorySlug(null);
+        }
+        // `categoryList` is derived from these three, so they are the real deps.
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [pendingCategorySlug, catTree, apiCategories, mcqs]);
+
+    // Make sure a shared /mcq/:id link still works if that MCQ is not in the feed page.
+    useEffect(() => {
+        if (!deepLinkId) return;
+        const alreadyLoaded = mcqs.some((m) => String(m._id || m.id) === String(deepLinkId));
+        if (alreadyLoaded) return;
+        let cancelled = false;
+        api.get(`/mcqs/${deepLinkId}`)
+            .then((res) => {
+                const found = res?.mcq || res;
+                if (!cancelled && found && (found._id || found.id)) {
+                    setMcqs((prev) => [found, ...prev]);
+                }
+            })
+            .catch(() => {});
+        return () => { cancelled = true; };
+    }, [deepLinkId, mcqs]);
+
+    // Scroll to, highlight and expand the shared MCQ.
+    useEffect(() => {
+        if (!deepLinkId) return;
+        const target = mcqs.find((m) => String(m._id || m.id) === String(deepLinkId));
+        if (!target) return;
+
+        const timer = setTimeout(() => {
+            const card = document.getElementById(`mcq-card-${deepLinkId}`);
+            if (!card) return;
+            card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            card.classList.add('ring-2', 'ring-amber-400', 'ring-offset-2');
+            const explanation = document.getElementById(`explanation-${deepLinkId}`);
+            if (explanation) explanation.classList.remove('hidden');
+        }, 250);
+
+        setPageMeta({
+            title: `${target.question} - ExamInPocket`,
+            description: `${target.question} Correct answer: ${(target.options || [])[target.answerIndex] || ''}. ${target.explanation || ''}`.slice(0, 158),
+            path: `/mcq/${deepLinkId}`,
+        });
+
+        return () => clearTimeout(timer);
+    }, [deepLinkId, mcqs]);
+
+    // Per-page title / description / canonical for every tab and category page.
+    useEffect(() => {
+        if (deepLinkId) return;
+        if (activeTab === 'homeTab' && activeCategory !== 'ALL') {
+            setPageMeta({
+                title: `${activeCategory} MCQs with Answers - ExamInPocket`,
+                description: `Practice ${activeCategory} MCQs with verified answers and explanations for CSS, PMS, PPSC, FPSC, SPSC and CCE exams.`,
+                path: `/mcqs/${toSlug(activeCategory)}`,
+            });
+            return;
+        }
+        const meta = TAB_META[activeTab];
+        if (meta) {
+            setPageMeta(meta);
+        } else {
+            resetPageMeta();
+        }
+    }, [activeTab, activeCategory, deepLinkId]);
+
     useEffect(() => {
         if (!testRunning) return;
         const t = setInterval(() => {
@@ -237,7 +427,14 @@ export default function App() {
         }
     }, [aiMessages, aiLoading]);
 
-    function switchTab(id) { setActiveTab(id); window.scrollTo({ top: 0, behavior: 'smooth' }); }
+    function switchTab(id) {
+        setActiveTab(id);
+        const path = TAB_PATHS[id];
+        if (path && location.pathname !== path) {
+            navigate(path);
+        }
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
 
     function handleLogoClick() {
         setLogoClicks((c) => {
@@ -673,6 +870,37 @@ export default function App() {
         });
     }, [mcqs, searchInput, activeCategory]);
 
+    // Library can be filtered by subject from the mock-test diagnostic report.
+    const filteredLibrary = useMemo(() => {
+        if (libraryFilter === 'ALL') return library;
+        return library.filter((item) => (item.category || item.cat || '') === libraryFilter);
+    }, [library, libraryFilter]);
+
+    function shareMcq(mcq) {
+        const id = mcq._id || mcq.id;
+        shareOnWhatsApp(buildMcqShareMessage(mcq, id));
+    }
+
+    async function copyMcq(mcq) {
+        const id = mcq._id || mcq.id;
+        const ok = await copyMcqLink(id);
+        if (ok) showToast('MCQ link copied');
+        else showToast('Could not copy link', 'error');
+    }
+
+    function goToLibraryFor(category) {
+        setLibraryFilter(category);
+        switchTab('libraryTab');
+    }
+
+    // Category chips are real links so Google can crawl every category page.
+    function selectCategory(category) {
+        setActiveCategory(category);
+        if (category === 'ALL') navigate('/mcqs');
+        else navigate(`/mcqs/${toSlug(category)}`);
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
     const totalSaved = savedMcqs.length + savedVocab.length + savedArticles.length + savedBooks.length;
 
     function checkAnswer(mcqId, selectedOptIndex, cardId) {
@@ -746,15 +974,17 @@ export default function App() {
         const wrong = total - correct;
         const percentage = Math.round((correct / Math.max(total, 1)) * 100);
         
-        const weakSubjects = [];
-        Object.keys(categoryStats).forEach(cat => {
+        const categoryBreakdown = Object.keys(categoryStats).map((cat) => {
             const stats = categoryStats[cat];
-            const catPercentage = Math.round((stats.correct / Math.max(stats.total, 1)) * 100);
-            if (catPercentage < 70) {
-                weakSubjects.push({ category: cat, correct: stats.correct, total: stats.total, percentage: catPercentage });
-            }
+            return {
+                category: cat,
+                correct: stats.correct,
+                total: stats.total,
+                percentage: Math.round((stats.correct / Math.max(stats.total, 1)) * 100),
+            };
         });
-        weakSubjects.sort((a, b) => a.percentage - b.percentage);
+        categoryBreakdown.sort((a, b) => a.percentage - b.percentage);
+        const weakSubjects = categoryBreakdown.filter((c) => c.percentage < 70);
         
         const quotes = [
             "Success is the sum of small efforts, repeated day in and day out. - Robert Collier",
@@ -770,7 +1000,7 @@ export default function App() {
         ];
         const randomQuote = quotes[Math.floor(Math.random() * quotes.length)];
         
-        setTestResult({ total, correct, wrong, percentage, details, weakSubjects, quote: randomQuote, category: testConfig.category });
+        setTestResult({ total, correct, wrong, percentage, details, weakSubjects, categoryBreakdown, quote: randomQuote, category: testConfig.category });
     }
 
     function resetMockTest() { setTestRunning(false); setTestResult(null); setTestQuestions([]); setTestAnswers({}); }
@@ -1153,14 +1383,14 @@ export default function App() {
                                 {categoryList.map((cat) => {
                                     const hasSub = cat !== 'ALL' && catTree.find(m => m.name === cat) && (catTree.find(m => m.name === cat)?.children || []).length > 0;
                                     return (
-                                        <button key={cat} onClick={() => setActiveCategory(cat)} className={`px-3 py-1.5 rounded-lg text-xs sm:text-sm transition flex items-center gap-1 ${activeCategory === cat ? 'bg-amber-400 text-slate-950 font-bold' : 'bg-slate-800 hover:bg-slate-700 text-slate-200'}`}>{cat}{hasSub && <i className="fa-solid fa-chevron-down text-[9px]"></i>}</button>
+                                        <a key={cat} href={cat === 'ALL' ? '/mcqs' : `/mcqs/${toSlug(cat)}`} onClick={(e) => { e.preventDefault(); selectCategory(cat); }} className={`px-3 py-1.5 rounded-lg text-xs sm:text-sm transition flex items-center gap-1 ${activeCategory === cat ? 'bg-amber-400 text-slate-950 font-bold' : 'bg-slate-800 hover:bg-slate-700 text-slate-200'}`}>{cat}{hasSub && <i className="fa-solid fa-chevron-down text-[9px]"></i>}</a>
                                     );
                                 })}
                             </div>
                             {activeCategory !== 'ALL' && catTree.find(m => m.name === activeCategory) && (
                                 <div className="flex flex-wrap gap-2">
                                     {(catTree.find(m => m.name === activeCategory)?.children || []).map((sub) => (
-                                        <button key={sub._id} onClick={() => setActiveCategory(sub.name)} className={`px-2.5 py-1 rounded-lg text-xs transition ${activeCategory === sub.name ? 'bg-emerald-400 text-slate-950 font-bold' : 'bg-slate-700 hover:bg-slate-600 text-slate-200'}`}>{sub.name}</button>
+                                        <a key={sub._id} href={`/mcqs/${toSlug(sub.name)}`} onClick={(e) => { e.preventDefault(); selectCategory(sub.name); }} className={`px-2.5 py-1 rounded-lg text-xs transition ${activeCategory === sub.name ? 'bg-emerald-400 text-slate-950 font-bold' : 'bg-slate-700 hover:bg-slate-600 text-slate-200'}`}>{sub.name}</a>
                                     ))}
                                 </div>
                             )}
@@ -1171,14 +1401,18 @@ export default function App() {
                             const isSaved = savedMcqs.includes(String(mcqId));
                             return (
                                 <div key={mcqId} id={cardId} className={`bg-white p-5 rounded-2xl shadow-sm border border-slate-200 space-y-4 ${mcq.isNew ? 'new-card-glow' : ''}`}>
-                                    <div className="flex justify-between items-center"><span className="bg-indigo-100 text-indigo-900 text-[11px] font-bold px-2.5 py-1 rounded-lg">{mcq.category}</span><button onClick={() => toggleBookmarkMcq(mcqId)} className="text-slate-400 hover:text-amber-500 transition"><i className={`${isSaved ? 'fa-solid text-amber-500' : 'fa-regular'} fa-bookmark text-base`}></i></button></div>
+                                    <div className="flex justify-between items-center"><span className="bg-indigo-100 text-indigo-900 text-[11px] font-bold px-2.5 py-1 rounded-lg">{mcq.category}</span><button onClick={() => toggleBookmarkMcq(mcqId)} aria-label={isSaved ? 'Remove this MCQ from favorites' : 'Save this MCQ to favorites'} title={isSaved ? 'Remove from favorites' : 'Save to favorites'} className="text-slate-400 hover:text-amber-500 transition"><i className={`${isSaved ? 'fa-solid text-amber-500' : 'fa-regular'} fa-bookmark text-base`}></i></button></div>
                                     <h3 className="text-sm sm:text-base font-semibold text-slate-900 leading-snug">{mcq.question}</h3>
                                     <div className="grid sm:grid-cols-2 gap-2.5">{(mcq.options||[]).map((opt, optIdx) => (<button key={optIdx} onClick={() => checkAnswer(mcqId, optIdx, cardId)} className={`opt-btn-${mcqId} w-full text-left p-3 rounded-xl border border-slate-200 hover:bg-slate-50 hover:border-indigo-300 transition text-xs sm:text-sm flex items-center justify-between`}><span>{String.fromCharCode(65 + optIdx)}) {opt}</span><i className="fa-regular fa-circle text-slate-300 opt-icon"></i></button>))}</div>
                                     <div id={`explanation-${mcqId}`} className="hidden bg-indigo-50 p-3.5 rounded-xl text-xs text-indigo-950 border border-indigo-100 space-y-1"><p><strong>Explanation:</strong> {mcq.explanation}</p></div>
                                     {mcq.submittedBy && (<p className="text-[11px] font-semibold text-emerald-700 flex items-center gap-1"><i className="fa-solid fa-user-pen"></i> Submitted by {mcq.submittedBy}</p>)}
-                                    <div className="flex items-center justify-between border-t border-slate-100 pt-2">
-                                        <button onClick={() => openComments(mcq)} className="text-slate-500 hover:text-indigo-700 text-xs font-semibold flex items-center gap-1.5"><i className="fa-regular fa-comment"></i> Comments{commentCounts[String(mcqId)] ? ` (${commentCounts[String(mcqId)]})` : ''}</button>
-                                        <span className="text-[10px] text-slate-400">Tap an option to check the answer</span>
+                                    <div className="flex items-center justify-between border-t border-slate-100 pt-2 gap-2 flex-wrap">
+                                        <div className="flex items-center gap-3 flex-wrap">
+                                            <button onClick={() => openComments(mcq)} className="text-slate-500 hover:text-indigo-700 text-xs font-semibold flex items-center gap-1.5"><i className="fa-regular fa-comment"></i> Comments{commentCounts[String(mcqId)] ? ` (${commentCounts[String(mcqId)]})` : ''}</button>
+                                            <button onClick={() => shareMcq(mcq)} aria-label="Share this MCQ on WhatsApp" title="Share on WhatsApp" className="text-emerald-700 hover:text-emerald-800 text-xs font-semibold flex items-center gap-1.5"><i className="fa-brands fa-whatsapp"></i> Share</button>
+                                            <button onClick={() => copyMcq(mcq)} aria-label="Copy link to this MCQ" title="Copy link" className="text-slate-500 hover:text-indigo-700 text-xs font-semibold flex items-center gap-1.5"><i className="fa-solid fa-link"></i> Copy link</button>
+                                        </div>
+                                        <span className="text-[10px] text-slate-500">Tap an option to check the answer</span>
                                     </div>
                                 </div>
                             );
@@ -1213,18 +1447,36 @@ export default function App() {
                                         <div className="bg-white/10 p-4 rounded-xl text-center italic text-sm">"{testResult.quote}"</div>
                                     </div>
                                     
-                                    {testResult.weakSubjects && testResult.weakSubjects.length > 0 && (
-                                        <div className="bg-rose-50 p-6 rounded-2xl border border-rose-200 space-y-4">
-                                            <h4 className="font-bold text-rose-900 flex items-center gap-2"><i className="fa-solid fa-triangle-exclamation"></i> Weak Subjects - Need More Practice</h4>
-                                            <div className="grid sm:grid-cols-2 gap-3">
-                                                {testResult.weakSubjects.map((ws, idx) => (
-                                                    <div key={idx} className="bg-white p-4 rounded-xl border border-rose-200 flex justify-between items-center">
-                                                        <div><p className="font-bold text-slate-900 text-sm">{ws.category}</p><p className="text-xs text-slate-500">{ws.correct}/{ws.total} correct</p></div>
-                                                        <div className="text-right"><p className="text-lg font-black text-rose-600">{ws.percentage}%</p></div>
-                                                    </div>
-                                                ))}
+                                    {testResult.categoryBreakdown && testResult.categoryBreakdown.length > 0 && (
+                                        <div className="bg-slate-50 p-6 rounded-2xl border border-slate-200 space-y-4">
+                                            <div>
+                                                <h4 className="font-bold text-slate-900 flex items-center gap-2"><i className="fa-solid fa-chart-simple text-indigo-700"></i> Subject Diagnostic Breakdown</h4>
+                                                <p className="text-xs text-slate-600 mt-1">Accuracy per subject. Anything below 50% is marked as a weak focus area.</p>
                                             </div>
-                                            <button onClick={() => { switchTab('aiTab'); setAiPrompt(`I scored ${testResult.percentage}% in mock test. My weak subjects are: ${testResult.weakSubjects.map(w=>w.category+' ('+w.percentage+'%)').join(', ')}. Please help me improve in these weak areas with targeted questions and explanations.`); }} className="w-full bg-indigo-900 hover:bg-indigo-800 text-amber-300 font-bold py-3 rounded-xl text-sm flex items-center justify-center gap-2"><i className="fa-solid fa-robot"></i> Get Help in Your Weak Areas - Use Gemini AI Tutor</button>
+                                            <div className="grid sm:grid-cols-2 gap-3">
+                                                {testResult.categoryBreakdown.map((row, idx) => {
+                                                    const isWeak = row.percentage < 50;
+                                                    const isMid = row.percentage >= 50 && row.percentage < 70;
+                                                    const tone = isWeak ? 'border-rose-300 bg-rose-50' : isMid ? 'border-amber-300 bg-amber-50' : 'border-emerald-200 bg-emerald-50';
+                                                    const scoreTone = isWeak ? 'text-rose-700' : isMid ? 'text-amber-700' : 'text-emerald-700';
+                                                    return (
+                                                        <div key={idx} className={`p-4 rounded-xl border ${tone} space-y-2`}>
+                                                            <div className="flex justify-between items-start gap-2">
+                                                                <div>
+                                                                    <p className="font-bold text-slate-900 text-sm">{row.category}</p>
+                                                                    <p className="text-xs text-slate-600">{row.correct}/{row.total} correct</p>
+                                                                </div>
+                                                                <p className={`text-lg font-black ${scoreTone}`}>{row.percentage}%</p>
+                                                            </div>
+                                                            {isWeak && <span className="inline-block bg-rose-600 text-white text-[10px] font-bold px-2 py-0.5 rounded">Weak Focus Area</span>}
+                                                            {isWeak && (
+                                                                <button onClick={() => goToLibraryFor(row.category)} className="w-full bg-slate-900 hover:bg-slate-800 text-amber-400 font-bold py-2 rounded-lg text-xs flex items-center justify-center gap-2"><i className="fa-solid fa-book-open"></i> Revise {row.category} Notes</button>
+                                                            )}
+                                                        </div>
+                                                    );
+                                                })}
+                                            </div>
+                                            <button onClick={() => { switchTab('aiTab'); setAiPrompt(`I scored ${testResult.percentage}% in mock test. My weak subjects are: ${(testResult.categoryBreakdown || []).filter(w=>w.percentage<70).map(w=>w.category+' ('+w.percentage+'%)').join(', ') || 'none'}. Please help me improve in these weak areas with targeted questions and explanations.`); }} className="w-full bg-indigo-900 hover:bg-indigo-800 text-amber-300 font-bold py-3 rounded-xl text-sm flex items-center justify-center gap-2"><i className="fa-solid fa-robot"></i> Get Help in Your Weak Areas - Use Gemini AI Tutor</button>
                                         </div>
                                     )}
                                     
@@ -1300,7 +1552,19 @@ export default function App() {
                     <section className="space-y-6">
                         <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
                             <h2 className="text-xl font-bold text-slate-900 mb-4 flex items-center gap-2"><i className="fa-solid fa-book-open text-indigo-600"></i> PDF Notes & Books Library</h2>
-                            <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-4 max-h-[75vh] overflow-y-auto pr-1">{library.map((item, i) => { const id = item._id || item.id || i; const isSaved = savedBooks.includes(String(id)); return (<div key={id} className="bg-slate-50 p-4 rounded-xl border border-slate-200 flex flex-col justify-between space-y-3"><div><div className="flex justify-between items-start"><span className="text-[10px] font-bold bg-indigo-100 text-indigo-900 px-2 py-0.5 rounded">{item.category || item.cat}</span><button onClick={() => toggleBookmarkBook(id)} className="text-slate-400 hover:text-amber-500"><i className={`${isSaved ? 'fa-solid text-amber-500' : 'fa-regular'} fa-bookmark`}></i></button></div><h4 className="font-bold text-slate-900 mt-2">{item.title}</h4><p className="text-slate-400 text-xs">{item.sizeLabel || item.size}</p></div><div className="grid grid-cols-2 gap-2"><button onClick={() => openReaderModal(id)} className="bg-amber-400 hover:bg-amber-300 text-slate-950 font-bold py-2 rounded-lg text-xs"><i className="fa-solid fa-expand mr-1"></i> Full Page View</button><button onClick={() => downloadBook(id)} className="bg-indigo-900 hover:bg-indigo-800 text-white font-semibold py-2 rounded-lg text-xs"><i className="fa-solid fa-download mr-1"></i> Download</button></div></div>); })}</div>
+                            {libraryFilter !== 'ALL' && (
+                                <div className="mb-4 flex flex-wrap items-center justify-between gap-2 bg-amber-50 border border-amber-200 rounded-xl px-4 py-2">
+                                    <p className="text-xs font-semibold text-amber-900">Showing resources for: {libraryFilter}</p>
+                                    <button onClick={() => setLibraryFilter('ALL')} className="text-xs font-bold text-amber-900 underline">Show all resources</button>
+                                </div>
+                            )}
+                            {filteredLibrary.length === 0 && (
+                                <div className="mb-4 bg-slate-50 p-6 rounded-xl border border-slate-200 text-xs text-slate-700">
+                                    No library resources for <strong>{libraryFilter}</strong> yet.
+                                    <button onClick={() => setLibraryFilter('ALL')} className="ml-1 underline font-bold text-indigo-700">Show all resources</button>
+                                </div>
+                            )}
+                            <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-4 max-h-[75vh] overflow-y-auto pr-1">{filteredLibrary.map((item, i) => { const id = item._id || item.id || i; const isSaved = savedBooks.includes(String(id)); return (<div key={id} className="bg-slate-50 p-4 rounded-xl border border-slate-200 flex flex-col justify-between space-y-3"><div><div className="flex justify-between items-start"><span className="text-[10px] font-bold bg-indigo-100 text-indigo-900 px-2 py-0.5 rounded">{item.category || item.cat}</span><button onClick={() => toggleBookmarkBook(id)} aria-label={isSaved ? 'Remove this book from favorites' : 'Save this book to favorites'} title={isSaved ? 'Remove from favorites' : 'Save to favorites'} className="text-slate-400 hover:text-amber-500"><i className={`${isSaved ? 'fa-solid text-amber-500' : 'fa-regular'} fa-bookmark`}></i></button></div><h4 className="font-bold text-slate-900 mt-2">{item.title}</h4><p className="text-slate-500 text-xs">{item.sizeLabel || item.size}</p></div><div className="grid grid-cols-2 gap-2"><button onClick={() => openReaderModal(id)} className="bg-amber-400 hover:bg-amber-300 text-slate-950 font-bold py-2 rounded-lg text-xs"><i className="fa-solid fa-expand mr-1"></i> Full Page View</button><button onClick={() => downloadBook(id)} className="bg-indigo-900 hover:bg-indigo-800 text-white font-semibold py-2 rounded-lg text-xs"><i className="fa-solid fa-download mr-1"></i> Download</button></div></div>); })}</div>
                         </div>
                     </section>
                 )}
@@ -1312,7 +1576,7 @@ export default function App() {
                             <div className="space-y-6">
                                 {!currentUser && <div className="bg-amber-50 p-8 text-center text-amber-900 rounded-2xl border border-amber-200 text-sm"><i className="fa-solid fa-lock mr-2"></i>Please <button onClick={()=>setAuthModalOpen(true)} className="font-bold underline">login or register</button> to view and save your favorites.</div>}
                                 {currentUser && <>
-                                {(savedSubFilter === 'ALL' || savedSubFilter === 'MCQS') && savedM.length > 0 && <div className="space-y-3"><h3 className="font-bold text-slate-800 text-sm">Saved MCQs ({savedM.length})</h3>{savedM.map((m) => { const id = m._id || m.id; return (<div key={id} onClick={() => { setActiveTab('homeTab'); setTimeout(() => { const el = document.getElementById(`mcq-card-${id}`); if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' }); }, 100); }} className="bg-slate-50 p-4 rounded-xl border border-slate-200 cursor-pointer hover:bg-slate-100 transition"><div className="flex justify-between items-center mb-2"><span className="bg-indigo-100 text-indigo-900 text-[10px] font-bold px-2 py-0.5 rounded">{m.category}</span><button onClick={(e) => { e.stopPropagation(); toggleBookmarkMcq(id); }} className="text-rose-600 text-xs font-bold">Remove</button></div><p className="font-bold text-slate-900 text-xs">{m.question}</p></div>); })}</div>}
+                                {(savedSubFilter === 'ALL' || savedSubFilter === 'MCQS') && savedM.length > 0 && <div className="space-y-3"><h3 className="font-bold text-slate-800 text-sm">Saved MCQs ({savedM.length})</h3>{savedM.map((m) => { const id = m._id || m.id; return (<div key={id} onClick={() => { navigate(`/mcq/${id}`); }} className="bg-slate-50 p-4 rounded-xl border border-slate-200 cursor-pointer hover:bg-slate-100 transition"><div className="flex justify-between items-center mb-2 gap-2"><span className="bg-indigo-100 text-indigo-900 text-[10px] font-bold px-2 py-0.5 rounded">{m.category}</span><div className="flex items-center gap-2"><button onClick={(e) => { e.stopPropagation(); shareMcq(m); }} aria-label="Share this MCQ on WhatsApp" title="Share on WhatsApp" className="text-emerald-700 hover:text-emerald-800 text-xs"><i className="fa-brands fa-whatsapp"></i></button><button onClick={(e) => { e.stopPropagation(); copyMcq(m); }} aria-label="Copy link to this MCQ" title="Copy link" className="text-slate-500 hover:text-indigo-700 text-xs"><i className="fa-solid fa-link"></i></button><button onClick={(e) => { e.stopPropagation(); toggleBookmarkMcq(id); }} className="text-rose-600 text-xs font-bold">Remove</button></div></div><p className="font-bold text-slate-900 text-xs">{m.question}</p></div>); })}</div>}
                                 {(savedSubFilter === 'ALL' || savedSubFilter === 'VOCAB') && savedV.length > 0 && <div className="space-y-3"><h3 className="font-bold text-slate-800 text-sm">Saved Vocab ({savedV.length})</h3>{savedV.map((w, i) => { const id = w._id || w.id || i; return (<div key={id} onClick={() => { setActiveTab('dawnTab'); }} className="bg-slate-50 p-4 rounded-xl border border-slate-200 flex justify-between items-center text-xs cursor-pointer hover:bg-slate-100 transition"><div><strong className="text-indigo-950">{w.word}</strong> - {w.urdu}</div><button onClick={(e) => { e.stopPropagation(); toggleBookmarkVocab(id); }} className="text-rose-600 font-bold">Remove</button></div>); })}</div>}
                                 {(savedSubFilter === 'ALL' || savedSubFilter === 'ARTICLES') && savedA.length > 0 && <div className="space-y-3"><h3 className="font-bold text-slate-800 text-sm">Saved Articles ({savedA.length})</h3>{savedA.map((a, i) => { const id = a._id || a.id || i; return (<div key={id} onClick={() => { setReaderData({ title: a.title, cat: `Editorial Essay • ${a.category}`, type: 'text', content: a.content }); setReaderOpen(true); }} className="bg-slate-50 p-4 rounded-xl border border-slate-200 flex justify-between items-center text-xs cursor-pointer hover:bg-slate-100 transition"><div><strong className="text-slate-900">{a.title}</strong></div><button onClick={(e) => { e.stopPropagation(); toggleBookmarkArticle(id); }} className="text-rose-600 font-bold">Remove</button></div>); })}</div>}
                                 {(savedSubFilter === 'ALL' || savedSubFilter === 'BOOKS') && savedB.length > 0 && <div className="space-y-3"><h3 className="font-bold text-slate-800 text-sm">Saved Books ({savedB.length})</h3>{savedB.map((b, i) => { const id = b._id || b.id || i; return (<div key={id} onClick={() => { openReaderModal(id); }} className="bg-slate-50 p-4 rounded-xl border border-slate-200 flex justify-between items-center text-xs cursor-pointer hover:bg-slate-100 transition"><div><strong className="text-slate-900">{b.title}</strong></div><button onClick={(e) => { e.stopPropagation(); toggleBookmarkBook(id); }} className="text-rose-600 font-bold">Remove</button></div>); })}</div>}
