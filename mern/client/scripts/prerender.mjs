@@ -18,6 +18,7 @@ import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { toSlug } from '../src/lib/seoPaths.js';
+import { INFO_PAGE_LIST } from '../src/lib/infoContent.js';
 
 const SITE_URL = 'https://examinpocket.com';
 const API_BASE = process.env.PRERENDER_API || 'https://api.examinpocket.com/api';
@@ -183,8 +184,29 @@ function pageShell(heading, intro, body) {
         intro ? `<p style="margin:0 0 20px;color:#334155">${esc(intro)}</p>` : '',
         body,
         '<p style="margin-top:28px;font-size:13px;color:#475569">ExamInPocket.com - MCQs, past papers, Dawn vocabulary, mock tests and an AI tutor for CSS, PMS, PCS, CCE, PPSC, FPSC and SPSC candidates in Pakistan.</p>',
+        '<nav style="margin-top:18px;padding-top:14px;border-top:1px solid #e2e8f0;font-size:13px;color:#475569"><a href="/about" style="color:#4338ca;margin-right:16px">About Us</a><a href="/privacy" style="color:#4338ca;margin-right:16px">Privacy Policy</a><a href="/terms" style="color:#4338ca;margin-right:16px">Terms of Use</a><a href="/disclaimer" style="color:#4338ca">Disclaimer</a></nav>',
         '</div>',
     ].join('\n');
+}
+
+function infoBody(page) {
+    return page.sections
+        .map((section) => {
+            const paragraphs = section.paragraphs
+                .map((paragraph) => `<p style="margin:0 0 10px">${esc(paragraph)}</p>`)
+                .join('\n');
+            const list = Array.isArray(section.list) && section.list.length
+                ? `<ul style="margin:0 0 12px;padding-left:20px">${section.list
+                      .map((item) => `<li style="margin-bottom:5px">${esc(item)}</li>`)
+                      .join('')}</ul>`
+                : '';
+            return [
+                `<h2 style="font-size:19px;margin:22px 0 8px">${esc(section.heading)}</h2>`,
+                paragraphs,
+                list,
+            ].join('\n');
+        })
+        .join('\n');
 }
 
 function mcqBody(mcq, categoryName, slug) {
@@ -323,6 +345,28 @@ async function main() {
         html = applyStructuredData(html, { title, url, crumbs: [] });
         html = withContent(html, pageShell('My Saved Items', 'Sign in to see your saved MCQs, vocabulary, articles and books.', ''));
         await write('/saved', html);
+    }
+
+    // Public information pages (About, Privacy, Terms, Disclaimer).
+    for (const page of INFO_PAGE_LIST) {
+        const url = absolute(page.path);
+        const body = [
+            infoBody(page),
+            `<p style="margin-top:22px;font-size:13px;color:#475569">Last updated: ${esc(page.updated)}. Questions or corrections? Email <a href="mailto:${esc(page.contactEmail)}" style="color:#4338ca">${esc(page.contactEmail)}</a>.</p>`,
+        ].join('\n');
+
+        let html = applyMeta(template, {
+            title: page.title,
+            description: page.description,
+            url,
+        });
+        html = applyStructuredData(html, {
+            title: page.title,
+            url,
+            crumbs: [{ name: 'Home', path: '/' }, { name: page.heading, path: page.path }],
+        });
+        html = withContent(html, pageShell(page.heading, page.intro, body));
+        await write(page.path, html);
     }
 
     // Category pages.

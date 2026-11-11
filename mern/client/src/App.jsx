@@ -4,6 +4,8 @@ import { api } from './lib/api.js';
 import { toSlug, fromSlug, findCategoryBySlug } from './lib/seoPaths.js';
 import { setPageMeta, resetPageMeta } from './lib/seoMeta.js';
 import { buildMcqShareMessage, shareOnWhatsApp, copyMcqLink } from './lib/share.js';
+import { INFO_PAGES } from './lib/infoContent.js';
+import { AboutPage, PrivacyPage, TermsPage, DisclaimerPage } from './pages/InfoPages.jsx';
 
 function showToast(msg, type = 'success') {
     const container = document.getElementById('toastContainer');
@@ -123,6 +125,10 @@ const TAB_PATHS = {
     libraryTab: '/library',
     savedTab: '/saved',
     aiTab: '/ai-tutor',
+    aboutTab: '/about',
+    privacyTab: '/privacy',
+    termsTab: '/terms',
+    disclaimerTab: '/disclaimer',
 };
 
 const PATH_TO_TAB = Object.fromEntries(
@@ -164,6 +170,26 @@ const TAB_META = {
         title: 'AI Exam Tutor for CSS and PMS Preparation - ExamInPocket',
         description: 'Ask the ExamInPocket AI tutor for study plans, essay tips, current affairs guidance and MCQ explanations for CSS, PMS and competitive exams.',
         path: '/ai-tutor',
+    },
+    aboutTab: {
+        title: INFO_PAGES.about.title,
+        description: INFO_PAGES.about.description,
+        path: INFO_PAGES.about.path,
+    },
+    privacyTab: {
+        title: INFO_PAGES.privacy.title,
+        description: INFO_PAGES.privacy.description,
+        path: INFO_PAGES.privacy.path,
+    },
+    termsTab: {
+        title: INFO_PAGES.terms.title,
+        description: INFO_PAGES.terms.description,
+        path: INFO_PAGES.terms.path,
+    },
+    disclaimerTab: {
+        title: INFO_PAGES.disclaimer.title,
+        description: INFO_PAGES.disclaimer.description,
+        path: INFO_PAGES.disclaimer.path,
     },
 };
 
@@ -1686,6 +1712,11 @@ export default function App() {
                     </section>
                 )}
 
+                {activeTab === 'aboutTab' && <AboutPage />}
+                {activeTab === 'privacyTab' && <PrivacyPage />}
+                {activeTab === 'termsTab' && <TermsPage />}
+                {activeTab === 'disclaimerTab' && <DisclaimerPage />}
+
                 {activeTab === 'adminTab' && null}
 
                 {activeTab === 'adminPanelTab' && currentUser?.role === 'admin' && (
@@ -1811,6 +1842,12 @@ export default function App() {
             </main>
 
             <footer className="mt-12 bg-slate-900 text-slate-400 py-8 border-t border-slate-800 text-xs text-center space-y-4 no-print">
+                <nav aria-label="Site information" className="flex flex-wrap items-center justify-center gap-x-5 gap-y-2 text-xs font-semibold">
+                    <a href="/about" onClick={(e) => { e.preventDefault(); switchTab('aboutTab'); }} className="hover:text-amber-400 transition">About Us</a>
+                    <a href="/privacy" onClick={(e) => { e.preventDefault(); switchTab('privacyTab'); }} className="hover:text-amber-400 transition">Privacy Policy</a>
+                    <a href="/terms" onClick={(e) => { e.preventDefault(); switchTab('termsTab'); }} className="hover:text-amber-400 transition">Terms of Use</a>
+                    <a href="/disclaimer" onClick={(e) => { e.preventDefault(); switchTab('disclaimerTab'); }} className="hover:text-amber-400 transition">Disclaimer</a>
+                </nav>
                 <p className="text-slate-500">© {new Date().getFullYear()} ExamInPocket.com — All Rights Reserved.</p>
             </footer>
         </div>
