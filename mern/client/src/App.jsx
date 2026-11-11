@@ -402,10 +402,12 @@ export default function App() {
     // Per-page title / description / canonical for every tab and category page.
     useEffect(() => {
         const rawPath = location.pathname.replace(/\/+$/, '') || '/';
-        // Deep links and category pages set their own metadata (see URL sync).
-        if (deepLinkId || /^\/mcq\/[^/]+$/.test(rawPath) || /^\/mcqs\/[^/]+$/.test(rawPath)) return;
-        // A category URL already set its own metadata in the URL sync effect.
+        // Deep links set their own metadata (see URL sync / deep-link effect).
+        if (deepLinkId || /^\/mcq\/[^/]+$/.test(rawPath)) return;
+        // Category URLs already set slug-based metadata; once the real category
+        // name is resolved, fall through so the title matches the prerendered HTML.
         if (pendingCategorySlug) return;
+        if (/^\/mcqs\/[^/]+$/.test(rawPath) && activeCategory === 'ALL') return;
         if (activeTab === 'homeTab' && activeCategory !== 'ALL') {
             setPageMeta({
                 title: `${activeCategory} MCQs with Answers - ExamInPocket`,
