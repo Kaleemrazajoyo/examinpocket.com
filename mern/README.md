@@ -76,6 +76,13 @@ npm run import-legacy -w server -- ../path/to/export.json --dry-run
 
 See `server/.env.example` for all options.
 
+## Content updates
+
+- **Rivers of the World** — 37 MCQs (General Knowledge → Rivers of the World) with explanations and answer keys.
+- **Oceans and Seas** — 2 MCQs (General Knowledge → Oceans and Seas).
+
+Content changes are stored in MongoDB; push any commit to rebuild the prerendered pages and sitemap.
+
 ## Production notes
 
 - Put `JWT_SECRET` behind a real secret manager.
